@@ -41,8 +41,15 @@ a { color: inherit; }
 }
 .btn-primary { background: var(--crimson); color: var(--on-navy); }
 .btn-primary:hover { filter: brightness(1.08); }
-.btn-secondary { background: transparent; border-color: var(--gold); color: var(--gold); }
+.btn-secondary { background: transparent; border-color: var(--gold); color: var(--gold-text); }
 .btn-secondary:hover { background: var(--gold); color: var(--navy); }
+
+/* Sections with a navy background need the brighter gold-on-navy text
+   variant — --gold-text is tuned for light backgrounds and would fail
+   contrast here. */
+.section-navy { background: var(--navy); color: var(--on-navy); }
+.section-navy .btn-secondary { border-color: var(--gold-on-navy); color: var(--gold-on-navy); }
+.section-navy .btn-secondary:hover { background: var(--gold-on-navy); color: var(--navy); }
 
 /* Card */
 .card {
@@ -314,7 +321,7 @@ a { color: inherit; }
 .modal-header { position: relative; margin-bottom: 1rem; }
 .form-status { font-size: 0.85rem; margin-top: 0.75rem; min-height: 1.2em; }
 .form-status.is-error { color: var(--crimson); }
-.form-status.is-success { color: var(--gold); }
+.form-status.is-success { color: var(--gold-text); }
 
 /* Glass surfaces (hero panels, floating cards) */
 .glass-panel {
@@ -335,4 +342,31 @@ a { color: inherit; }
 
 @media (max-width: 860px) {
   .grid-2, .grid-3, .grid-4, .grid-5, .split { grid-template-columns: 1fr; }
+}
+
+/* Accessibility: skip-to-content link and visible focus states */
+.skip-link {
+  position: absolute;
+  top: -3rem;
+  left: 0.5rem;
+  z-index: 100;
+  background: var(--navy);
+  color: var(--on-navy);
+  padding: 0.6rem 1rem;
+  border-radius: 0.375rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+.skip-link:focus { top: 0.5rem; }
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--crimson);
+  outline-offset: 2px;
 }

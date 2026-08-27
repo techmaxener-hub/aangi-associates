@@ -80,7 +80,15 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
             </div>
             <div className="col-span-2 space-y-1.5 sm:col-span-1">
               <Label htmlFor="c-phone">Phone</Label>
-              <Input id="c-phone" required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <Input
+                id="c-phone"
+                type="tel"
+                required
+                pattern="[0-9+\-\s()]{7,15}"
+                title="Enter a valid phone number (7-15 digits)"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              />
             </div>
             <div className="col-span-2 space-y-1.5 sm:col-span-1">
               <Label htmlFor="c-email">Email</Label>
@@ -132,7 +140,7 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
                   <td className="px-4 py-2.5 text-text-soft">{c.city ?? "—"}</td>
                   <td className="px-4 py-2.5 text-text-soft">{c.household_name ?? "—"}</td>
                   <td className="px-4 py-2.5 text-right">
-                    <Link to={`${basePath}/clients/${c.id}`} className="text-sm font-medium text-gold hover:underline">
+                    <Link to={`${basePath}/clients/${c.id}`} className="text-sm font-medium text-gold-text hover:underline">
                       View →
                     </Link>
                   </td>

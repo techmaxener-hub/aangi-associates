@@ -236,7 +236,7 @@ export function BulkLeadUpload() {
                       {r.isDuplicate ? (
                         <span className="text-crimson">Duplicate — skipped</span>
                       ) : (
-                        <span className="text-gold">Ready</span>
+                        <span className="text-gold-text">Ready</span>
                       )}
                     </td>
                   </tr>

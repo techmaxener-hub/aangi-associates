@@ -18,6 +18,7 @@
     form.addEventListener("submit", function (event) {
       event.preventDefault();
       var status = form.querySelector("[data-form-status]");
+      var submitBtn = form.querySelector('button[type="submit"]');
 
       var missing = (opts.required || []).filter(function (name) {
         return !fieldValue(form, name);
@@ -32,6 +33,11 @@
         return;
       }
 
+      // Guard against a double-click opening two WhatsApp tabs — this is a
+      // synchronous, client-only action (no server round-trip), so a short
+      // re-enable delay is enough rather than a real async "saving" state.
+      if (submitBtn) submitBtn.disabled = true;
+
       var message = opts.buildMessage(function (name) { return fieldValue(form, name); });
       var link = buildWhatsAppLink(opts.phone || ADVISOR_PHONE, message);
 
@@ -42,6 +48,12 @@
       }
 
       window.open(link, "_blank", "noopener");
+
+      if (submitBtn) {
+        window.setTimeout(function () {
+          submitBtn.disabled = false;
+        }, 1500);
+      }
     });
   }
 

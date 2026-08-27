@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import { Button } from "../components/ui/button";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 
 interface NavItem {
   label: string;
@@ -21,6 +22,12 @@ export function PortalLayout({
 
   return (
     <div className="flex min-h-screen bg-bg text-text">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded-md focus:bg-navy focus:px-4 focus:py-2 focus:text-on-navy"
+      >
+        Skip to content
+      </a>
       <aside className="flex w-56 flex-col justify-between border-r border-line bg-navy p-4 text-on-navy">
         <div>
           <p className="mb-6 font-display text-lg">Aangi Associates</p>
@@ -48,9 +55,9 @@ export function PortalLayout({
           </Button>
         </div>
       </aside>
-      <main className="flex-1 p-8">
+      <main id="main-content" className="flex-1 p-8">
         <h1 className="mb-6 font-display text-2xl">{title}</h1>
-        {children}
+        <ErrorBoundary>{children}</ErrorBoundary>
       </main>
     </div>
   );

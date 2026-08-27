@@ -61,7 +61,7 @@ function SnippetBlock({ label, code, onCopy }: { label: string; code: string; on
     <div className="space-y-1.5">
       <p className="text-sm font-semibold text-text">{label}</p>
       <div className="relative">
-        <pre className="max-h-40 overflow-auto rounded-lg border border-line bg-surface-2 p-3 text-[11px] text-gold">
+        <pre className="max-h-40 overflow-auto rounded-lg border border-line bg-surface-2 p-3 text-[11px] text-gold-text">
           <code>{code}</code>
         </pre>
         <Button variant="ghost" size="sm" onClick={onCopy} className="absolute right-2 top-2">

@@ -104,7 +104,14 @@ export function CandidatesPage() {
             </div>
             <div className="col-span-2 space-y-1.5 sm:col-span-1">
               <Label>Phone</Label>
-              <Input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <Input
+                type="tel"
+                required
+                pattern="[0-9+\-\s()]{7,15}"
+                title="Enter a valid phone number (7-15 digits)"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              />
             </div>
             <div className="col-span-2 space-y-1.5 sm:col-span-1">
               <Label>Email</Label>

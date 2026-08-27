@@ -16,6 +16,11 @@ export default {
         "on-navy": "var(--on-navy)",
         crimson: "var(--crimson)",
         gold: "var(--gold)",
+        // Accessible text variants of --gold — see packages/ui/tokens.css
+        // for the contrast rationale. Use these for small/body-sized gold
+        // text; keep `gold` for borders, backgrounds, and large text.
+        "gold-text": "var(--gold-text)",
+        "gold-on-navy": "var(--gold-on-navy)",
       },
       fontFamily: {
         display: ["Fraunces", "Georgia", "serif"],

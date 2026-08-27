@@ -12,6 +12,16 @@
   --on-navy: #f6f3ea;
   --crimson: #9c1c30;
   --gold: #8f6f26;
+  /* Accessible text variants of --gold: the brand gold itself is ~4.3:1
+     against --bg and ~3.1:1 against --navy — under the 4.5:1 WCAG AA
+     threshold for normal-size text in both cases. These are darker/
+     brighter derivatives for actual text use, kept separate from --gold
+     (a locked brand token) so borders/backgrounds/large text keep the
+     original brand color. --gold-text: 6.5:1 against --bg. --gold-on-navy
+     (constant across themes, since --navy is always dark): 7.6:1 against
+     --navy. */
+  --gold-text: #6b5518;
+  --gold-on-navy: #d9b96a;
 
   --font-display: "Fraunces", Georgia, serif;
   --font-body: "Public Sans", -apple-system, Segoe UI, sans-serif;
@@ -34,6 +44,7 @@
     --on-navy: #f2eee0;
     --crimson: #e2687a;
     --gold: #d9b96a;
+    --gold-text: #d9b96a;
   }
 }
 
@@ -49,4 +60,5 @@
   --on-navy: #f2eee0;
   --crimson: #e2687a;
   --gold: #d9b96a;
+  --gold-text: #d9b96a;
 }

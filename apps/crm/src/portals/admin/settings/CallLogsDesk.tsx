@@ -31,7 +31,7 @@ const ADVISOR_PHONE = "919033132791";
 
 const INTENT_STYLES: Record<string, string> = {
   high: "bg-surface-2 text-crimson border-crimson/40",
-  medium: "bg-surface-2 text-gold border-gold/40",
+  medium: "bg-surface-2 text-gold-text border-gold/40",
   low: "bg-surface-2 text-text-soft border-line-strong",
 };
 
@@ -137,7 +137,14 @@ export function CallLogsDesk() {
             </div>
             <div className="space-y-1.5">
               <Label>Contact Number</Label>
-              <Input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <Input
+                type="tel"
+                required
+                pattern="[0-9+\-\s()]{7,15}"
+                title="Enter a valid phone number (7-15 digits)"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Source Channel</Label>
@@ -227,10 +234,10 @@ export function CallLogsDesk() {
                   </td>
                   <td className="px-4 py-2.5">
                     <div className="flex flex-col gap-1 text-xs">
-                      <button onClick={() => warmHandoff(c)} className="text-left text-gold hover:underline">
+                      <button onClick={() => warmHandoff(c)} className="text-left text-gold-text hover:underline">
                         Warm Handoff
                       </button>
-                      <button onClick={() => dispatchWhatsApp(c)} className="text-left text-gold hover:underline">
+                      <button onClick={() => dispatchWhatsApp(c)} className="text-left text-gold-text hover:underline">
                         Dispatch WhatsApp
                       </button>
                       <button onClick={() => void requeue(c)} className="text-left text-text-soft hover:underline">

@@ -86,7 +86,15 @@ export function ManualLeadEntry() {
         </div>
         <div className="col-span-2 space-y-1.5 sm:col-span-1">
           <Label htmlFor="lead-phone">Mobile Number</Label>
-          <Input id="lead-phone" type="tel" required value={form.phone} onChange={(e) => update("phone", e.target.value)} />
+          <Input
+            id="lead-phone"
+            type="tel"
+            required
+            pattern="[0-9+\-\s()]{7,15}"
+            title="Enter a valid phone number (7-15 digits)"
+            value={form.phone}
+            onChange={(e) => update("phone", e.target.value)}
+          />
         </div>
         <div className="col-span-2 space-y-1.5 sm:col-span-1">
           <Label htmlFor="lead-email">Email</Label>

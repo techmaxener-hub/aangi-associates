@@ -25,13 +25,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body data-page="associate">
+<a href="#main-content" class="skip-link">Skip to content</a>
 
 <div data-include="header" data-include-base="../../packages/ui/partials"></div>
 
-<main>
+<main id="main-content">
 
   <!-- Hero -->
-  <section class="section" id="hero" style="background: var(--navy); color: var(--on-navy);">
+  <section class="section section-navy" id="hero">
     <div class="container section-header reveal">
       <h1 style="color: inherit;">Build your own advisory practice — under a leader who's already built his.</h1>
       <p style="color: inherit; opacity: 0.85; font-weight: 600;">The CBA Mentorship Wing at Aangi Associates</p>
@@ -114,7 +115,7 @@
       </div>
       <div class="field">
         <label for="apply-phone">Phone</label>
-        <input id="apply-phone" name="phone" type="tel" required autocomplete="tel">
+        <input id="apply-phone" name="phone" type="tel" required autocomplete="tel" pattern="[0-9+\-\s()]{7,15}" title="Enter a valid phone number (7-15 digits)">
       </div>
       <div class="field">
         <label for="apply-city">City</label>

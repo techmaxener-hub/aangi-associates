@@ -167,7 +167,7 @@ export function IntegrationCard({ def, presets }: { def: IntegrationDef; presets
                         <button
                           type="button"
                           onClick={() => copyValue(values[field.key] ?? "")}
-                          className="absolute right-2 flex items-center gap-1 rounded border border-line bg-surface-2 px-2 py-1 text-[11px] text-gold"
+                          className="absolute right-2 flex items-center gap-1 rounded border border-line bg-surface-2 px-2 py-1 text-[11px] text-gold-text"
                         >
                           <Copy className="h-3 w-3" /> Copy
                         </button>
@@ -202,7 +202,7 @@ export function IntegrationCard({ def, presets }: { def: IntegrationDef; presets
 
 function StatusBadge({ status }: { status: Status }) {
   const styles: Record<Status, string> = {
-    connected: "bg-surface-2 text-gold border-gold/40",
+    connected: "bg-surface-2 text-gold-text border-gold/40",
     disconnected: "bg-surface-2 text-text-soft border-line-strong",
     pending: "bg-surface-2 text-crimson border-crimson/40",
   };

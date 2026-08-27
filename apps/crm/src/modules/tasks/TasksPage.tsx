@@ -195,7 +195,7 @@ export function TasksPage({ navItems, basePath }: { navItems: NavItem[]; basePat
                       </p>
                       {t.linked_client && (
                         <p className="mt-1 text-xs">
-                          <Link to={`${basePath}/clients/${t.linked_client.id}`} className="text-gold hover:underline">
+                          <Link to={`${basePath}/clients/${t.linked_client.id}`} className="text-gold-text hover:underline">
                             Client: {t.linked_client.full_name}
                           </Link>
                         </p>

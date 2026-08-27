@@ -51,6 +51,8 @@ export function LoginPhone() {
                 id="phone"
                 type="tel"
                 placeholder="+91XXXXXXXXXX"
+                pattern="\+?[0-9]{10,15}"
+                title="Enter your number with country code, e.g. +919876543210"
                 required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}

@@ -98,7 +98,7 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
   if (!client) {
     return (
       <PortalLayout title="Client not found" navItems={navItems}>
-        <Link to={`${basePath}/clients`} className="text-gold hover:underline">
+        <Link to={`${basePath}/clients`} className="text-gold-text hover:underline">
           ← Back to clients
         </Link>
       </PortalLayout>
@@ -120,7 +120,7 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
 
       {gapCategories.length > 0 && (
         <div className="mb-6 rounded-lg border border-gold/40 bg-surface-2 p-3 text-xs text-text">
-          <span className="font-semibold text-gold">Cross-sell signal:</span> no active cover in {gapCategories.join(", ")}.
+          <span className="font-semibold text-gold-text">Cross-sell signal:</span> no active cover in {gapCategories.join(", ")}.
         </div>
       )}
 
@@ -148,7 +148,7 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
           <p className="text-sm">
             <span className="font-semibold text-text">Portal access: </span>
             {client.portal_user_id ? (
-              <span className="text-gold">Active</span>
+              <span className="text-gold-text">Active</span>
             ) : (
               <span className="text-text-soft">
                 Not yet activated — it links automatically the first time {client.full_name} logs in with phone{" "}
@@ -316,7 +316,7 @@ function PoliciesTab({
                           href={`https://wa.me/${waPhone}?text=${encodeURIComponent(reminderMessage)}`}
                           target="_blank"
                           rel="noopener"
-                          className="text-xs font-medium text-gold hover:underline"
+                          className="text-xs font-medium text-gold-text hover:underline"
                         >
                           Remind via WhatsApp →
                         </a>
@@ -574,7 +574,7 @@ function CommunicationsTab({
         <ul className="space-y-2">
           {comms.map((c) => (
             <li key={c.id} className="rounded-lg border border-line bg-surface p-3 text-sm">
-              <span className="font-medium capitalize text-gold">{c.channel}</span>{" "}
+              <span className="font-medium capitalize text-gold-text">{c.channel}</span>{" "}
               <span className="text-text-soft">· {formatDate(c.occurred_at)}</span>
               <p className="text-text">{c.notes}</p>
             </li>

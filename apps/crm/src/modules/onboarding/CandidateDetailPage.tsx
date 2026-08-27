@@ -78,7 +78,7 @@ export function CandidateDetailPage() {
   if (!candidate) {
     return (
       <PortalLayout title="Candidate not found" navItems={adminNavItems}>
-        <Link to="/admin/team" className="text-gold hover:underline">
+        <Link to="/admin/team" className="text-gold-text hover:underline">
           ← Back to onboarding
         </Link>
       </PortalLayout>

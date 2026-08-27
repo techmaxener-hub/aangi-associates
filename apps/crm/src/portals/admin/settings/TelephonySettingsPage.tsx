@@ -15,7 +15,7 @@ export function TelephonySettingsPage() {
   return (
     <PortalLayout title="Telephony & AI Calling Agents" navItems={adminNavItems}>
       <div className="mb-6 rounded-lg border border-line bg-surface-2 p-3 text-xs text-text-soft">
-        <span className="font-semibold text-gold">Honest status:</span> credential storage below is real (Supabase,
+        <span className="font-semibold text-gold-text">Honest status:</span> credential storage below is real (Supabase,
         admin-only RLS). Nothing here can actually place or answer a call yet — that needs a real Exotel/Sarvam/
         TeleCRM/SquadStack account and a deployed webhook receiver, neither of which exist. "Test" buttons simulate a
         result; the Call Logs Desk is a real table that fills automatically once that receiver ships.
