@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Printer } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useToast } from "../../components/ui/toast";
 import { Button } from "../../components/ui/button";
@@ -112,12 +112,19 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
 
   return (
     <PortalLayout title={client.full_name} navItems={navItems}>
-      <Link
-        to={`${basePath}/clients`}
-        className="mb-4 inline-flex items-center gap-1 text-sm text-text-soft hover:text-text"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" /> Back to clients
-      </Link>
+      <PrintableClientSummary client={client} policies={policies} />
+
+      <div className="mb-4 flex items-center justify-between">
+        <Link
+          to={`${basePath}/clients`}
+          className="inline-flex items-center gap-1 text-sm text-text-soft hover:text-text"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to clients
+        </Link>
+        <Button variant="ghost" size="sm" onClick={() => window.print()}>
+          <Printer className="h-3.5 w-3.5" /> Print Summary
+        </Button>
+      </div>
 
       <div className="mb-6 grid grid-cols-4 gap-4 text-sm">
         <InfoItem label="Phone" value={client.phone} />
@@ -180,6 +187,84 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
       {tab === "claims" && <ClaimsTab clientId={client.id} policies={policies} claims={claims} onChange={loadAll} />}
       {tab === "communications" && <CommunicationsTab clientId={client.id} comms={comms} onChange={loadAll} />}
     </PortalLayout>
+  );
+}
+
+// Rendered off-screen at all times; packages/ui's print stylesheet
+// (apps/crm/src/index.css) makes this the only visible thing when the
+// user prints, regardless of which tab is open on screen.
+function PrintableClientSummary({ client, policies }: { client: Client; policies: ClientPolicy[] }) {
+  return (
+    <div className="print-only text-black">
+      <div className="mb-6 flex items-center justify-between border-b-2 border-black pb-3">
+        <div>
+          <p className="text-xl font-bold">Aangi Associates</p>
+          <p className="text-xs">Policy Summary — Generated {formatDate(new Date().toISOString())}</p>
+        </div>
+        <p className="text-xs">+91 90331 32791</p>
+      </div>
+
+      <div className="mb-6 grid grid-cols-2 gap-2 text-sm">
+        <p>
+          <span className="font-semibold">Client:</span> {client.full_name}
+        </p>
+        <p>
+          <span className="font-semibold">Phone:</span> {client.phone}
+        </p>
+        <p>
+          <span className="font-semibold">Email:</span> {client.email ?? "—"}
+        </p>
+        <p>
+          <span className="font-semibold">City:</span> {client.city ?? "—"}
+        </p>
+        {client.household_name && (
+          <p>
+            <span className="font-semibold">Household:</span> {client.household_name}
+          </p>
+        )}
+      </div>
+
+      <table className="w-full border-collapse text-sm">
+        <thead>
+          <tr className="border-b-2 border-black text-left">
+            <th className="py-1.5 pr-2">Product</th>
+            <th className="py-1.5 pr-2">Insurer</th>
+            <th className="py-1.5 pr-2">Policy No.</th>
+            <th className="py-1.5 pr-2">Sum Assured</th>
+            <th className="py-1.5 pr-2">Premium</th>
+            <th className="py-1.5 pr-2">Renewal</th>
+            <th className="py-1.5">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {policies.length === 0 ? (
+            <tr>
+              <td colSpan={7} className="py-3 text-text-soft">
+                No policies on file.
+              </td>
+            </tr>
+          ) : (
+            policies.map((p) => (
+              <tr key={p.id} className="border-b border-black/20">
+                <td className="py-1.5 pr-2">{p.product_type}</td>
+                <td className="py-1.5 pr-2">{p.insurer}</td>
+                <td className="py-1.5 pr-2">{p.policy_number ?? "—"}</td>
+                <td className="py-1.5 pr-2">{formatINR(p.sum_assured)}</td>
+                <td className="py-1.5 pr-2">{formatINR(p.premium)}</td>
+                <td className="py-1.5 pr-2">{formatDate(p.renewal_date)}</td>
+                <td className="py-1.5 capitalize">{p.status}</td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+
+      <p className="mt-8 text-[10px] text-text-soft">
+        This is a records summary generated from Aangi Associates' internal CRM for reference during a meeting or for
+        your own filing — it is not a policy document. Please refer to your original policy bond and insurer
+        communications for the definitive terms of each policy.
+      </p>
+    </div>
   );
 }
 

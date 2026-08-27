@@ -22,3 +22,28 @@ textarea:focus-visible,
   outline: 2px solid var(--crimson);
   outline-offset: 2px;
 }
+
+/* Print-only content (e.g. the client policy summary): hidden on screen,
+   and the sole thing visible on the printed page regardless of where it
+   sits in the component tree — the standard "print only this element"
+   technique, so no PortalLayout/sidebar/nav changes are needed. */
+.print-only {
+  display: none;
+}
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-only,
+  .print-only * {
+    visibility: visible;
+  }
+  .print-only {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+  }
+}
