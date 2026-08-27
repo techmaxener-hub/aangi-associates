@@ -158,7 +158,9 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
           </p>
         </div>
       )}
-      {tab === "policies" && <PoliciesTab clientId={client.id} policies={policies} onChange={loadAll} />}
+      {tab === "policies" && (
+        <PoliciesTab clientId={client.id} clientName={client.full_name} clientPhone={client.phone} policies={policies} onChange={loadAll} />
+      )}
       {tab === "pipeline" && <PipelineTab clientId={client.id} opportunities={opportunities} onChange={loadAll} />}
       {tab === "claims" && <ClaimsTab clientId={client.id} policies={policies} claims={claims} onChange={loadAll} />}
       {tab === "communications" && <CommunicationsTab clientId={client.id} comms={comms} onChange={loadAll} />}
@@ -175,7 +177,19 @@ function InfoItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PoliciesTab({ clientId, policies, onChange }: { clientId: string; policies: ClientPolicy[]; onChange: () => void }) {
+function PoliciesTab({
+  clientId,
+  clientName,
+  clientPhone,
+  policies,
+  onChange,
+}: {
+  clientId: string;
+  clientName: string;
+  clientPhone: string;
+  policies: ClientPolicy[];
+  onChange: () => void;
+}) {
   const { showToast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -276,12 +290,16 @@ function PoliciesTab({ clientId, policies, onChange }: { clientId: string; polic
                 <th className="px-4 py-2.5">Sum Assured</th>
                 <th className="px-4 py-2.5">Renewal</th>
                 <th className="px-4 py-2.5">Status</th>
+                <th className="px-4 py-2.5" />
               </tr>
             </thead>
             <tbody>
               {policies.map((p) => {
                 const dueIn = daysUntil(p.renewal_date);
                 const soon = dueIn !== null && dueIn <= 60 && dueIn >= 0;
+                const digits = clientPhone.replace(/\D/g, "");
+                const waPhone = digits.length === 10 ? `91${digits}` : digits;
+                const reminderMessage = `Hi ${clientName}, this is a reminder from Aangi Associates that your ${p.product_type} policy is due for renewal on ${formatDate(p.renewal_date)}. Let us know if you'd like to discuss it.`;
                 return (
                   <tr key={p.id} className="border-t border-line">
                     <td className="px-4 py-2.5 text-text">{p.product_type}</td>
@@ -292,6 +310,18 @@ function PoliciesTab({ clientId, policies, onChange }: { clientId: string; polic
                       {soon ? ` (${dueIn}d)` : ""}
                     </td>
                     <td className="px-4 py-2.5 capitalize text-text-soft">{p.status}</td>
+                    <td className="px-4 py-2.5 text-right">
+                      {soon && (
+                        <a
+                          href={`https://wa.me/${waPhone}?text=${encodeURIComponent(reminderMessage)}`}
+                          target="_blank"
+                          rel="noopener"
+                          className="text-xs font-medium text-gold hover:underline"
+                        >
+                          Remind via WhatsApp →
+                        </a>
+                      )}
+                    </td>
                   </tr>
                 );
               })}

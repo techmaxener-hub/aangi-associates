@@ -4,5 +4,6 @@ export const adminNavItems = [
   { label: "Onboarding", href: "/admin/team" },
   { label: "Claim Desk", href: "/admin/claims" },
   { label: "Tasks", href: "/admin/tasks" },
+  { label: "Telephony & AI Calling", href: "/admin/telephony" },
   { label: "Settings", href: "/admin/settings" },
 ];

@@ -5,13 +5,15 @@ import { useToast } from "../../../components/ui/toast";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
+import { Select } from "../../../components/ui/select";
+import { Textarea } from "../../../components/ui/textarea";
 import { defaultCredentials, type IntegrationDef } from "./integrations.config";
 
 type Status = "connected" | "disconnected" | "pending";
 
-export function IntegrationCard({ def }: { def: IntegrationDef }) {
+export function IntegrationCard({ def, presets }: { def: IntegrationDef; presets?: Record<string, string> }) {
   const { showToast } = useToast();
-  const [values, setValues] = useState<Record<string, string>>(() => defaultCredentials(def));
+  const [values, setValues] = useState<Record<string, string>>(() => defaultCredentials(def, presets));
   const [status, setStatus] = useState<Status>("disconnected");
   const [visibleFields, setVisibleFields] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
@@ -32,7 +34,7 @@ export function IntegrationCard({ def }: { def: IntegrationDef }) {
         if (error) {
           console.error("Failed to load integration settings", error);
         } else if (data) {
-          setValues({ ...defaultCredentials(def), ...(data.credentials as Record<string, string>) });
+          setValues({ ...defaultCredentials(def, presets), ...(data.credentials as Record<string, string>) });
           setStatus(data.status as Status);
         }
         setLoading(false);
@@ -108,41 +110,77 @@ export function IntegrationCard({ def }: { def: IntegrationDef }) {
         <div className="space-y-4">
           {def.fields.map((field) => (
             <div key={field.key} className="space-y-1.5">
-              <Label htmlFor={`${def.id}-${field.key}`}>{field.label}</Label>
-              <div className="relative flex items-center">
-                <Input
-                  id={`${def.id}-${field.key}`}
-                  type={field.type === "password" && !visibleFields[field.key] ? "password" : "text"}
-                  readOnly={field.type === "copy"}
-                  value={values[field.key] ?? ""}
-                  onChange={(e) => updateField(field.key, e.target.value)}
-                  className="pr-10 font-mono text-xs"
-                />
-                {field.type === "password" && (
-                  <button
-                    type="button"
-                    onClick={() => setVisibleFields((prev) => ({ ...prev, [field.key]: !prev[field.key] }))}
-                    className="absolute right-2 text-text-soft hover:text-text"
-                    aria-label={visibleFields[field.key] ? "Hide value" : "Show value"}
-                  >
-                    {visibleFields[field.key] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                )}
-                {field.type === "copy" && (
-                  <button
-                    type="button"
-                    onClick={() => copyValue(values[field.key] ?? "")}
-                    className="absolute right-2 flex items-center gap-1 rounded border border-line bg-surface-2 px-2 py-1 text-[11px] text-gold"
-                  >
-                    <Copy className="h-3 w-3" /> Copy
-                  </button>
-                )}
-              </div>
-              {field.type === "copy" && (
-                <p className="text-[11px] text-text-soft">
-                  Points to where a Supabase Edge Function receiver would live — not deployed yet, so this URL isn't
-                  live until that function ships.
-                </p>
+              {field.type === "toggle" ? (
+                <label className="flex items-center justify-between gap-2 rounded-lg border border-line bg-surface-2 p-3 text-sm">
+                  <span className="text-text">{field.label}</span>
+                  <input
+                    type="checkbox"
+                    checked={values[field.key] === "true"}
+                    onChange={(e) => updateField(field.key, e.target.checked ? "true" : "false")}
+                    className="h-4 w-4 rounded border-line-strong"
+                  />
+                </label>
+              ) : (
+                <>
+                  <Label htmlFor={`${def.id}-${field.key}`}>{field.label}</Label>
+                  {field.type === "select" ? (
+                    <Select
+                      id={`${def.id}-${field.key}`}
+                      value={values[field.key] ?? ""}
+                      onChange={(e) => updateField(field.key, e.target.value)}
+                    >
+                      {(field.options ?? []).map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </Select>
+                  ) : field.type === "textarea" ? (
+                    <Textarea
+                      id={`${def.id}-${field.key}`}
+                      rows={6}
+                      value={values[field.key] ?? ""}
+                      onChange={(e) => updateField(field.key, e.target.value)}
+                      className="font-mono text-xs"
+                    />
+                  ) : (
+                    <div className="relative flex items-center">
+                      <Input
+                        id={`${def.id}-${field.key}`}
+                        type={field.type === "password" && !visibleFields[field.key] ? "password" : "text"}
+                        readOnly={field.type === "copy"}
+                        value={values[field.key] ?? ""}
+                        onChange={(e) => updateField(field.key, e.target.value)}
+                        className="pr-10 font-mono text-xs"
+                      />
+                      {field.type === "password" && (
+                        <button
+                          type="button"
+                          onClick={() => setVisibleFields((prev) => ({ ...prev, [field.key]: !prev[field.key] }))}
+                          className="absolute right-2 text-text-soft hover:text-text"
+                          aria-label={visibleFields[field.key] ? "Hide value" : "Show value"}
+                        >
+                          {visibleFields[field.key] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      )}
+                      {field.type === "copy" && (
+                        <button
+                          type="button"
+                          onClick={() => copyValue(values[field.key] ?? "")}
+                          className="absolute right-2 flex items-center gap-1 rounded border border-line bg-surface-2 px-2 py-1 text-[11px] text-gold"
+                        >
+                          <Copy className="h-3 w-3" /> Copy
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {field.type === "copy" && (
+                    <p className="text-[11px] text-text-soft">
+                      Points to where a Supabase Edge Function receiver would live — not deployed yet, so this URL isn't
+                      live until that function ships.
+                    </p>
+                  )}
+                </>
               )}
             </div>
           ))}
@@ -152,7 +190,7 @@ export function IntegrationCard({ def }: { def: IntegrationDef }) {
       <div className="flex items-center justify-between border-t border-line pt-4">
         <Button variant="ghost" size="sm" onClick={handleTest} disabled={testing || loading}>
           {testing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Activity className="h-3.5 w-3.5 text-gold" />}
-          Test Connection
+          {def.testLabel ?? "Test Connection"}
         </Button>
         <Button onClick={() => void handleSave()} disabled={saving || loading}>
           {saving ? "Saving…" : "Save & Activate"}

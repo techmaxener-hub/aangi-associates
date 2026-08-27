@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { useToast } from "../../components/ui/toast";
 import { Button } from "../../components/ui/button";
@@ -144,7 +145,10 @@ export function CandidatesPage() {
               <div className="mb-2 flex items-center justify-between">
                 <div>
                   <p className="font-medium text-text">
-                    {c.full_name} <span className="text-xs font-normal capitalize text-text-soft">· {c.track}</span>
+                    <Link to={`/admin/team/${c.id}`} className="hover:underline">
+                      {c.full_name}
+                    </Link>{" "}
+                    <span className="text-xs font-normal capitalize text-text-soft">· {c.track}</span>
                   </p>
                   <p className="text-xs text-text-soft">
                     {c.phone} · {c.city ?? "—"} · Applied {formatDate(c.created_at)}

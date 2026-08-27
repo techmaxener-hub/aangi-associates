@@ -31,6 +31,32 @@ function parseCsv(text: string): Record<string, string>[] {
   });
 }
 
+async function parseXlsx(buffer: ArrayBuffer): Promise<Record<string, string>[]> {
+  // Dynamically imported — xlsx is a large library, no need to ship it in
+  // the main bundle for admins who only ever use CSV.
+  const XLSX = await import("xlsx");
+  const workbook = XLSX.read(buffer, { type: "array" });
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
+
+  return raw.map((row) => {
+    const normalized: Record<string, string> = {};
+    Object.entries(row).forEach(([key, value]) => {
+      normalized[key.trim().toLowerCase()] = String(value ?? "").trim();
+    });
+    return normalized;
+  });
+}
+
+async function parseFile(file: File): Promise<Record<string, string>[]> {
+  if (file.name.toLowerCase().endsWith(".xlsx") || file.name.toLowerCase().endsWith(".xls")) {
+    const buffer = await file.arrayBuffer();
+    return await parseXlsx(buffer);
+  }
+  const text = await file.text();
+  return parseCsv(text);
+}
+
 function downloadTemplate() {
   const csv = [TEMPLATE_HEADERS.join(","), "Rajesh Patel,9876543210,rajesh@example.com,Ahmedabad,Term"].join("\n");
   const blob = new Blob([csv], { type: "text/csv" });
@@ -52,8 +78,7 @@ export function BulkLeadUpload() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function handleFile(file: File) {
-    const text = await file.text();
-    const parsed = parseCsv(text);
+    const parsed = await parseFile(file);
 
     const phones = parsed.map((r) => r.phone).filter(Boolean);
     const emails = parsed.map((r) => r.email).filter(Boolean);
@@ -139,7 +164,7 @@ export function BulkLeadUpload() {
           <h2 className="flex items-center gap-2 font-display text-base text-text">
             <UploadCloud className="h-5 w-5 text-gold" /> Bulk Lead Import
           </h2>
-          <p className="text-xs text-text-soft">CSV only for now — columns: full_name, phone, email, city, lead_type.</p>
+          <p className="text-xs text-text-soft">CSV or Excel — columns: full_name, phone, email, city, lead_type.</p>
         </div>
         <Button variant="ghost" size="sm" onClick={downloadTemplate}>
           <Download className="h-3.5 w-3.5" /> Sample CSV
@@ -159,12 +184,12 @@ export function BulkLeadUpload() {
         onClick={() => inputRef.current?.click()}
       >
         <FileSpreadsheet className="mx-auto mb-3 h-10 w-10 text-text-soft" />
-        <p className="text-sm font-semibold text-text">Drag & drop your CSV file here, or click to browse</p>
-        <p className="mt-1 text-xs text-text-soft">Excel (.xlsx) import isn't wired up yet — export to CSV first.</p>
+        <p className="text-sm font-semibold text-text">Drag & drop your CSV or Excel file here, or click to browse</p>
+        <p className="mt-1 text-xs text-text-soft">Accepts .csv, .xlsx, and .xls.</p>
         <input
           ref={inputRef}
           type="file"
-          accept=".csv"
+          accept=".csv,.xlsx,.xls"
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0];

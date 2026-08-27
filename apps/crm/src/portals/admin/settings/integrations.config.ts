@@ -16,18 +16,20 @@ import {
   Users,
 } from "lucide-react";
 
-export type FieldType = "text" | "password" | "copy";
+export type FieldType = "text" | "password" | "copy" | "toggle" | "select" | "textarea";
 
 export interface IntegrationField {
   key: string;
   label: string;
   type: FieldType;
+  options?: string[]; // for type: "select"
 }
 
 export interface IntegrationDef {
   id: string;
   name: string;
   category: string;
+  testLabel?: string;
   icon: LucideIcon;
   color: string;
   fields: IntegrationField[];
@@ -213,10 +215,18 @@ export const INTEGRATIONS: IntegrationDef[] = [
   },
 ];
 
-export function defaultCredentials(def: IntegrationDef): Record<string, string> {
+export function defaultCredentials(def: IntegrationDef, presets?: Record<string, string>): Record<string, string> {
   const values: Record<string, string> = {};
   for (const field of def.fields) {
-    values[field.key] = field.type === "copy" ? webhookUrl(def.id) : "";
+    if (field.type === "copy") {
+      values[field.key] = webhookUrl(def.id);
+    } else if (field.type === "toggle") {
+      values[field.key] = "false";
+    } else if (field.type === "select") {
+      values[field.key] = field.options?.[0] ?? "";
+    } else {
+      values[field.key] = presets?.[field.key] ?? "";
+    }
   }
   return values;
 }

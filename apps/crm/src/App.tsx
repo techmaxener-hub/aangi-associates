@@ -20,7 +20,9 @@ import { ClientsListPage } from "./modules/clients/ClientsListPage";
 import { ClientDetailPage } from "./modules/clients/ClientDetailPage";
 import { ClaimsQueuePage } from "./modules/claims/ClaimsQueuePage";
 import { CandidatesPage } from "./modules/onboarding/CandidatesPage";
+import { CandidateDetailPage } from "./modules/onboarding/CandidateDetailPage";
 import { TasksPage } from "./modules/tasks/TasksPage";
+import { TelephonySettingsPage } from "./portals/admin/settings/TelephonySettingsPage";
 
 // import.meta.env.BASE_URL follows vite.config.ts's `base` — "/app/" in a
 // production build (subpath deploy on aa.tmarinternational.com), "/" in dev.
@@ -54,6 +56,7 @@ export default function App() {
               }
             />
             <Route path="/admin/team" element={<RequireRole role="admin"><CandidatesPage /></RequireRole>} />
+            <Route path="/admin/team/:id" element={<RequireRole role="admin"><CandidateDetailPage /></RequireRole>} />
             <Route
               path="/admin/claims"
               element={
@@ -75,6 +78,14 @@ export default function App() {
               element={
                 <RequireRole role="admin">
                   <IntegrationsSettingsPage />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/admin/telephony"
+              element={
+                <RequireRole role="admin">
+                  <TelephonySettingsPage />
                 </RequireRole>
               }
             />
