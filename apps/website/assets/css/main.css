@@ -49,6 +49,17 @@
 /* Compliance note under calculator results */
 .disclaimer { font-size: 0.8rem; color: var(--text-soft); font-style: italic; }
 
+/* Term vs Endowment vs ULIP comparator */
+.comparator-table { width: 100%; border-collapse: collapse; min-width: 640px; }
+.comparator-table th, .comparator-table td {
+  padding: 0.85rem 1rem; text-align: left; border-bottom: 1px solid var(--line); font-size: 0.9rem;
+}
+.comparator-table thead th { font-family: var(--font-display); font-size: 1rem; color: var(--text); }
+.comparator-table tbody th { font-weight: 600; color: var(--text-soft); white-space: nowrap; }
+.comparator-table td[data-col], .comparator-table th[data-col] { transition: background-color 0.2s ease; }
+.comparator-table .is-highlighted { background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--gold); }
+#comparator-picker .tab[aria-pressed="true"] { background: var(--navy); color: var(--on-navy); border-color: var(--navy); }
+
 /* Print-a-single-element helper (e.g. the claim document checklist).
    Scoped behind body.print-target-only, toggled only for the duration of
    that specific print action, so it never affects normal printing of any

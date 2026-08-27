@@ -82,6 +82,80 @@
     </div>
   </section>
 
+  <!-- Term vs Endowment vs ULIP Comparator -->
+  <section class="section" id="comparator">
+    <div class="container">
+      <div class="section-header reveal">
+        <h2>Term, Endowment, or ULIP — which one, and why.</h2>
+        <p>Every rupee of premium can only do one of two jobs: protect, or grow. These three products split that trade-off differently.</p>
+      </div>
+
+      <div class="tabs reveal" role="group" aria-label="Highlight the plan type that matches your priority" id="comparator-picker">
+        <button class="tab" type="button" data-highlight="term" aria-pressed="false">I mainly want: Maximum Protection</button>
+        <button class="tab" type="button" data-highlight="endowment" aria-pressed="false">I mainly want: Guaranteed Growth</button>
+        <button class="tab" type="button" data-highlight="ulip" aria-pressed="false">I mainly want: Market-Linked Growth</button>
+      </div>
+
+      <div class="reveal" style="overflow-x: auto; margin-top: 1.5rem;">
+        <table class="comparator-table" id="comparator-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th data-col="term">Term Plan</th>
+              <th data-col="endowment">Endowment Plan</th>
+              <th data-col="ulip">ULIP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Primary purpose</th>
+              <td data-col="term">Pure life cover</td>
+              <td data-col="endowment">Life cover + guaranteed savings</td>
+              <td data-col="ulip">Life cover + market-linked investment</td>
+            </tr>
+            <tr>
+              <th>Premium for the same cover</th>
+              <td data-col="term">Lowest</td>
+              <td data-col="endowment">Higher</td>
+              <td data-col="ulip">Higher</td>
+            </tr>
+            <tr>
+              <th>Maturity benefit</th>
+              <td data-col="term">None — pure protection</td>
+              <td data-col="endowment">Guaranteed sum assured + bonus</td>
+              <td data-col="ulip">Market-linked fund value</td>
+            </tr>
+            <tr>
+              <th>Returns</th>
+              <td data-col="term">Not applicable</td>
+              <td data-col="endowment">Modest, guaranteed</td>
+              <td data-col="ulip">Variable — market-linked, can be higher or lower</td>
+            </tr>
+            <tr>
+              <th>Liquidity</th>
+              <td data-col="term">None until a claim</td>
+              <td data-col="endowment">Limited, after a lock-in</td>
+              <td data-col="ulip">Partial withdrawal after the 5-year lock-in</td>
+            </tr>
+            <tr>
+              <th>Charges</th>
+              <td data-col="term">Minimal</td>
+              <td data-col="endowment">Built into the premium</td>
+              <td data-col="ulip">Fund management, mortality &amp; admin charges</td>
+            </tr>
+            <tr>
+              <th>Best for</th>
+              <td data-col="term">Maximum cover at the lowest cost</td>
+              <td data-col="endowment">Disciplined, guaranteed saving alongside cover</td>
+              <td data-col="ulip">Market-linked growth, comfortable with risk</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="disclaimer reveal">Illustrative comparison of how these product types typically work — exact terms, charges, and returns vary by insurer and plan. Talk to us for specifics on any product mentioned here.</p>
+    </div>
+  </section>
+
   <!-- Portfolio Review CTA -->
   <section class="section" id="portfolio-review" style="background: var(--surface-2);">
     <div class="container reveal" style="text-align: center;">
@@ -104,5 +178,6 @@
 <div data-include="footer" data-include-base="../../packages/ui/partials"></div>
 <script src="../../packages/ui/include.js"></script>
 <script src="assets/js/ui.js"></script>
+<script src="assets/js/comparator.js"></script>
 </body>
 </html>
