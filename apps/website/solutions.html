@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Solutions — Aangi Associates</title>
+<meta name="description" content="Life &amp; risk protection, wealth &amp; guaranteed solutions, retirement &amp; estate design, business &amp; corporate risk, and general insurance — one advisory relationship, every stage of your life.">
 <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body data-page="solutions">
@@ -14,50 +15,49 @@
 
   <!-- Page Header -->
   <section class="section" id="page-header">
-    <div class="container section-header">
-      <span class="placeholder-note">[Pass 1 — structural placeholder]</span>
-      <h1>[Solutions header headline placeholder]</h1>
-      <p>[Solutions header subhead placeholder]</p>
+    <div class="container section-header reveal">
+      <h1>One advisory relationship. Every stage of your life.</h1>
+      <p>From your first term plan to legacy transfer — structured, reviewed, and claim-ready.</p>
     </div>
   </section>
 
   <!-- Matrix Grid with filter tabs -->
   <section class="section" id="matrix-grid">
     <div class="container">
-      <div class="tabs" role="tablist" aria-label="Solution category filters">
-        <button class="tab" role="tab" aria-selected="true">All</button>
-        <button class="tab" role="tab" aria-selected="false">Protection</button>
-        <button class="tab" role="tab" aria-selected="false">Wealth</button>
-        <button class="tab" role="tab" aria-selected="false">Retirement</button>
-        <button class="tab" role="tab" aria-selected="false">Business</button>
-        <button class="tab" role="tab" aria-selected="false">General</button>
+      <div class="tabs" role="tablist" aria-label="Solution category filters" data-filter-tabs data-filter-target="#matrix-cards">
+        <button class="tab" role="tab" aria-selected="true" data-filter="all">All</button>
+        <button class="tab" role="tab" aria-selected="false" data-filter="protection">Protection</button>
+        <button class="tab" role="tab" aria-selected="false" data-filter="wealth">Wealth</button>
+        <button class="tab" role="tab" aria-selected="false" data-filter="retirement">Retirement</button>
+        <button class="tab" role="tab" aria-selected="false" data-filter="business">Business</button>
+        <button class="tab" role="tab" aria-selected="false" data-filter="general">General</button>
       </div>
 
-      <div class="grid grid-3">
-        <div class="card" id="protection" data-category="protection">
+      <div class="grid grid-3" id="matrix-cards">
+        <div class="card reveal" id="protection" data-filter-item data-category="protection">
           <span class="badge">Protection</span>
-          <h3>[Category 1 title placeholder]</h3>
-          <p>[Category 1 body placeholder — Pure Term Plans, Critical Illness Cover, Comprehensive Family Mediclaim]</p>
+          <h3>Life &amp; Risk Protection</h3>
+          <p>Pure Term Plans · Critical Illness Cover · Comprehensive Family Mediclaim</p>
         </div>
-        <div class="card" id="wealth" data-category="wealth">
+        <div class="card reveal" id="wealth" data-filter-item data-category="wealth">
           <span class="badge">Wealth</span>
-          <h3>[Category 2 title placeholder]</h3>
-          <p>[Category 2 body placeholder — Child Education Planning, Grand Wedding Corpus, Guaranteed Return/Endowment Plans, Mutual Fund Solutions]</p>
+          <h3>Wealth &amp; Guaranteed Solutions</h3>
+          <p>Child Education Planning · Grand Wedding Corpus · Guaranteed Return/Endowment Plans · Mutual Fund Solutions</p>
         </div>
-        <div class="card" id="retirement" data-category="retirement">
+        <div class="card reveal" id="retirement" data-filter-item data-category="retirement">
           <span class="badge">Retirement</span>
-          <h3>[Category 3 title placeholder]</h3>
-          <p>[Category 3 body placeholder — Lifetime Pension/Annuity Structuring, Legacy Transfer]</p>
+          <h3>Retirement &amp; Estate Design</h3>
+          <p>Lifetime Pension/Annuity Structuring · Legacy Transfer</p>
         </div>
-        <div class="card" id="business" data-category="business">
+        <div class="card reveal" id="business" data-filter-item data-category="business">
           <span class="badge">Business</span>
-          <h3>[Category 4 title placeholder]</h3>
-          <p>[Category 4 body placeholder — Keyman Insurance, Business &amp; Partnership Liability, Group Health Cover]</p>
+          <h3>Business &amp; Corporate Risk</h3>
+          <p>Keyman Insurance · Business &amp; Partnership Liability · Group Health Cover</p>
         </div>
-        <div class="card" id="general" data-category="general">
+        <div class="card reveal" id="general" data-filter-item data-category="general">
           <span class="badge">General</span>
-          <h3>[Category 5 title placeholder]</h3>
-          <p>[Category 5 body placeholder — Two-Wheeler, Private Car, Commercial Asset Insurance]</p>
+          <h3>General Insurance</h3>
+          <p>Two-Wheeler · Private Car · Commercial Asset Insurance</p>
         </div>
       </div>
     </div>
@@ -65,18 +65,18 @@
 
   <!-- Portfolio Review CTA -->
   <section class="section" id="portfolio-review" style="background: var(--surface-2);">
-    <div class="container" style="text-align: center;">
-      <h2>[Portfolio review CTA headline placeholder]</h2>
-      <p>[Portfolio review CTA body placeholder]</p>
-      <a class="btn btn-primary" href="https://wa.me/919033132791" target="_blank" rel="noopener">[Portfolio review CTA button placeholder] →</a>
+    <div class="container reveal" style="text-align: center;">
+      <h2>Not sure if your existing policies still fit your life?</h2>
+      <p>Get a free Portfolio Review &amp; Audit — we check coverage gaps, lapsed benefits, and better-fit alternatives, at no cost.</p>
+      <a class="btn btn-primary" href="https://wa.me/919033132791?text=Hi%20Aangi%20Associates%2C%20I%27d%20like%20a%20free%20Portfolio%20Review%20%26%20Audit." target="_blank" rel="noopener">Request a Portfolio Review →</a>
     </div>
   </section>
 
   <!-- Advisory CTA -->
   <section class="section" id="advisory-cta" style="text-align: center;">
-    <div class="container">
-      <h2>[Advisory CTA headline placeholder]</h2>
-      <a class="btn btn-secondary" href="contact.html">[Advisory CTA button placeholder] →</a>
+    <div class="container reveal">
+      <h2>Ready to talk through your options?</h2>
+      <a class="btn btn-secondary" href="contact.html">Get in touch →</a>
     </div>
   </section>
 
@@ -84,5 +84,6 @@
 
 <div data-include="footer" data-include-base="../../packages/ui/partials"></div>
 <script src="../../packages/ui/include.js"></script>
+<script src="assets/js/ui.js"></script>
 </body>
 </html>

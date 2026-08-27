@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Contact — Aangi Associates</title>
+<meta name="description" content="Talk to Aangi Associates on WhatsApp, by phone, or visit the office on Shivaranjani Cross Road, Ahmedabad.">
 <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body data-page="contact">
@@ -14,50 +15,52 @@
 
   <!-- Hero -->
   <section class="section" id="hero" style="text-align: center;">
-    <div class="container">
-      <span class="placeholder-note">[Pass 1 — structural placeholder]</span>
-      <h1>[Contact hero headline placeholder]</h1>
+    <div class="container reveal">
+      <h1>Let's talk about your plan.</h1>
+      <p>Reach us on WhatsApp for the fastest response, or drop by the office.</p>
     </div>
   </section>
 
   <!-- Contact Grid: Office card + Form card -->
   <section class="section" id="contact-grid">
     <div class="container grid grid-2">
-      <div class="card">
-        <h3>[Office card headline placeholder]</h3>
+      <div class="card reveal">
+        <h3>Visit or call</h3>
         <p>Aangi Associates<br>
         615, Krupal Pathshala, Shivaranjani Cross Road, Ahmedabad<br>
         <a href="tel:+919033132791">+91 90331 32791</a></p>
-        <a class="btn btn-primary" href="https://wa.me/919033132791" target="_blank" rel="noopener">[WhatsApp CTA placeholder] →</a>
+        <a class="btn btn-primary" href="https://wa.me/919033132791?text=Hi%20Aangi%20Associates%2C%20I'd%20like%20to%20talk%20to%20an%20advisor." target="_blank" rel="noopener">Message on WhatsApp →</a>
       </div>
 
-      <div class="card">
-        <h3>[Form card headline placeholder]</h3>
-        <form>
+      <div class="card reveal">
+        <h3>Send us your details</h3>
+        <form id="contact-form">
           <div class="field">
             <label for="contact-name">Name</label>
-            <input id="contact-name" type="text" disabled placeholder="Placeholder — not yet interactive">
+            <input id="contact-name" name="name" type="text" required autocomplete="name">
           </div>
           <div class="field">
             <label for="contact-phone">Phone</label>
-            <input id="contact-phone" type="text" disabled placeholder="Placeholder — not yet interactive">
+            <input id="contact-phone" name="phone" type="tel" required autocomplete="tel">
           </div>
           <div class="field">
             <label for="contact-interest">Interested In</label>
-            <select id="contact-interest" disabled>
-              <option>Protection</option>
-              <option>Wealth</option>
-              <option>Retirement</option>
-              <option>Business</option>
-              <option>General</option>
-              <option>Associate Program</option>
+            <select id="contact-interest" name="interest" required>
+              <option value="">Select one</option>
+              <option value="Protection">Protection</option>
+              <option value="Wealth">Wealth</option>
+              <option value="Retirement">Retirement</option>
+              <option value="Business">Business</option>
+              <option value="General">General</option>
+              <option value="Associate Program">Associate Program</option>
             </select>
           </div>
           <div class="field">
             <label for="contact-message">Message</label>
-            <textarea id="contact-message" rows="3" disabled placeholder="Placeholder — not yet interactive"></textarea>
+            <textarea id="contact-message" name="message" rows="3"></textarea>
           </div>
-          <button class="btn btn-primary" type="button" disabled>[Submit via WhatsApp placeholder]</button>
+          <button class="btn btn-primary" type="submit">Send via WhatsApp →</button>
+          <p class="form-status" data-form-status></p>
         </form>
       </div>
     </div>
@@ -65,8 +68,14 @@
 
   <!-- Map -->
   <section class="section" id="map">
-    <div class="container">
-      <div class="media-placeholder" aria-hidden="true">[Map embed placeholder]</div>
+    <div class="container reveal">
+      <iframe
+        title="Aangi Associates office location"
+        src="https://maps.google.com/maps?q=Shivaranjani%20Cross%20Road%2C%20Ahmedabad&t=&z=15&ie=UTF8&iwloc=&output=embed"
+        style="width: 100%; height: 360px; border: 1px solid var(--line); border-radius: var(--radius);"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
     </div>
   </section>
 
@@ -74,5 +83,7 @@
 
 <div data-include="footer" data-include-base="../../packages/ui/partials"></div>
 <script src="../../packages/ui/include.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/whatsapp-cta.js"></script>
 </body>
 </html>

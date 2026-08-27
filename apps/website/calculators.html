@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Calculators — Aangi Associates</title>
+<meta name="description" content="Four calculators — term insurance need, child education planning, SIP delay cost, retirement corpus — turn a plan into a number you can act on.">
 <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body data-page="calculators">
@@ -14,34 +15,168 @@
 
   <!-- Hero -->
   <section class="section" id="hero">
-    <div class="container section-header">
-      <span class="placeholder-note">[Pass 1 — structural placeholder]</span>
-      <h1>[Calculators hero headline placeholder]</h1>
-      <p>[Calculators hero body placeholder]</p>
+    <div class="container section-header reveal">
+      <h1>Know your number before you decide.</h1>
+      <p>Four calculators, one purpose — turn "I should probably plan for this" into an actual figure you can act on.</p>
     </div>
   </section>
 
   <!-- Tool Tabs (4) -->
   <section class="section" id="tool-tabs">
     <div class="container">
-      <div class="tabs" role="tablist" aria-label="Calculator selection">
-        <button class="tab" role="tab" aria-selected="true" data-calc="hlv">[Calc 1 tab placeholder — Term Insurance Need]</button>
-        <button class="tab" role="tab" aria-selected="false" data-calc="education">[Calc 2 tab placeholder — Child Education Planner]</button>
-        <button class="tab" role="tab" aria-selected="false" data-calc="sip-delay">[Calc 3 tab placeholder — SIP Delay Cost]</button>
-        <button class="tab" role="tab" aria-selected="false" data-calc="retirement">[Calc 4 tab placeholder — Retirement Corpus]</button>
+      <div class="tabs" role="tablist" aria-label="Calculator selection" data-tabs="calculators" data-tabs-panels="#calc-panels">
+        <button class="tab" role="tab" aria-selected="true" data-tab-key="hlv">Term Insurance Need</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab-key="education">Child Education</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab-key="sip-delay">SIP Delay Cost</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab-key="retirement">Retirement Corpus</button>
       </div>
 
-      <div class="card" id="calc-form">
-        <p>[Calculator input form placeholder — fields per docs/BLUEPRINT.md §03, wired up in Pass 2]</p>
-        <div class="field">
-          <label>[Input field 1 placeholder]</label>
-          <input type="text" disabled placeholder="Placeholder — not yet interactive">
+      <div id="calc-panels">
+
+        <!-- Calc 01 — Human Life Value / Term Insurance Need -->
+        <div class="card tab-panel is-active" data-tab-panel="hlv">
+          <h3>Human Life Value / Term Insurance Need</h3>
+          <form data-calc-form="hlv">
+            <div class="calc-form-grid">
+              <div class="field">
+                <label for="hlv-currentAge">Current Age</label>
+                <input id="hlv-currentAge" name="currentAge" type="number" value="35" min="18" max="70">
+              </div>
+              <div class="field">
+                <label for="hlv-retirementAge">Retirement Age</label>
+                <input id="hlv-retirementAge" name="retirementAge" type="number" value="60" min="40" max="75">
+              </div>
+              <div class="field">
+                <label for="hlv-annualIncome">Annual Income (₹)</label>
+                <input id="hlv-annualIncome" name="annualIncome" type="number" value="1800000" min="0" step="10000">
+              </div>
+              <div class="field">
+                <label for="hlv-selfConsumption">Self-Consumption (%)</label>
+                <input id="hlv-selfConsumption" name="selfConsumption" type="number" value="20" min="0" max="90">
+              </div>
+              <div class="field">
+                <label for="hlv-incomeGrowth">Expected Income Growth (%)</label>
+                <input id="hlv-incomeGrowth" name="incomeGrowth" type="number" value="5" min="0" max="20" step="0.5">
+              </div>
+              <div class="field">
+                <label for="hlv-discountRate">Discount Rate (%)</label>
+                <input id="hlv-discountRate" name="discountRate" type="number" value="8" min="0" max="20" step="0.5">
+              </div>
+              <div class="field">
+                <label for="hlv-liabilities">Outstanding Liabilities (₹)</label>
+                <input id="hlv-liabilities" name="liabilities" type="number" value="0" min="0" step="10000">
+              </div>
+              <div class="field">
+                <label for="hlv-existingCover">Existing Life Cover (₹)</label>
+                <input id="hlv-existingCover" name="existingCover" type="number" value="0" min="0" step="10000">
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Calculate</button>
+          </form>
         </div>
-        <div class="field">
-          <label>[Input field 2 placeholder]</label>
-          <input type="text" disabled placeholder="Placeholder — not yet interactive">
+
+        <!-- Calc 02 — Child Education Planner -->
+        <div class="card tab-panel" data-tab-panel="education">
+          <h3>Child Education Planner</h3>
+          <form data-calc-form="education">
+            <div class="calc-form-grid">
+              <div class="field">
+                <label for="edu-childAge">Child's Current Age</label>
+                <input id="edu-childAge" name="childAge" type="number" value="5" min="0" max="17">
+              </div>
+              <div class="field">
+                <label for="edu-ageAtGoal">Age at Goal</label>
+                <input id="edu-ageAtGoal" name="ageAtGoal" type="number" value="18" min="1" max="30">
+              </div>
+              <div class="field">
+                <label for="edu-currentCost">Current Cost of Course (₹)</label>
+                <input id="edu-currentCost" name="currentCost" type="number" value="1500000" min="0" step="10000">
+              </div>
+              <div class="field">
+                <label for="edu-eduInflation">Education Inflation (%)</label>
+                <input id="edu-eduInflation" name="eduInflation" type="number" value="9" min="0" max="20" step="0.5">
+              </div>
+              <div class="field">
+                <label for="edu-existingSavings">Existing Savings Earmarked (₹)</label>
+                <input id="edu-existingSavings" name="existingSavings" type="number" value="0" min="0" step="10000">
+              </div>
+              <div class="field">
+                <label for="edu-returnRate">Expected Return Rate (%)</label>
+                <input id="edu-returnRate" name="returnRate" type="number" value="12" min="0" max="20" step="0.5">
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Calculate</button>
+          </form>
         </div>
-        <button class="btn btn-primary" disabled>[Calculate button placeholder]</button>
+
+        <!-- Calc 03 — SIP Delay Cost -->
+        <div class="card tab-panel" data-tab-panel="sip-delay">
+          <h3>SIP Delay Cost Calculator</h3>
+          <form data-calc-form="sip-delay">
+            <div class="calc-form-grid">
+              <div class="field">
+                <label for="sip-monthlySip">Monthly SIP Amount (₹)</label>
+                <input id="sip-monthlySip" name="monthlySip" type="number" value="10000" min="0" step="500">
+              </div>
+              <div class="field">
+                <label for="sip-returnRate">Expected Annual Return (%)</label>
+                <input id="sip-returnRate" name="sipReturnRate" type="number" value="12" min="0" max="20" step="0.5">
+              </div>
+              <div class="field">
+                <label for="sip-horizonYears">Total Investment Horizon (years)</label>
+                <input id="sip-horizonYears" name="horizonYears" type="number" value="20" min="1" max="40">
+              </div>
+              <div class="field">
+                <label for="sip-delayMonths">Delay Period (months)</label>
+                <input id="sip-delayMonths" name="delayMonths" type="number" value="36" min="0" max="240">
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Calculate</button>
+          </form>
+        </div>
+
+        <!-- Calc 04 — Retirement Corpus Estimator -->
+        <div class="card tab-panel" data-tab-panel="retirement">
+          <h3>Retirement Corpus Estimator</h3>
+          <form data-calc-form="retirement">
+            <div class="calc-form-grid">
+              <div class="field">
+                <label for="ret-currentAge">Current Age</label>
+                <input id="ret-currentAge" name="retCurrentAge" type="number" value="35" min="18" max="70">
+              </div>
+              <div class="field">
+                <label for="ret-retirementAge">Retirement Age</label>
+                <input id="ret-retirementAge" name="retRetirementAge" type="number" value="60" min="40" max="75">
+              </div>
+              <div class="field">
+                <label for="ret-lifeExpectancy">Life Expectancy</label>
+                <input id="ret-lifeExpectancy" name="lifeExpectancy" type="number" value="85" min="60" max="100">
+              </div>
+              <div class="field">
+                <label for="ret-monthlyExpenses">Current Monthly Expenses (₹)</label>
+                <input id="ret-monthlyExpenses" name="monthlyExpenses" type="number" value="60000" min="0" step="1000">
+              </div>
+              <div class="field">
+                <label for="ret-inflation">Inflation Rate (%)</label>
+                <input id="ret-inflation" name="retInflation" type="number" value="6" min="0" max="15" step="0.5">
+              </div>
+              <div class="field">
+                <label for="ret-preReturn">Pre-Retirement Return (%)</label>
+                <input id="ret-preReturn" name="preReturn" type="number" value="12" min="0" max="20" step="0.5">
+              </div>
+              <div class="field">
+                <label for="ret-postReturn">Post-Retirement Return (%)</label>
+                <input id="ret-postReturn" name="postReturn" type="number" value="7" min="0" max="15" step="0.5">
+              </div>
+              <div class="field">
+                <label for="ret-existingSavings">Existing Retirement Savings (₹)</label>
+                <input id="ret-existingSavings" name="retExistingSavings" type="number" value="0" min="0" step="10000">
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Calculate</button>
+          </form>
+        </div>
+
       </div>
     </div>
   </section>
@@ -49,11 +184,12 @@
   <!-- Result Panel -->
   <section class="section" id="result">
     <div class="container">
-      <div class="result-panel">
-        <h3>[Result headline placeholder]</h3>
-        <p>[Result output placeholder]</p>
-        <p><em>Illustrative estimate, not financial advice.</em></p>
-        <a class="btn btn-primary" href="https://wa.me/919033132791" target="_blank" rel="noopener">[Discuss this result on WhatsApp placeholder] →</a>
+      <div class="result-panel" id="calc-result" hidden>
+        <h3 data-result-headline>Result</h3>
+        <p class="result-value" data-result-value>—</p>
+        <div data-result-details></div>
+        <p class="disclaimer">Illustrative estimate, not financial advice.</p>
+        <a class="btn btn-primary" data-result-whatsapp href="https://wa.me/919033132791" target="_blank" rel="noopener">Discuss this result on WhatsApp →</a>
       </div>
     </div>
   </section>
@@ -62,6 +198,8 @@
 
 <div data-include="footer" data-include-base="../../packages/ui/partials"></div>
 <script src="../../packages/ui/include.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/whatsapp-cta.js"></script>
 <script src="assets/js/calculators.js"></script>
 </body>
 </html>

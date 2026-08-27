@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Become an Associate — Aangi Associates</title>
+<meta name="description" content="The CBA Mentorship Wing at Aangi Associates — structured mentorship for a career in financial advisory, backed by TATA AIA Life Insurance.">
 <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body data-page="associate">
@@ -14,33 +15,32 @@
 
   <!-- Hero -->
   <section class="section" id="hero" style="background: var(--navy); color: var(--on-navy);">
-    <div class="container section-header">
-      <span class="placeholder-note">[Pass 1 — structural placeholder]</span>
-      <h1 style="color: inherit;">[Associate hero headline placeholder]</h1>
-      <p style="color: inherit; opacity: 0.85;">[Associate hero subhead placeholder — CBA Mentorship Wing]</p>
-      <p style="color: inherit; opacity: 0.85;">[Associate hero body placeholder]</p>
-      <button class="btn btn-secondary" type="button" data-modal-trigger="apply-modal">[Apply CTA placeholder] →</button>
+    <div class="container section-header reveal">
+      <h1 style="color: inherit;">Build your own advisory practice — under a leader who's already built his.</h1>
+      <p style="color: inherit; opacity: 0.85; font-weight: 600;">The CBA Mentorship Wing at Aangi Associates</p>
+      <p style="color: inherit; opacity: 0.85;">Jainik Shah didn't get to MDRT recognition alone, and you won't build a practice alone either. This is structured mentorship for people serious about a career in financial advisory — not a side gig.</p>
+      <button class="btn btn-secondary" type="button" data-modal-trigger="apply-modal">Apply to the Mentorship Wing →</button>
     </div>
   </section>
 
   <!-- Why Aangi (3 pillars) -->
   <section class="section" id="why-aangi">
     <div class="container">
-      <div class="section-header">
-        <h2>[Why Aangi headline placeholder]</h2>
+      <div class="section-header reveal">
+        <h2>Why Aangi</h2>
       </div>
       <div class="grid grid-3">
-        <div class="card">
-          <h3>[Pillar 1 title placeholder — Direct Mentorship]</h3>
-          <p>[Pillar 1 body placeholder]</p>
+        <div class="card reveal">
+          <h3>Direct Mentorship</h3>
+          <p>Trained personally under 17+ years of field experience, not a generic onboarding deck.</p>
         </div>
-        <div class="card">
-          <h3>[Pillar 2 title placeholder — TATA AIA Backing]</h3>
-          <p>[Pillar 2 body placeholder]</p>
+        <div class="card reveal">
+          <h3>TATA AIA Backing</h3>
+          <p>Licensed, structured, and backed by a recognised life insurer.</p>
         </div>
-        <div class="card">
-          <h3>[Pillar 3 title placeholder — Built-In Support System]</h3>
-          <p>[Pillar 3 body placeholder]</p>
+        <div class="card reveal">
+          <h3>Built-In Support System</h3>
+          <p>The same claim desk and portfolio-review infrastructure that serves 1,400+ client families supports your clients too.</p>
         </div>
       </div>
     </div>
@@ -49,62 +49,66 @@
   <!-- Path Timeline -->
   <section class="section" id="path-timeline" style="background: var(--surface-2);">
     <div class="container">
-      <div class="section-header">
-        <h2>[Path timeline headline placeholder]</h2>
+      <div class="section-header reveal">
+        <h2>The path from application to independent practice</h2>
       </div>
-      <div class="timeline">
+      <div class="timeline reveal">
         <div class="timeline-item">
-          <h3>[Timeline stage 1 placeholder — Application &amp; Documentation]</h3>
-          <p>[Timeline stage 1 body placeholder]</p>
+          <h3>Application &amp; Documentation</h3>
+          <p>Apply below → ID/PAN/Aadhaar, education proof, address proof, bank details, and photo collected for your candidate record.</p>
         </div>
         <div class="timeline-item">
-          <h3>[Timeline stage 2 placeholder — Training &amp; Licensing]</h3>
-          <p>[Timeline stage 2 body placeholder]</p>
+          <h3>Training &amp; Licensing</h3>
+          <p>Mandatory pre-code IRDAI/PoSP training, followed by the exam/assessment (IC-38 or insurer-specified). Your code is issued once you pass.</p>
         </div>
         <div class="timeline-item">
-          <h3>[Timeline stage 3 placeholder — Days 1–30: Mentorship]</h3>
-          <p>[Timeline stage 3 body placeholder]</p>
+          <h3>Days 1–30 — Mentorship</h3>
+          <p>A mentor is assigned. Product training and shadowing, tracked against modules completed and simulations run.</p>
         </div>
         <div class="timeline-item">
-          <h3>[Timeline stage 4 placeholder — Days 31–60: Supervised Practice]</h3>
-          <p>[Timeline stage 4 body placeholder]</p>
+          <h3>Days 31–60 — Supervised Practice</h3>
+          <p>Supervised client interactions and your first quotes, with feedback built in.</p>
         </div>
         <div class="timeline-item">
-          <h3>[Timeline stage 5 placeholder — Days 61–90: Independent Bind]</h3>
-          <p>[Timeline stage 5 body placeholder]</p>
+          <h3>Days 61–90 — Independent Bind</h3>
+          <p>Your first policy bound independently, pipeline targets set, and a formal 90-day evaluation.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Associate Application (modal — trigger only, wired up in Pass 2) -->
+  <!-- Associate Application -->
   <section class="section" id="apply" style="text-align: center;">
-    <div class="container">
-      <h2>[Application section headline placeholder]</h2>
-      <button class="btn btn-primary" type="button" data-modal-trigger="apply-modal">[Apply CTA placeholder] →</button>
+    <div class="container reveal">
+      <h2>Ready to build under a leader who's already built his?</h2>
+      <button class="btn btn-primary" type="button" data-modal-trigger="apply-modal">Apply to the Mentorship Wing →</button>
     </div>
   </section>
 
   <dialog class="modal" id="apply-modal">
-    <h3>[Application modal headline placeholder]</h3>
-    <form>
+    <div class="modal-header">
+      <h3>Apply to the Mentorship Wing</h3>
+      <button class="modal-close" type="button" data-modal-close aria-label="Close">✕</button>
+    </div>
+    <form id="apply-form">
       <div class="field">
         <label for="apply-name">Name</label>
-        <input id="apply-name" type="text" disabled placeholder="Placeholder — not yet interactive">
+        <input id="apply-name" name="name" type="text" required autocomplete="name">
       </div>
       <div class="field">
         <label for="apply-phone">Phone</label>
-        <input id="apply-phone" type="text" disabled placeholder="Placeholder — not yet interactive">
+        <input id="apply-phone" name="phone" type="tel" required autocomplete="tel">
       </div>
       <div class="field">
         <label for="apply-city">City</label>
-        <input id="apply-city" type="text" disabled placeholder="Placeholder — not yet interactive">
+        <input id="apply-city" name="city" type="text" required autocomplete="address-level2">
       </div>
       <div class="field">
         <label for="apply-occupation">Current Occupation</label>
-        <input id="apply-occupation" type="text" disabled placeholder="Placeholder — not yet interactive">
+        <input id="apply-occupation" name="occupation" type="text" required>
       </div>
-      <button class="btn btn-primary" type="button" disabled>[Submit application placeholder]</button>
+      <button class="btn btn-primary" type="submit">Continue on WhatsApp →</button>
+      <p class="form-status" data-form-status></p>
     </form>
   </dialog>
 
@@ -112,5 +116,7 @@
 
 <div data-include="footer" data-include-base="../../packages/ui/partials"></div>
 <script src="../../packages/ui/include.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/whatsapp-cta.js"></script>
 </body>
 </html>

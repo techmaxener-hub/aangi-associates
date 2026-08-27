@@ -27,7 +27,7 @@ Executive advisory portal + internal CRM for **Jainik Shah**, Chief Business Ass
 - Roles: **Admin / Staff / Associate / Client** (4-tier). Only Admin creates Staff/Admin accounts.
 - Client gets a **self-service portal** (phone+OTP login), account created by Admin/Staff at policy issuance, not public self-registration.
 - **Supabase plan**: build on the developer's free-tier project first (test accounts only — no real client data). After ~5 days, migrate schema + real data to a **new, dedicated Supabase project created under Jainik/Aangi Associates' own Supabase account** (client owns their own infra/billing going forward). Only the database migrates — the codebase in this repo does not change, just its `SUPABASE_URL` / key env vars get re-pointed.
-- Hosting: static build output (both `apps/website` and the compiled `apps/crm` bundle) deploys to the client's existing **Hostinger Business hosting**. No WordPress, no drag-drop builder.
+- Hosting: static build output (both `apps/website` and the compiled `apps/crm` bundle) deploys to the client's existing **Hostinger Business hosting**, on the subdomain **`aa.tmarinternational.com`** (created under the `tmarinternational.com` domain already on that hosting account). No WordPress, no drag-drop builder.
 
 ## Design tokens
 
