@@ -1,0 +1,4 @@
+# Branded 404 page for the public site (a multi-page static site, not
+# an SPA — apps/crm/public/.htaccess handles that app's own client-side
+# routing separately, at /app/).
+ErrorDocument 404 /404.html
