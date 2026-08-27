@@ -223,6 +223,43 @@ a { color: inherit; }
   .footer-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* Mobile sticky quick-action bar — replaces the header CTAs that hide
+   below the 860px nav-collapse breakpoint, so a primary action is always
+   one thumb-tap away on a phone. */
+.mobile-cta-bar {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  background: var(--navy);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 -8px 24px -12px rgba(15, 42, 74, 0.4);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.mobile-cta-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0.5rem;
+  color: var(--on-navy);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+.mobile-cta-item:last-child { border-right: none; }
+.mobile-cta-item--primary { background: var(--crimson); }
+
+@media (max-width: 860px) {
+  .mobile-cta-bar { display: flex; }
+  /* Keeps the bar from covering footer content/links on short pages. */
+  .site-footer { margin-bottom: 48px; padding-bottom: env(safe-area-inset-bottom, 0); }
+}
+
 /* Tabs (filter tabs, calculator tool tabs) */
 .tabs { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 2rem; }
 .tab {
