@@ -1,0 +1,52 @@
+/* Aangi Associates — shared design tokens (packages/ui) */
+
+:root {
+  --bg: #f7f4ee;
+  --surface: #ffffff;
+  --surface-2: #efe8d8;
+  --text: #1b2333;
+  --text-soft: #5b6272;
+  --line: #e1d9c3;
+  --line-strong: #cdc2a3;
+  --navy: #0f2a4a;
+  --on-navy: #f6f3ea;
+  --crimson: #9c1c30;
+  --gold: #8f6f26;
+
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Public Sans", -apple-system, Segoe UI, sans-serif;
+  --font-mono: "IBM Plex Mono", "Courier New", monospace;
+
+  --radius: 0.5rem;
+  --container-max: 1200px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1526;
+    --surface: #10192c;
+    --surface-2: #172542;
+    --text: #ece8dc;
+    --text-soft: #a7aec2;
+    --line: #253355;
+    --line-strong: #34467a;
+    --navy: #14294a;
+    --on-navy: #f2eee0;
+    --crimson: #e2687a;
+    --gold: #d9b96a;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b1526;
+  --surface: #10192c;
+  --surface-2: #172542;
+  --text: #ece8dc;
+  --text-soft: #a7aec2;
+  --line: #253355;
+  --line-strong: #34467a;
+  --navy: #14294a;
+  --on-navy: #f2eee0;
+  --crimson: #e2687a;
+  --gold: #d9b96a;
+}
