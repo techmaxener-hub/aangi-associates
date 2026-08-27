@@ -1,9 +1,12 @@
 import type { ReactNode } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Moon, Sun } from "lucide-react";
 import { useAuth } from "../auth/useAuth";
 import { Button } from "../components/ui/button";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { GlobalSearch } from "./GlobalSearch";
+import { effectiveTheme, applyTheme } from "../lib/theme";
 
 const SEARCHABLE_ROLES: Record<string, string> = {
   admin: "/admin",
@@ -27,6 +30,13 @@ export function PortalLayout({
 }) {
   const { profile, signOut } = useAuth();
   const searchBasePath = profile ? SEARCHABLE_ROLES[profile.role] : undefined;
+  const [theme, setTheme] = useState(effectiveTheme);
+
+  function toggleTheme() {
+    const next = theme === "dark" ? "light" : "dark";
+    applyTheme(next);
+    setTheme(next);
+  }
 
   return (
     <div className="flex min-h-screen bg-bg text-text">
@@ -66,11 +76,21 @@ export function PortalLayout({
       <main id="main-content" className="flex-1 p-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <h1 className="font-display text-2xl">{title}</h1>
-          {searchBasePath && (
-            <div className="w-full max-w-sm">
-              <GlobalSearch basePath={searchBasePath} />
-            </div>
-          )}
+          <div className="flex flex-1 items-center justify-end gap-3">
+            {searchBasePath && (
+              <div className="w-full max-w-sm">
+                <GlobalSearch basePath={searchBasePath} />
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line-strong text-text-soft hover:bg-surface-2"
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
         <ErrorBoundary>{children}</ErrorBoundary>
       </main>

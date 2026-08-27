@@ -31,6 +31,46 @@
         toggle.setAttribute("aria-expanded", String(isOpen));
       });
     }
+
+    wireThemeToggle();
+  }
+
+  // Lives here (not a standalone script) because the button is inside
+  // header.html, which loads asynchronously after DOMContentLoaded — a
+  // separate script's own DOMContentLoaded listener would run before the
+  // button exists in the DOM and silently find nothing.
+  function themeStorageKey() {
+    return "aangi-theme";
+  }
+
+  function effectiveTheme() {
+    var stored;
+    try {
+      stored = localStorage.getItem(themeStorageKey());
+    } catch (e) {}
+    if (stored === "light" || stored === "dark") return stored;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+
+  function wireThemeToggle() {
+    var btn = document.querySelector("[data-theme-toggle]");
+    if (!btn) return;
+
+    function render() {
+      var isDark = effectiveTheme() === "dark";
+      btn.textContent = isDark ? "☀" : "🌙";
+      btn.setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
+    }
+
+    render();
+    btn.addEventListener("click", function () {
+      var next = effectiveTheme() === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      try {
+        localStorage.setItem(themeStorageKey(), next);
+      } catch (e) {}
+      render();
+    });
   }
 
   function loadPartial(host) {

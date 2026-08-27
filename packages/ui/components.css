@@ -170,7 +170,14 @@ a { color: inherit; }
 }
 .has-dropdown:hover .dropdown,
 .has-dropdown:focus-within .dropdown { display: flex; }
-.header-ctas { display: flex; gap: 0.75rem; }
+.header-ctas { display: flex; align-items: center; gap: 0.75rem; }
+.theme-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.25rem; height: 2.25rem; border-radius: 999px;
+  border: 1px solid var(--line-strong); background: var(--surface);
+  font-size: 1rem; line-height: 1; cursor: pointer; color: var(--text);
+}
+.theme-toggle:hover { background: var(--surface-2); }
 .nav-toggle {
   display: none;
   background: none;
