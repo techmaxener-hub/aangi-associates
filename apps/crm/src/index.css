@@ -1,0 +1,12 @@
+@import "../../../packages/ui/tokens.css";
+@import "../../../packages/ui/fonts.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Public Sans", sans-serif;
+}
