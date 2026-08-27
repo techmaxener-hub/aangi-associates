@@ -4,7 +4,7 @@ import { UserPlus, UploadCloud, type LucideIcon } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { Card } from "../../components/ui/card";
 import { PortalLayout } from "../PortalLayout";
-import { formatDate, daysUntil } from "../../lib/format";
+import { formatDate, daysUntil, localDateISO } from "../../lib/format";
 import { LEAD_PIPELINE, LEAD_STATUS_LABEL, type LeadStatus } from "../../modules/leads/types";
 import { INTEGRATIONS } from "./settings/integrations.config";
 import { adminNavItems } from "./nav";
@@ -56,8 +56,9 @@ export function AdminDashboard() {
       setLoading(true);
 
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-      const sixtyDaysOut = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-      const today = new Date().toISOString().slice(0, 10);
+      const now = new Date();
+      const today = localDateISO(now);
+      const sixtyDaysOut = localDateISO(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 60));
 
       const [clients, activePolicies, openClaims, recentLeads, allLeads, renewalRows, tasks] = await Promise.all([
         supabase.from("clients").select("*", { count: "exact", head: true }),
