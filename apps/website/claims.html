@@ -68,6 +68,38 @@
     </div>
   </section>
 
+  <!-- Personalised Claim Document Checklist -->
+  <section class="section" id="claim-checklist">
+    <div class="container">
+      <div class="section-header reveal">
+        <h2>Know exactly what to gather, before you need it.</h2>
+        <p>Pick your policy type for a checklist of what's commonly required — print it or keep it on your phone for when it matters.</p>
+      </div>
+      <div class="card reveal" style="max-width: 640px; margin: 0 auto;">
+        <div class="field">
+          <label for="checklist-policy-type">Policy / Claim Type</label>
+          <select id="checklist-policy-type">
+            <option value="term">Term / Life Insurance (Death Claim)</option>
+            <option value="health">Critical Illness, Mediclaim &amp; Group Health</option>
+            <option value="maturity">Education, Guaranteed Return, Pension &amp; Mutual Fund (Maturity)</option>
+            <option value="general">General Insurance (Motor / Property)</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="checklist-generate" type="button">Generate Checklist</button>
+      </div>
+
+      <div class="result-panel print-target" id="checklist-result" hidden style="max-width: 640px; margin: 2rem auto 0;">
+        <h3 data-checklist-title>Checklist</h3>
+        <ul data-checklist-items style="padding-left: 1.25rem; margin: 1rem 0;"></ul>
+        <p class="disclaimer">Illustrative — commonly required documents, not an official insurer list. Your claim desk contact will confirm the exact requirements for your policy.</p>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+          <button class="btn btn-secondary" id="checklist-print" type="button">Print Checklist</button>
+          <a class="btn btn-primary" id="checklist-whatsapp" href="https://wa.me/919033132791" target="_blank" rel="noopener">Discuss with the Claim Desk →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Dedicated Claim Desk -->
   <section class="section" id="claim-desk" style="background: var(--surface-2);">
     <div class="container split">
@@ -132,5 +164,7 @@
 <div data-include="footer" data-include-base="../../packages/ui/partials"></div>
 <script src="../../packages/ui/include.js"></script>
 <script src="assets/js/ui.js"></script>
+<script src="assets/js/whatsapp-cta.js"></script>
+<script src="assets/js/claim-checklist.js"></script>
 </body>
 </html>

@@ -48,3 +48,16 @@
 
 /* Compliance note under calculator results */
 .disclaimer { font-size: 0.8rem; color: var(--text-soft); font-style: italic; }
+
+/* Print-a-single-element helper (e.g. the claim document checklist).
+   Scoped behind body.print-target-only, toggled only for the duration of
+   that specific print action, so it never affects normal printing of any
+   other page/section that happens to load this shared stylesheet. */
+@media print {
+  body.print-target-only * { visibility: hidden; }
+  body.print-target-only .print-target,
+  body.print-target-only .print-target * { visibility: visible; }
+  body.print-target-only .print-target {
+    display: block !important; position: absolute; left: 0; top: 0; width: 100%; padding: 1.5rem;
+  }
+}
