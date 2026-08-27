@@ -3,6 +3,13 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import { Button } from "../components/ui/button";
 import { ErrorBoundary } from "../components/ErrorBoundary";
+import { GlobalSearch } from "./GlobalSearch";
+
+const SEARCHABLE_ROLES: Record<string, string> = {
+  admin: "/admin",
+  staff: "/staff",
+  associate: "/associate",
+};
 
 interface NavItem {
   label: string;
@@ -19,6 +26,7 @@ export function PortalLayout({
   children: ReactNode;
 }) {
   const { profile, signOut } = useAuth();
+  const searchBasePath = profile ? SEARCHABLE_ROLES[profile.role] : undefined;
 
   return (
     <div className="flex min-h-screen bg-bg text-text">
@@ -56,7 +64,14 @@ export function PortalLayout({
         </div>
       </aside>
       <main id="main-content" className="flex-1 p-8">
-        <h1 className="mb-6 font-display text-2xl">{title}</h1>
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <h1 className="font-display text-2xl">{title}</h1>
+          {searchBasePath && (
+            <div className="w-full max-w-sm">
+              <GlobalSearch basePath={searchBasePath} />
+            </div>
+          )}
+        </div>
         <ErrorBoundary>{children}</ErrorBoundary>
       </main>
     </div>
