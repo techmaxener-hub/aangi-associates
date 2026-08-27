@@ -21,6 +21,7 @@ export default {
         // text; keep `gold` for borders, backgrounds, and large text.
         "gold-text": "var(--gold-text)",
         "gold-on-navy": "var(--gold-on-navy)",
+        success: "var(--success)",
       },
       fontFamily: {
         display: ["Fraunces", "Georgia", "serif"],

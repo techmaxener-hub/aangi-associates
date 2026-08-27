@@ -31,6 +31,7 @@ const ClientClaimStatusPage = lazy(() =>
   import("./portals/client/ClaimStatusPage").then((m) => ({ default: m.ClaimStatusPage })),
 );
 const ClientRenewalsPage = lazy(() => import("./portals/client/RenewalsPage").then((m) => ({ default: m.RenewalsPage })));
+const LeadsDeskPage = lazy(() => import("./modules/leads/LeadsDeskPage").then((m) => ({ default: m.LeadsDeskPage })));
 const ClientsListPage = lazy(() => import("./modules/clients/ClientsListPage").then((m) => ({ default: m.ClientsListPage })));
 const ClientDetailPage = lazy(() => import("./modules/clients/ClientDetailPage").then((m) => ({ default: m.ClientDetailPage })));
 const ClaimsQueuePage = lazy(() => import("./modules/claims/ClaimsQueuePage").then((m) => ({ default: m.ClaimsQueuePage })));
@@ -56,6 +57,14 @@ export default function App() {
 
               {/* Admin */}
               <Route path="/admin" element={<RequireRole role="admin"><AdminDashboard /></RequireRole>} />
+              <Route
+                path="/admin/leads"
+                element={
+                  <RequireRole role="admin">
+                    <LeadsDeskPage navItems={adminNavItems} basePath="/admin" />
+                  </RequireRole>
+                }
+              />
               <Route
                 path="/admin/clients"
                 element={
@@ -110,6 +119,14 @@ export default function App() {
               {/* Staff */}
               <Route path="/staff" element={<RequireRole role="staff"><StaffDashboard /></RequireRole>} />
               <Route
+                path="/staff/leads"
+                element={
+                  <RequireRole role="staff">
+                    <LeadsDeskPage navItems={staffNavItems} basePath="/staff" />
+                  </RequireRole>
+                }
+              />
+              <Route
                 path="/staff/clients"
                 element={
                   <RequireRole role="staff">
@@ -144,6 +161,14 @@ export default function App() {
 
               {/* Associate */}
               <Route path="/associate" element={<RequireRole role="associate"><AssociateDashboard /></RequireRole>} />
+              <Route
+                path="/associate/leads"
+                element={
+                  <RequireRole role="associate">
+                    <LeadsDeskPage navItems={associateNavItems} basePath="/associate" />
+                  </RequireRole>
+                }
+              />
               <Route
                 path="/associate/clients"
                 element={

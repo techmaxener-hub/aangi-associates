@@ -23,6 +23,11 @@
   --gold-text: #6b5518;
   --gold-on-navy: #d9b96a;
 
+  /* Semantic success color for pipeline/status states (e.g. converted
+     leads) — separate from the crimson/gold brand accents. #1f7a45 on
+     --bg (#f7f4ee) is ~5.4:1, comfortably AA for normal text. */
+  --success: #1f7a45;
+
   --font-display: "Fraunces", Georgia, serif;
   --font-body: "Public Sans", -apple-system, Segoe UI, sans-serif;
   --font-mono: "IBM Plex Mono", "Courier New", monospace;
@@ -45,6 +50,7 @@
     --crimson: #e2687a;
     --gold: #d9b96a;
     --gold-text: #d9b96a;
+    --success: #6fcf97;
   }
 }
 
@@ -61,4 +67,5 @@
   --crimson: #e2687a;
   --gold: #d9b96a;
   --gold-text: #d9b96a;
+  --success: #6fcf97;
 }

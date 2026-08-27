@@ -1,5 +1,6 @@
 export const adminNavItems = [
   { label: "Dashboard", href: "/admin" },
+  { label: "Leads Desk", href: "/admin/leads" },
   { label: "Clients", href: "/admin/clients" },
   { label: "Onboarding", href: "/admin/team" },
   { label: "Claim Desk", href: "/admin/claims" },
