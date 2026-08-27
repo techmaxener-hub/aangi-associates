@@ -79,8 +79,11 @@ aangi-associates/
 4. **Pass 2 — Copy + interactivity, all pages.** Go page by page filling in the real drafted copy from `docs/BLUEPRINT.md` §02, then wire interactivity: WhatsApp-prefilled-message CTAs everywhere, the modal lead-capture form, the 4 calculators (§03 formulas) on the Calculators page, glassmorphism/animation polish per the brief.
 5. `apps/crm` scaffold — Supabase project (developer's free tier for now), auth, 4-tier roles/RLS, base layout per portal.
 6. CRM modules — Client CRM (§06A) → Associate/Staff onboarding tracks (§06B) → task allotment engine → Admin settings (Meta API, email automation, calculator config) (§06E).
-7. Deployment — Tailwind CLI production build for `apps/website`; Vite production build for `apps/crm`; both uploaded to Hostinger Business hosting.
-8. At the 5-day mark: create the client-owned Supabase project, replay migrations, dump/restore any real data, re-point env vars, recreate real logins.
+7. Deployment (prep done 2026-08-27, upload itself is manual — no Hostinger credentials available to Claude Code). `apps/website` ships as-is, no build step (it's plain HTML/CSS/JS, not actually Tailwind-compiled despite the repo-structure comment below). `apps/crm` needs `npm run build` (Vite, `base:"/app/"` baked in for production only). Topology: `apps/crm` lives at **`aa.tmarinternational.com/app/`**, a subpath of the same subdomain — not a separate subdomain. Upload layout at the `aa` subdomain's document root:
+   - The 8 `apps/website/*.html` files + its `assets/` folder, straight to the document root.
+   - `packages/ui/` uploaded as a **sibling folder** at that same document root (the website's CSS/JS reference it via relative paths that resolve there once `apps/website`'s contents *are* the document root — verified, no code changes needed).
+   - `apps/crm/dist/` (after `npm run build`) uploaded into an `app/` subfolder of that document root. Its `.htaccess` (from `apps/crm/public/.htaccess`, Vite copies `public/` into `dist/`) must come along — it's the Apache SPA-routing rewrite that makes direct hits/refreshes on client-side routes work.
+8. ~~5-day Supabase migration~~ — moot. The live Supabase project (org "CJDMS") was confirmed final 2026-08-27; it's the agency account tied to Jainik/Aangi, not an interim developer project.
 
 ## Compliance footer (use verbatim until a real IRDAI number is supplied)
 
