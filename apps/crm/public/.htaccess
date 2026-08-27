@@ -1,0 +1,16 @@
+# apps/crm SPA routing — deployed at aa.tmarinternational.com/app/
+# Serves index.html for any route that isn't a real file/directory, so
+# React Router can handle client-side paths like /app/admin/clients/123
+# on a direct hit or page refresh (Apache/Hostinger has no history-mode
+# fallback by default).
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /app/
+
+  RewriteCond %{REQUEST_FILENAME} -f
+  RewriteRule ^ - [L]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  RewriteRule . /app/index.html [L]
+</IfModule>

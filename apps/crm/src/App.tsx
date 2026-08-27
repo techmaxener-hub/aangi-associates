@@ -22,11 +22,15 @@ import { ClaimsQueuePage } from "./modules/claims/ClaimsQueuePage";
 import { CandidatesPage } from "./modules/onboarding/CandidatesPage";
 import { TasksPage } from "./modules/tasks/TasksPage";
 
+// import.meta.env.BASE_URL follows vite.config.ts's `base` — "/app/" in a
+// production build (subpath deploy on aa.tmarinternational.com), "/" in dev.
+const basename = import.meta.env.BASE_URL.replace(/\/$/, "") || "/";
+
 export default function App() {
   return (
     <ToastProvider>
       <AuthProvider>
-        <BrowserRouter>
+        <BrowserRouter basename={basename}>
           <Routes>
             <Route path="/login" element={<LoginEmail />} />
             <Route path="/client-login" element={<LoginPhone />} />

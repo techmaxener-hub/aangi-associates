@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 import { Button } from "../components/ui/button";
 
@@ -25,13 +26,13 @@ export function PortalLayout({
           <p className="mb-6 font-display text-lg">Aangi Associates</p>
           <nav className="space-y-1">
             {navItems.map((item) => (
-              <a
+              <Link
                 key={item.href}
-                href={item.href}
+                to={item.href}
                 className="block rounded-md px-3 py-2 text-sm opacity-85 hover:bg-white/10 hover:opacity-100"
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </nav>
         </div>

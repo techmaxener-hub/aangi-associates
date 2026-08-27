@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
@@ -75,7 +75,7 @@ export function LoginPhone() {
         )}
 
         <p className="mt-6 text-center text-xs text-text-soft">
-          Staff or Associate? <a href="/login" className="underline">Sign in with email</a>
+          Staff or Associate? <Link to="/login" className="underline">Sign in with email</Link>
         </p>
       </Card>
     </div>
