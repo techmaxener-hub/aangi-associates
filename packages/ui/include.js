@@ -58,4 +58,14 @@
   document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll("[data-include]").forEach(loadPartial);
   });
+
+  // Registered from the website pages only — apps/crm never loads this
+  // file, so the CRM SPA is never a client of this service worker.
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/sw.js").catch(function (err) {
+        console.warn("[sw] registration failed:", err);
+      });
+    });
+  }
 })();
