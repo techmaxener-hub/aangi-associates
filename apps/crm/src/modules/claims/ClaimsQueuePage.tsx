@@ -32,6 +32,7 @@ export function ClaimsQueuePage({ navItems, basePath }: { navItems: NavItem[]; b
 
   useEffect(() => {
     void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function advanceStage(claim: Claim, stage: Claim["stage"]) {
@@ -77,9 +78,15 @@ export function ClaimsQueuePage({ navItems, basePath }: { navItems: NavItem[]; b
                   <Link to={`${basePath}/clients/${c.client_id}`} className="font-medium text-text hover:underline">
                     {c.clients?.full_name ?? "Client"}
                   </Link>
-                  <p className="text-xs text-text-soft">{c.clients?.phone} · Notified {formatDate(c.notified_at)}</p>
+                  <p className="text-xs text-text-soft">
+                    {c.clients?.phone} · Notified {formatDate(c.notified_at)}
+                  </p>
                 </div>
-                <Select value={c.stage} onChange={(e) => void advanceStage(c, e.target.value as Claim["stage"])} className="w-48">
+                <Select
+                  value={c.stage}
+                  onChange={(e) => void advanceStage(c, e.target.value as Claim["stage"])}
+                  className="w-48"
+                >
                   {CLAIM_STAGES.map((s) => (
                     <option key={s} value={s}>
                       {s.replace("_", " ")}
@@ -90,7 +97,10 @@ export function ClaimsQueuePage({ navItems, basePath }: { navItems: NavItem[]; b
               {c.notes && <p className="text-sm text-text">{c.notes}</p>}
               <div className="mt-2 flex gap-1">
                 {CLAIM_STAGES.map((s, i) => (
-                  <div key={s} className={`h-1.5 flex-1 rounded ${CLAIM_STAGES.indexOf(c.stage) >= i ? "bg-gold" : "bg-surface-2"}`} />
+                  <div
+                    key={s}
+                    className={`h-1.5 flex-1 rounded ${CLAIM_STAGES.indexOf(c.stage) >= i ? "bg-gold" : "bg-surface-2"}`}
+                  />
                 ))}
               </div>
             </Card>

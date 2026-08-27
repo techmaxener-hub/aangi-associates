@@ -83,8 +83,8 @@ export function CalculatorDefaultsCard() {
           <Calculator className="h-5 w-5 text-gold" /> Calculator Default Assumptions
         </h2>
         <p className="text-xs text-text-soft">
-          The public site's 4 calculators read these values on page load via the anon key (public, read-only) instead
-          of hardcoded constants.
+          The public site's 4 calculators read these values on page load via the anon key (public, read-only) instead of
+          hardcoded constants.
         </p>
       </div>
 
@@ -95,7 +95,13 @@ export function CalculatorDefaultsCard() {
           {(Object.keys(FIELD_LABELS) as (keyof Config)[]).map((key) => (
             <div key={key} className="space-y-1.5">
               <Label htmlFor={key}>{FIELD_LABELS[key]}</Label>
-              <Input id={key} type="number" step="0.5" value={config[key]} onChange={(e) => update(key, e.target.value)} />
+              <Input
+                id={key}
+                type="number"
+                step="0.5"
+                value={config[key]}
+                onChange={(e) => update(key, e.target.value)}
+              />
             </div>
           ))}
         </div>

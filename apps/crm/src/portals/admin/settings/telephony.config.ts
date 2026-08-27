@@ -42,7 +42,12 @@ export const SARVAM_AI: IntegrationDef = {
   fields: [
     { key: "api_key", label: "Sarvam API Subscription Key", type: "password" },
     { key: "model_id", label: "Model ID", type: "text" },
-    { key: "language", label: "Default Language", type: "select", options: ["Auto-Detect", "Indian English", "Hindi", "Gujarati"] },
+    {
+      key: "language",
+      label: "Default Language",
+      type: "select",
+      options: ["Auto-Detect", "Indian English", "Hindi", "Gujarati"],
+    },
     { key: "system_prompt", label: "System Prompt & Knowledge Base", type: "textarea" },
   ],
 };

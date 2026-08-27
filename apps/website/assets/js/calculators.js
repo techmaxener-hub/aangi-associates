@@ -499,27 +499,36 @@
       });
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
-    var tabGroup = document.querySelector("[data-tabs='calculators']");
-    if (!tabGroup) return;
+  // Guarded so this file can be `require()`d under Node (no `document`) for
+  // the unit tests below, without changing anything about browser behavior.
+  if (typeof document !== "undefined") {
+    document.addEventListener("DOMContentLoaded", function () {
+      var tabGroup = document.querySelector("[data-tabs='calculators']");
+      if (!tabGroup) return;
 
-    Object.keys(ENGINES).forEach(function (key) {
-      var form = document.querySelector('[data-calc-form="' + key + '"]');
-      if (!form) return;
-      form.addEventListener("submit", function (event) {
-        event.preventDefault();
-        runCalc(key);
+      Object.keys(ENGINES).forEach(function (key) {
+        var form = document.querySelector('[data-calc-form="' + key + '"]');
+        if (!form) return;
+        form.addEventListener("submit", function (event) {
+          event.preventDefault();
+          runCalc(key);
+        });
+      });
+
+      tabGroup.addEventListener("tabchange", function (event) {
+        runCalc(event.detail.key);
+      });
+
+      applyRemoteDefaults().then(function () {
+        // Run the default (first) calculator once defaults are applied.
+        var activeTab = tabGroup.querySelector('.tab[aria-selected="true"]');
+        if (activeTab) runCalc(activeTab.getAttribute("data-tab-key"));
       });
     });
+  }
 
-    tabGroup.addEventListener("tabchange", function (event) {
-      runCalc(event.detail.key);
-    });
-
-    applyRemoteDefaults().then(function () {
-      // Run the default (first) calculator once defaults are applied.
-      var activeTab = tabGroup.querySelector('.tab[aria-selected="true"]');
-      if (activeTab) runCalc(activeTab.getAttribute("data-tab-key"));
-    });
-  });
+  // Test-only export — never runs in the browser (module is undefined there).
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = { ENGINES: ENGINES, formatINR: formatINR, formatCrLakh: formatCrLakh };
+  }
 })();

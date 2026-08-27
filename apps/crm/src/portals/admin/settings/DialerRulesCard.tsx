@@ -90,8 +90,8 @@ export function DialerRulesCard() {
               className="font-mono text-xs"
             />
             <p className="text-[11px] text-text-soft">
-              Use <code>{"{{name}}"}</code> and <code>{"{{summary}}"}</code> as placeholders — the webhook handler
-              fills these in before dispatching to {"{"}"wa.me/919033132791"{"}"}.
+              Use <code>{"{{name}}"}</code> and <code>{"{{summary}}"}</code> as placeholders — the webhook handler fills
+              these in before dispatching to {"{"}"wa.me/919033132791"{"}"}.
             </p>
           </div>
         </div>

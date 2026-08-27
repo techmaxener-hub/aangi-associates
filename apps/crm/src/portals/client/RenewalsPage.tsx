@@ -7,7 +7,9 @@ import { formatDate, daysUntil } from "../../lib/format";
 
 export function RenewalsPage() {
   const { client, policies, loading } = useMyClient();
-  const withRenewal = policies.filter((p) => p.renewal_date).sort((a, b) => (a.renewal_date! < b.renewal_date! ? -1 : 1));
+  const withRenewal = policies
+    .filter((p) => p.renewal_date)
+    .sort((a, b) => (a.renewal_date! < b.renewal_date! ? -1 : 1));
 
   return (
     <PortalLayout title="Renewals" navItems={clientNavItems}>

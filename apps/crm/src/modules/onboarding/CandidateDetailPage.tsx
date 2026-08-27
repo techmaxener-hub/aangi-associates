@@ -117,7 +117,9 @@ export function CandidateDetailPage() {
             />
           ))}
         </div>
-        <p className="mt-2 text-xs text-text-soft">Applied {formatDate(candidate.created_at)} · Source: {candidate.source}</p>
+        <p className="mt-2 text-xs text-text-soft">
+          Applied {formatDate(candidate.created_at)} · Source: {candidate.source}
+        </p>
       </Card>
 
       <Card className="mb-6 max-w-xl p-4">
@@ -140,7 +142,8 @@ export function CandidateDetailPage() {
               <Card key={t.id} className="p-3 text-sm">
                 <p className="font-medium text-text">{t.title}</p>
                 <p className="text-xs text-text-soft">
-                  {t.assignee?.full_name ?? "Unassigned"} · <span className="capitalize">{t.status.replace("_", " ")}</span>
+                  {t.assignee?.full_name ?? "Unassigned"} ·{" "}
+                  <span className="capitalize">{t.status.replace("_", " ")}</span>
                   {t.due_date ? ` · Due ${formatDate(t.due_date)}` : ""}
                 </p>
               </Card>

@@ -42,7 +42,11 @@ export function WebformEmbed() {
       </div>
 
       <SnippetBlock label="Link button (plain HTML)" code={linkSnippet} onCopy={() => copy(linkSnippet)} />
-      <SnippetBlock label="Script tag (auto-inserts the button)" code={scriptSnippet} onCopy={() => copy(scriptSnippet)} />
+      <SnippetBlock
+        label="Script tag (auto-inserts the button)"
+        code={scriptSnippet}
+        onCopy={() => copy(scriptSnippet)}
+      />
 
       <div className="rounded-lg border border-line bg-surface-2 p-3 text-xs text-text-soft">
         <p className="font-semibold text-text">Lead routing today</p>

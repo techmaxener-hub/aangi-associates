@@ -93,7 +93,14 @@ export function TasksPage({ navItems, basePath }: { navItems: NavItem[]; basePat
       return;
     }
     showToast("Task created.");
-    setForm({ title: "", description: "", assigned_to: "", due_date: "", linked_client_id: "", linked_candidate_id: "" });
+    setForm({
+      title: "",
+      description: "",
+      assigned_to: "",
+      due_date: "",
+      linked_client_id: "",
+      linked_candidate_id: "",
+    });
     setShowForm(false);
     void load();
   }
@@ -126,7 +133,11 @@ export function TasksPage({ navItems, basePath }: { navItems: NavItem[]; basePat
             </div>
             <div className="col-span-2 space-y-1.5">
               <Label>Description</Label>
-              <Textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              <Textarea
+                rows={2}
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Assign to</Label>
@@ -141,11 +152,18 @@ export function TasksPage({ navItems, basePath }: { navItems: NavItem[]; basePat
             </div>
             <div className="space-y-1.5">
               <Label>Due Date</Label>
-              <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
+              <Input
+                type="date"
+                value={form.due_date}
+                onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Link to Client (optional)</Label>
-              <Select value={form.linked_client_id} onChange={(e) => setForm({ ...form, linked_client_id: e.target.value })}>
+              <Select
+                value={form.linked_client_id}
+                onChange={(e) => setForm({ ...form, linked_client_id: e.target.value })}
+              >
                 <option value="">None</option>
                 {clientOptions.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -156,7 +174,10 @@ export function TasksPage({ navItems, basePath }: { navItems: NavItem[]; basePat
             </div>
             <div className="space-y-1.5">
               <Label>Link to Candidate (optional)</Label>
-              <Select value={form.linked_candidate_id} onChange={(e) => setForm({ ...form, linked_candidate_id: e.target.value })}>
+              <Select
+                value={form.linked_candidate_id}
+                onChange={(e) => setForm({ ...form, linked_candidate_id: e.target.value })}
+              >
                 <option value="">None</option>
                 {candidateOptions.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -182,7 +203,9 @@ export function TasksPage({ navItems, basePath }: { navItems: NavItem[]; basePat
         <div className="grid grid-cols-3 gap-4">
           {TASK_STATUSES.map((status) => (
             <div key={status}>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-soft">{STATUS_LABEL[status]}</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-soft">
+                {STATUS_LABEL[status]}
+              </p>
               <div className="space-y-2">
                 {tasks
                   .filter((t) => t.status === status)
@@ -195,7 +218,10 @@ export function TasksPage({ navItems, basePath }: { navItems: NavItem[]; basePat
                       </p>
                       {t.linked_client && (
                         <p className="mt-1 text-xs">
-                          <Link to={`${basePath}/clients/${t.linked_client.id}`} className="text-gold-text hover:underline">
+                          <Link
+                            to={`${basePath}/clients/${t.linked_client.id}`}
+                            className="text-gold-text hover:underline"
+                          >
                             Client: {t.linked_client.full_name}
                           </Link>
                         </p>

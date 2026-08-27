@@ -25,7 +25,10 @@ export function ClaimStatusPage() {
               <p className="mb-2 text-lg font-semibold capitalize text-text">{c.stage.replace("_", " ")}</p>
               <div className="flex gap-1">
                 {CLAIM_STAGES.map((s, i) => (
-                  <div key={s} className={`h-1.5 flex-1 rounded ${CLAIM_STAGES.indexOf(c.stage) >= i ? "bg-gold" : "bg-surface-2"}`} />
+                  <div
+                    key={s}
+                    className={`h-1.5 flex-1 rounded ${CLAIM_STAGES.indexOf(c.stage) >= i ? "bg-gold" : "bg-surface-2"}`}
+                  />
                 ))}
               </div>
               {c.notes && <p className="mt-2 text-sm text-text">{c.notes}</p>}

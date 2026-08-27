@@ -84,7 +84,12 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const coveredCategories = new Set(policies.filter((p) => p.status === "active").map((p) => CATEGORY_MAP[p.product_type]).filter(Boolean));
+  const coveredCategories = new Set(
+    policies
+      .filter((p) => p.status === "active")
+      .map((p) => CATEGORY_MAP[p.product_type])
+      .filter(Boolean),
+  );
   const gapCategories = ALL_CATEGORIES.filter((cat) => !coveredCategories.has(cat));
 
   if (loading) {
@@ -107,7 +112,10 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
 
   return (
     <PortalLayout title={client.full_name} navItems={navItems}>
-      <Link to={`${basePath}/clients`} className="mb-4 inline-flex items-center gap-1 text-sm text-text-soft hover:text-text">
+      <Link
+        to={`${basePath}/clients`}
+        className="mb-4 inline-flex items-center gap-1 text-sm text-text-soft hover:text-text"
+      >
         <ArrowLeft className="h-3.5 w-3.5" /> Back to clients
       </Link>
 
@@ -120,7 +128,8 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
 
       {gapCategories.length > 0 && (
         <div className="mb-6 rounded-lg border border-gold/40 bg-surface-2 p-3 text-xs text-text">
-          <span className="font-semibold text-gold-text">Cross-sell signal:</span> no active cover in {gapCategories.join(", ")}.
+          <span className="font-semibold text-gold-text">Cross-sell signal:</span> no active cover in{" "}
+          {gapCategories.join(", ")}.
         </div>
       )}
 
@@ -142,8 +151,8 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
         <div className="space-y-3">
           <p className="text-text-soft">
             {policies.length} polic{policies.length === 1 ? "y" : "ies"} · {opportunities.length} open opportunit
-            {opportunities.length === 1 ? "y" : "ies"} · {claims.filter((c) => c.stage !== "settled").length} active claim(s) ·{" "}
-            {comms.length} logged communication(s).
+            {opportunities.length === 1 ? "y" : "ies"} · {claims.filter((c) => c.stage !== "settled").length} active
+            claim(s) · {comms.length} logged communication(s).
           </p>
           <p className="text-sm">
             <span className="font-semibold text-text">Portal access: </span>
@@ -159,7 +168,13 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
         </div>
       )}
       {tab === "policies" && (
-        <PoliciesTab clientId={client.id} clientName={client.full_name} clientPhone={client.phone} policies={policies} onChange={loadAll} />
+        <PoliciesTab
+          clientId={client.id}
+          clientName={client.full_name}
+          clientPhone={client.phone}
+          policies={policies}
+          onChange={loadAll}
+        />
       )}
       {tab === "pipeline" && <PipelineTab clientId={client.id} opportunities={opportunities} onChange={loadAll} />}
       {tab === "claims" && <ClaimsTab clientId={client.id} policies={policies} claims={claims} onChange={loadAll} />}
@@ -255,19 +270,35 @@ function PoliciesTab({
             </div>
             <div className="space-y-1.5">
               <Label>Sum Assured (₹)</Label>
-              <Input type="number" value={form.sum_assured} onChange={(e) => setForm({ ...form, sum_assured: e.target.value })} />
+              <Input
+                type="number"
+                value={form.sum_assured}
+                onChange={(e) => setForm({ ...form, sum_assured: e.target.value })}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Premium (₹)</Label>
-              <Input type="number" value={form.premium} onChange={(e) => setForm({ ...form, premium: e.target.value })} />
+              <Input
+                type="number"
+                value={form.premium}
+                onChange={(e) => setForm({ ...form, premium: e.target.value })}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Start Date</Label>
-              <Input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
+              <Input
+                type="date"
+                value={form.start_date}
+                onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Renewal Date</Label>
-              <Input type="date" value={form.renewal_date} onChange={(e) => setForm({ ...form, renewal_date: e.target.value })} />
+              <Input
+                type="date"
+                value={form.renewal_date}
+                onChange={(e) => setForm({ ...form, renewal_date: e.target.value })}
+              />
             </div>
             <div className="col-span-2 flex justify-end">
               <Button type="submit" disabled={saving}>
@@ -396,7 +427,11 @@ function PipelineTab({
             <Card key={o.id} className="p-4">
               <div className="mb-2 flex items-center justify-between">
                 <p className="font-medium text-text">{o.product_type}</p>
-                <Select value={o.stage} onChange={(e) => void advanceStage(o, e.target.value as Opportunity["stage"])} className="w-48">
+                <Select
+                  value={o.stage}
+                  onChange={(e) => void advanceStage(o, e.target.value as Opportunity["stage"])}
+                  className="w-48"
+                >
                   {OPPORTUNITY_STAGES.map((s) => (
                     <option key={s} value={s}>
                       {s.replace("_", " / ")}
@@ -499,7 +534,11 @@ function ClaimsTab({
             <Card key={c.id} className="p-4">
               <div className="mb-2 flex items-center justify-between">
                 <p className="text-sm text-text-soft">Notified {formatDate(c.notified_at)}</p>
-                <Select value={c.stage} onChange={(e) => void advanceStage(c, e.target.value as Claim["stage"])} className="w-48">
+                <Select
+                  value={c.stage}
+                  onChange={(e) => void advanceStage(c, e.target.value as Claim["stage"])}
+                  className="w-48"
+                >
                   {CLAIM_STAGES.map((s) => (
                     <option key={s} value={s}>
                       {s.replace("_", " ")}
@@ -510,7 +549,10 @@ function ClaimsTab({
               {c.notes && <p className="text-sm text-text">{c.notes}</p>}
               <div className="mt-2 flex gap-1">
                 {CLAIM_STAGES.map((s, i) => (
-                  <div key={s} className={`h-1.5 flex-1 rounded ${CLAIM_STAGES.indexOf(c.stage) >= i ? "bg-gold" : "bg-surface-2"}`} />
+                  <div
+                    key={s}
+                    className={`h-1.5 flex-1 rounded ${CLAIM_STAGES.indexOf(c.stage) >= i ? "bg-gold" : "bg-surface-2"}`}
+                  />
                 ))}
               </div>
             </Card>
@@ -555,7 +597,11 @@ function CommunicationsTab({
     <div className="space-y-4">
       <Card className="max-w-xl space-y-3 p-4">
         <div className="flex gap-3">
-          <Select value={channel} onChange={(e) => setChannel(e.target.value as Communication["channel"])} className="w-40">
+          <Select
+            value={channel}
+            onChange={(e) => setChannel(e.target.value as Communication["channel"])}
+            className="w-40"
+          >
             <option value="whatsapp">WhatsApp</option>
             <option value="call">Call</option>
             <option value="email">Email</option>

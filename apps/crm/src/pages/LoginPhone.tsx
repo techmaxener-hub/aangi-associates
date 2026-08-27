@@ -77,7 +77,10 @@ export function LoginPhone() {
         )}
 
         <p className="mt-6 text-center text-xs text-text-soft">
-          Staff or Associate? <Link to="/login" className="underline">Sign in with email</Link>
+          Staff or Associate?{" "}
+          <Link to="/login" className="underline">
+            Sign in with email
+          </Link>
         </p>
       </Card>
     </div>

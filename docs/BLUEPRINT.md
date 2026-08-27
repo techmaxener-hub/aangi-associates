@@ -136,7 +136,7 @@ Shortfall = FutureCost − FV(ExistingSavings)
 r_m = Return Rate / 12 ;  n_m = n × 12
 Required Monthly SIP = Shortfall × r_m / [ ((1 + r_m)^n_m − 1) × (1 + r_m) ]
 ```
-Example: child age 5, goal at 18 (n=13), current cost ₹15L, inflation 9% → future cost ≈ ₹44.7L. No existing savings, 12% return → **≈ ₹15,800/month required SIP.**
+Example: child age 5, goal at 18 (n=13), current cost ₹15L, inflation 9% → future cost ≈ ₹46.0L. No existing savings, 12% return → **≈ ₹12,233/month required SIP.** *(Corrected 2026-08-28 — the previously-stated ₹44.7L/₹15,800 figures didn't follow from this formula; verified against `apps/website/assets/js/calculators.js`'s unit tests.)*
 
 ### Calc 03 — SIP Delay Cost Calculator
 **Inputs:** Monthly SIP Amount (₹) · Expected Annual Return (default 12%) · Total Investment Horizon (years) · Delay Period (months/years)
@@ -171,7 +171,7 @@ NetCorpusNeeded = RequiredCorpus − FV(ExistingSavings)
 r_m = PreReturn / 12 ;  n_m = n × 12
 Required Monthly SIP = NetCorpusNeeded × r_m / [ ((1+r_m)^n_m − 1) × (1+r_m) ]
 ```
-Example: age 35, retiring 60 (n=25), living to 85 (m=25), monthly expenses ₹60,000, inflation 6% → expense at retirement ≈ ₹30.9L/yr. At 7% post-return → **corpus ≈ ₹4.9 Cr.** No existing savings, 12% pre-return → **≈ ₹32,300/month required SIP.**
+Example: age 35, retiring 60 (n=25), living to 85 (m=25), monthly expenses ₹60,000, inflation 6% → expense at retirement ≈ ₹30.9L/yr. At 7% post-return → **corpus ≈ ₹6.92 Cr.** No existing savings, 12% pre-return → **≈ ₹36,456/month required SIP.** *(Corrected 2026-08-28 — the previously-stated ₹4.9 Cr/₹32,300 figures didn't follow from this formula; verified against `apps/website/assets/js/calculators.js`'s unit tests.)*
 
 ---
 

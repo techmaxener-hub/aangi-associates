@@ -12,13 +12,12 @@ const ROLE_HOME: Record<Role, string> = {
 export function RoleRedirect() {
   const { session, profile, loading } = useAuth();
 
-  if (loading) return <div className="flex min-h-screen items-center justify-center bg-bg text-text-soft">Loading…</div>;
+  if (loading)
+    return <div className="flex min-h-screen items-center justify-center bg-bg text-text-soft">Loading…</div>;
   if (!session) return <Navigate to="/login" replace />;
   if (!profile) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-bg text-text-soft">
-        Setting up your account…
-      </div>
+      <div className="flex min-h-screen items-center justify-center bg-bg text-text-soft">Setting up your account…</div>
     );
   }
 

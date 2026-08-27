@@ -52,7 +52,10 @@ export function LoginEmail() {
           </Button>
         </form>
         <p className="mt-6 text-center text-xs text-text-soft">
-          Client? <Link to="/client-login" className="underline">Sign in with your phone number</Link>
+          Client?{" "}
+          <Link to="/client-login" className="underline">
+            Sign in with your phone number
+          </Link>
         </p>
       </Card>
     </div>

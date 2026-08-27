@@ -87,11 +87,17 @@ export function BulkLeadUpload() {
     let existingEmails = new Set<string>();
 
     if (dedupe && (phones.length || emails.length)) {
-      const { data } = await supabase.from("leads").select("phone, email").or(
-        [phones.length ? `phone.in.(${phones.join(",")})` : null, emails.length ? `email.in.(${emails.join(",")})` : null]
-          .filter(Boolean)
-          .join(","),
-      );
+      const { data } = await supabase
+        .from("leads")
+        .select("phone, email")
+        .or(
+          [
+            phones.length ? `phone.in.(${phones.join(",")})` : null,
+            emails.length ? `email.in.(${emails.join(",")})` : null,
+          ]
+            .filter(Boolean)
+            .join(","),
+        );
       existingPhones = new Set((data ?? []).map((r) => r.phone).filter(Boolean));
       existingEmails = new Set((data ?? []).map((r) => r.email).filter(Boolean));
     }

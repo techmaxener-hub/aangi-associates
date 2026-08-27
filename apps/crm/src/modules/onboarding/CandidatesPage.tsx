@@ -38,6 +38,7 @@ export function CandidatesPage() {
 
   useEffect(() => {
     void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleAdd(event: FormEvent) {
@@ -100,7 +101,11 @@ export function CandidatesPage() {
           <form onSubmit={(e) => void handleAdd(e)} className="grid grid-cols-2 gap-4">
             <div className="col-span-2 space-y-1.5 sm:col-span-1">
               <Label>Full Name</Label>
-              <Input required value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+              <Input
+                required
+                value={form.full_name}
+                onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+              />
             </div>
             <div className="col-span-2 space-y-1.5 sm:col-span-1">
               <Label>Phone</Label>
@@ -127,7 +132,10 @@ export function CandidatesPage() {
             </div>
             <div className="col-span-2 space-y-1.5 sm:col-span-1">
               <Label>Track</Label>
-              <Select value={form.track} onChange={(e) => setForm({ ...form, track: e.target.value as CandidateTrack })}>
+              <Select
+                value={form.track}
+                onChange={(e) => setForm({ ...form, track: e.target.value as CandidateTrack })}
+              >
                 <option value="associate">Associate (Field Advisor)</option>
                 <option value="staff">Staff (Back-Office)</option>
               </Select>

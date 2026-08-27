@@ -61,9 +61,7 @@ async function dispatchWhatsAppSummary(leadPhone: string, summary: string) {
     .eq("provider", "whatsapp")
     .maybeSingle();
 
-  const creds = waSettings?.credentials as
-    | { system_token?: string; phone_number_id?: string }
-    | undefined;
+  const creds = waSettings?.credentials as { system_token?: string; phone_number_id?: string } | undefined;
 
   if (!creds?.system_token || !creds?.phone_number_id) {
     console.warn("WhatsApp Cloud API not configured — skipping automated dispatch.");
@@ -94,9 +92,7 @@ Deno.serve(async (req) => {
     return new Response("Method not allowed", { status: 405 });
   }
 
-  const payload = req.method === "GET"
-    ? Object.fromEntries(new URL(req.url).searchParams)
-    : await parsePayload(req);
+  const payload = req.method === "GET" ? Object.fromEntries(new URL(req.url).searchParams) : await parsePayload(req);
 
   const phone = payload.From || payload.To || "";
   const status = (payload.Status || "logged").toLowerCase();

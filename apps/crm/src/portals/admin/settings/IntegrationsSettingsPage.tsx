@@ -63,7 +63,9 @@ export function IntegrationsSettingsPage() {
           </div>
 
           <div>
-            <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-text-soft">Automation & Config</p>
+            <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-text-soft">
+              Automation & Config
+            </p>
             <div className="space-y-1">
               <SubNavButton
                 active={selected === EMAIL_AUTOMATION.id}

@@ -84,7 +84,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (idleTimer.current) clearTimeout(idleTimer.current);
       ACTIVITY_EVENTS.forEach((event) => window.removeEventListener(event, resetTimer));
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   return <AuthContext.Provider value={{ session, profile, loading, signOut }}>{children}</AuthContext.Provider>;

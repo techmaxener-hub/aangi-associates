@@ -89,7 +89,10 @@ export function LeadsDeskPage({ navItems, basePath }: { navItems: NavItem[]; bas
   }
 
   async function assignLead(lead: Lead, assignedTo: string) {
-    const { error } = await supabase.from("leads").update({ assigned_to: assignedTo || null }).eq("id", lead.id);
+    const { error } = await supabase
+      .from("leads")
+      .update({ assigned_to: assignedTo || null })
+      .eq("id", lead.id);
     if (error) {
       showToast(`Failed to assign lead: ${error.message}`, "error");
       return;
@@ -204,9 +207,16 @@ export function LeadsDeskPage({ navItems, basePath }: { navItems: NavItem[]; bas
     <PortalLayout title="Leads Desk" navItems={navItems}>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <p className="max-w-2xl text-sm text-text-soft">
-          Cards move themselves — advance a lead by logging the action that actually happened (a call, a
-          qualification, a real client record), not by dragging a card. New leads are captured via{" "}
-          {profile?.role === "admin" ? <Link to="/admin/settings" className="text-gold-text hover:underline">Settings → Lead Ingestion Hub</Link> : "the Lead Ingestion Hub"}.
+          Cards move themselves — advance a lead by logging the action that actually happened (a call, a qualification,
+          a real client record), not by dragging a card. New leads are captured via{" "}
+          {profile?.role === "admin" ? (
+            <Link to="/admin/settings" className="text-gold-text hover:underline">
+              Settings → Lead Ingestion Hub
+            </Link>
+          ) : (
+            "the Lead Ingestion Hub"
+          )}
+          .
         </p>
         <Button variant="ghost" size="sm" onClick={() => setShowDropped((v) => !v)}>
           {showDropped ? "Hide dropped" : `Show dropped (${byStatus.dropped.length})`}
@@ -218,15 +228,14 @@ export function LeadsDeskPage({ navItems, basePath }: { navItems: NavItem[]; bas
       ) : leads.length === 0 ? (
         <p className="text-text-soft">No leads yet.</p>
       ) : (
-        <div
-          className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${showDropped ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}
-        >
-
+        <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${showDropped ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}>
           {visiblePipeline.map((status) => (
             <div key={status}>
               <div className="mb-3 flex items-center gap-2">
                 <span className={`h-2 w-2 rounded-full ${COLUMN_ACCENT[status]}`} aria-hidden="true" />
-                <p className="text-xs font-semibold uppercase tracking-wide text-text-soft">{LEAD_STATUS_LABEL[status]}</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-text-soft">
+                  {LEAD_STATUS_LABEL[status]}
+                </p>
                 <span className="ml-auto rounded-full bg-surface-2 px-2 py-0.5 font-mono text-[0.7rem] text-text-soft">
                   {byStatus[status].length}
                 </span>
@@ -240,10 +249,7 @@ export function LeadsDeskPage({ navItems, basePath }: { navItems: NavItem[]; bas
                 )}
 
                 {byStatus[status].map((lead) => (
-                  <Card
-                    key={lead.id}
-                    className={`space-y-2.5 p-3.5 ${status === "dropped" ? "opacity-60" : ""}`}
-                  >
+                  <Card key={lead.id} className={`space-y-2.5 p-3.5 ${status === "dropped" ? "opacity-60" : ""}`}>
                     <div>
                       <p className="text-sm font-semibold text-text">{lead.full_name}</p>
                       <p className="text-xs text-text-soft">
@@ -290,7 +296,9 @@ export function LeadsDeskPage({ navItems, basePath }: { navItems: NavItem[]; bas
                     )}
 
                     {status === "dropped" && lead.notes && (
-                      <p className="whitespace-pre-line text-xs text-text-soft">{lead.notes.split("\n").slice(-1)[0]}</p>
+                      <p className="whitespace-pre-line text-xs text-text-soft">
+                        {lead.notes.split("\n").slice(-1)[0]}
+                      </p>
                     )}
 
                     {active?.leadId === lead.id ? (

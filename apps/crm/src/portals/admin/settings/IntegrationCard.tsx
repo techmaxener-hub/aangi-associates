@@ -43,6 +43,7 @@ export function IntegrationCard({ def, presets }: { def: IntegrationDef; presets
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [def]);
 
   function updateField(key: string, value: string) {
@@ -213,7 +214,9 @@ function StatusBadge({ status }: { status: Status }) {
   };
 
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${styles[status]}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${styles[status]}`}
+    >
       <span className="h-2 w-2 rounded-full" style={{ background: "currentColor" }} />
       {labels[status]}
     </span>

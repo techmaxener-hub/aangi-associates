@@ -33,8 +33,16 @@ export function useMyClient() {
 
         if (clientRow) {
           const [p, c] = await Promise.all([
-            supabase.from("client_policies").select("*").eq("client_id", clientRow.id).order("created_at", { ascending: false }),
-            supabase.from("claims").select("*").eq("client_id", clientRow.id).order("notified_at", { ascending: false }),
+            supabase
+              .from("client_policies")
+              .select("*")
+              .eq("client_id", clientRow.id)
+              .order("created_at", { ascending: false }),
+            supabase
+              .from("claims")
+              .select("*")
+              .eq("client_id", clientRow.id)
+              .order("notified_at", { ascending: false }),
           ]);
           if (!cancelled) {
             setPolicies(p.data ?? []);

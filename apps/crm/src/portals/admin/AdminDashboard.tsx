@@ -55,9 +55,9 @@ export function AdminDashboard() {
     async function load() {
       setLoading(true);
 
-      var thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-      var sixtyDaysOut = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-      var today = new Date().toISOString().slice(0, 10);
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const sixtyDaysOut = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      const today = new Date().toISOString().slice(0, 10);
 
       const [clients, activePolicies, openClaims, recentLeads, allLeads, renewalRows, tasks] = await Promise.all([
         supabase.from("clients").select("*", { count: "exact", head: true }),
@@ -194,7 +194,9 @@ export function AdminDashboard() {
                           style={{ width: `${(leadsByStatus[status] / Math.max(1, totalLeads)) * 100}%` }}
                         />
                       </div>
-                      <p className="w-6 shrink-0 text-right font-mono text-xs text-text-soft">{leadsByStatus[status]}</p>
+                      <p className="w-6 shrink-0 text-right font-mono text-xs text-text-soft">
+                        {leadsByStatus[status]}
+                      </p>
                     </div>
                   ))}
                   {leadsByStatus.dropped > 0 && (

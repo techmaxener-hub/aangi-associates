@@ -62,6 +62,7 @@ export function CallLogsDesk() {
 
   useEffect(() => {
     void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleLogCall(event: FormEvent) {
@@ -84,7 +85,15 @@ export function CallLogsDesk() {
       return;
     }
     showToast("Call logged.");
-    setForm({ lead_name: "", phone: "", source_channel: "Manual", language_detected: "Indian English", duration_seconds: "", intent_score: "medium", notes: "" });
+    setForm({
+      lead_name: "",
+      phone: "",
+      source_channel: "Manual",
+      language_detected: "Indian English",
+      duration_seconds: "",
+      intent_score: "medium",
+      notes: "",
+    });
     setShowForm(false);
     void load();
   }
@@ -119,8 +128,8 @@ export function CallLogsDesk() {
             <PhoneOutgoing className="h-5 w-5 text-gold" /> Live Call Logs & Recordings Desk
           </h2>
           <p className="text-xs text-text-soft">
-            Fills automatically once a telephony/voice-AI provider's webhook receiver is deployed. Log a call
-            manually below in the meantime.
+            Fills automatically once a telephony/voice-AI provider's webhook receiver is deployed. Log a call manually
+            below in the meantime.
           </p>
         </div>
         <Button size="sm" onClick={() => setShowForm((v) => !v)}>
@@ -133,7 +142,11 @@ export function CallLogsDesk() {
           <form onSubmit={(e) => void handleLogCall(e)} className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>Lead Name</Label>
-              <Input required value={form.lead_name} onChange={(e) => setForm({ ...form, lead_name: e.target.value })} />
+              <Input
+                required
+                value={form.lead_name}
+                onChange={(e) => setForm({ ...form, lead_name: e.target.value })}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Contact Number</Label>
@@ -148,11 +161,17 @@ export function CallLogsDesk() {
             </div>
             <div className="space-y-1.5">
               <Label>Source Channel</Label>
-              <Input value={form.source_channel} onChange={(e) => setForm({ ...form, source_channel: e.target.value })} />
+              <Input
+                value={form.source_channel}
+                onChange={(e) => setForm({ ...form, source_channel: e.target.value })}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Language Detected</Label>
-              <Select value={form.language_detected} onChange={(e) => setForm({ ...form, language_detected: e.target.value })}>
+              <Select
+                value={form.language_detected}
+                onChange={(e) => setForm({ ...form, language_detected: e.target.value })}
+              >
                 <option>Indian English</option>
                 <option>Hindi</option>
                 <option>Gujarati</option>
@@ -160,7 +179,11 @@ export function CallLogsDesk() {
             </div>
             <div className="space-y-1.5">
               <Label>Call Duration (seconds)</Label>
-              <Input type="number" value={form.duration_seconds} onChange={(e) => setForm({ ...form, duration_seconds: e.target.value })} />
+              <Input
+                type="number"
+                value={form.duration_seconds}
+                onChange={(e) => setForm({ ...form, duration_seconds: e.target.value })}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Intent Score</Label>
@@ -218,7 +241,9 @@ export function CallLogsDesk() {
                   <td className="px-4 py-2.5 text-text-soft">{c.duration_seconds ? `${c.duration_seconds}s` : "—"}</td>
                   <td className="px-4 py-2.5">
                     {c.intent_score ? (
-                      <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold capitalize ${INTENT_STYLES[c.intent_score]}`}>
+                      <span
+                        className={`rounded-full border px-2 py-0.5 text-xs font-semibold capitalize ${INTENT_STYLES[c.intent_score]}`}
+                      >
                         {c.intent_score}
                       </span>
                     ) : (

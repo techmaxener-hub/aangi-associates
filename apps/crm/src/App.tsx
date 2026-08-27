@@ -15,27 +15,43 @@ import { associateNavItems } from "./portals/associate/nav";
 // Everything below is code-split by route — none of it is needed for the
 // (small, fast) login screens, and most of it is role-specific, so an
 // Associate never downloads Admin-only settings code, etc.
-const AdminDashboard = lazy(() => import("./portals/admin/AdminDashboard").then((m) => ({ default: m.AdminDashboard })));
+const AdminDashboard = lazy(() =>
+  import("./portals/admin/AdminDashboard").then((m) => ({ default: m.AdminDashboard })),
+);
 const IntegrationsSettingsPage = lazy(() =>
   import("./portals/admin/settings/IntegrationsSettingsPage").then((m) => ({ default: m.IntegrationsSettingsPage })),
 );
 const TelephonySettingsPage = lazy(() =>
   import("./portals/admin/settings/TelephonySettingsPage").then((m) => ({ default: m.TelephonySettingsPage })),
 );
-const StaffDashboard = lazy(() => import("./portals/staff/StaffDashboard").then((m) => ({ default: m.StaffDashboard })));
+const StaffDashboard = lazy(() =>
+  import("./portals/staff/StaffDashboard").then((m) => ({ default: m.StaffDashboard })),
+);
 const AssociateDashboard = lazy(() =>
   import("./portals/associate/AssociateDashboard").then((m) => ({ default: m.AssociateDashboard })),
 );
-const ClientDashboard = lazy(() => import("./portals/client/ClientDashboard").then((m) => ({ default: m.ClientDashboard })));
+const ClientDashboard = lazy(() =>
+  import("./portals/client/ClientDashboard").then((m) => ({ default: m.ClientDashboard })),
+);
 const ClientClaimStatusPage = lazy(() =>
   import("./portals/client/ClaimStatusPage").then((m) => ({ default: m.ClaimStatusPage })),
 );
-const ClientRenewalsPage = lazy(() => import("./portals/client/RenewalsPage").then((m) => ({ default: m.RenewalsPage })));
+const ClientRenewalsPage = lazy(() =>
+  import("./portals/client/RenewalsPage").then((m) => ({ default: m.RenewalsPage })),
+);
 const LeadsDeskPage = lazy(() => import("./modules/leads/LeadsDeskPage").then((m) => ({ default: m.LeadsDeskPage })));
-const ClientsListPage = lazy(() => import("./modules/clients/ClientsListPage").then((m) => ({ default: m.ClientsListPage })));
-const ClientDetailPage = lazy(() => import("./modules/clients/ClientDetailPage").then((m) => ({ default: m.ClientDetailPage })));
-const ClaimsQueuePage = lazy(() => import("./modules/claims/ClaimsQueuePage").then((m) => ({ default: m.ClaimsQueuePage })));
-const CandidatesPage = lazy(() => import("./modules/onboarding/CandidatesPage").then((m) => ({ default: m.CandidatesPage })));
+const ClientsListPage = lazy(() =>
+  import("./modules/clients/ClientsListPage").then((m) => ({ default: m.ClientsListPage })),
+);
+const ClientDetailPage = lazy(() =>
+  import("./modules/clients/ClientDetailPage").then((m) => ({ default: m.ClientDetailPage })),
+);
+const ClaimsQueuePage = lazy(() =>
+  import("./modules/claims/ClaimsQueuePage").then((m) => ({ default: m.ClaimsQueuePage })),
+);
+const CandidatesPage = lazy(() =>
+  import("./modules/onboarding/CandidatesPage").then((m) => ({ default: m.CandidatesPage })),
+);
 const CandidateDetailPage = lazy(() =>
   import("./modules/onboarding/CandidateDetailPage").then((m) => ({ default: m.CandidateDetailPage })),
 );
@@ -56,7 +72,14 @@ export default function App() {
               <Route path="/client-login" element={<LoginPhone />} />
 
               {/* Admin */}
-              <Route path="/admin" element={<RequireRole role="admin"><AdminDashboard /></RequireRole>} />
+              <Route
+                path="/admin"
+                element={
+                  <RequireRole role="admin">
+                    <AdminDashboard />
+                  </RequireRole>
+                }
+              />
               <Route
                 path="/admin/leads"
                 element={
@@ -81,8 +104,22 @@ export default function App() {
                   </RequireRole>
                 }
               />
-              <Route path="/admin/team" element={<RequireRole role="admin"><CandidatesPage /></RequireRole>} />
-              <Route path="/admin/team/:id" element={<RequireRole role="admin"><CandidateDetailPage /></RequireRole>} />
+              <Route
+                path="/admin/team"
+                element={
+                  <RequireRole role="admin">
+                    <CandidatesPage />
+                  </RequireRole>
+                }
+              />
+              <Route
+                path="/admin/team/:id"
+                element={
+                  <RequireRole role="admin">
+                    <CandidateDetailPage />
+                  </RequireRole>
+                }
+              />
               <Route
                 path="/admin/claims"
                 element={
@@ -117,7 +154,14 @@ export default function App() {
               />
 
               {/* Staff */}
-              <Route path="/staff" element={<RequireRole role="staff"><StaffDashboard /></RequireRole>} />
+              <Route
+                path="/staff"
+                element={
+                  <RequireRole role="staff">
+                    <StaffDashboard />
+                  </RequireRole>
+                }
+              />
               <Route
                 path="/staff/leads"
                 element={
@@ -160,7 +204,14 @@ export default function App() {
               />
 
               {/* Associate */}
-              <Route path="/associate" element={<RequireRole role="associate"><AssociateDashboard /></RequireRole>} />
+              <Route
+                path="/associate"
+                element={
+                  <RequireRole role="associate">
+                    <AssociateDashboard />
+                  </RequireRole>
+                }
+              />
               <Route
                 path="/associate/leads"
                 element={
@@ -195,9 +246,30 @@ export default function App() {
               />
 
               {/* Client */}
-              <Route path="/client" element={<RequireRole role="client"><ClientDashboard /></RequireRole>} />
-              <Route path="/client/claims" element={<RequireRole role="client"><ClientClaimStatusPage /></RequireRole>} />
-              <Route path="/client/renewals" element={<RequireRole role="client"><ClientRenewalsPage /></RequireRole>} />
+              <Route
+                path="/client"
+                element={
+                  <RequireRole role="client">
+                    <ClientDashboard />
+                  </RequireRole>
+                }
+              />
+              <Route
+                path="/client/claims"
+                element={
+                  <RequireRole role="client">
+                    <ClientClaimStatusPage />
+                  </RequireRole>
+                }
+              />
+              <Route
+                path="/client/renewals"
+                element={
+                  <RequireRole role="client">
+                    <ClientRenewalsPage />
+                  </RequireRole>
+                }
+              />
 
               <Route path="/" element={<RoleRedirect />} />
               <Route path="*" element={<NotFound />} />

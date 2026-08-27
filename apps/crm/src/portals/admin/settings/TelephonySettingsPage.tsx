@@ -2,7 +2,14 @@ import { useState, type ReactNode } from "react";
 import { PhoneOutgoing, Timer } from "lucide-react";
 import { PortalLayout } from "../../PortalLayout";
 import { adminNavItems } from "../nav";
-import { EXOTEL_IVR, SARVAM_AI, SARVAM_AI_PRESETS, TELECRM, SQUADSTACK, TELEPHONY_INTEGRATIONS } from "./telephony.config";
+import {
+  EXOTEL_IVR,
+  SARVAM_AI,
+  SARVAM_AI_PRESETS,
+  TELECRM,
+  SQUADSTACK,
+  TELEPHONY_INTEGRATIONS,
+} from "./telephony.config";
 import { IntegrationCard } from "./IntegrationCard";
 import { DialerRulesCard } from "./DialerRulesCard";
 import { CallLogsDesk } from "./CallLogsDesk";
@@ -24,7 +31,9 @@ export function TelephonySettingsPage() {
       <div className="grid grid-cols-[260px_1fr] gap-6">
         <nav className="space-y-6">
           <div>
-            <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-text-soft">Voice & Dialer Providers</p>
+            <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-text-soft">
+              Voice & Dialer Providers
+            </p>
             <div className="space-y-1">
               {TELEPHONY_INTEGRATIONS.map((item) => (
                 <SubNavButton

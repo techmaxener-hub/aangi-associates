@@ -37,6 +37,7 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
 
   useEffect(() => {
     void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleAdd(event: FormEvent) {
@@ -76,7 +77,12 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
           <form onSubmit={(e) => void handleAdd(e)} className="grid grid-cols-2 gap-4">
             <div className="col-span-2 space-y-1.5 sm:col-span-1">
               <Label htmlFor="c-name">Full Name</Label>
-              <Input id="c-name" required value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+              <Input
+                id="c-name"
+                required
+                value={form.full_name}
+                onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+              />
             </div>
             <div className="col-span-2 space-y-1.5 sm:col-span-1">
               <Label htmlFor="c-phone">Phone</Label>
@@ -92,7 +98,12 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
             </div>
             <div className="col-span-2 space-y-1.5 sm:col-span-1">
               <Label htmlFor="c-email">Email</Label>
-              <Input id="c-email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <Input
+                id="c-email"
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+              />
             </div>
             <div className="col-span-2 space-y-1.5 sm:col-span-1">
               <Label htmlFor="c-city">City</Label>
@@ -140,7 +151,10 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
                   <td className="px-4 py-2.5 text-text-soft">{c.city ?? "—"}</td>
                   <td className="px-4 py-2.5 text-text-soft">{c.household_name ?? "—"}</td>
                   <td className="px-4 py-2.5 text-right">
-                    <Link to={`${basePath}/clients/${c.id}`} className="text-sm font-medium text-gold-text hover:underline">
+                    <Link
+                      to={`${basePath}/clients/${c.id}`}
+                      className="text-sm font-medium text-gold-text hover:underline"
+                    >
                       View →
                     </Link>
                   </td>

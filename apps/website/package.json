@@ -1,0 +1,9 @@
+{
+  "name": "aangi-website",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Static public site — no build step. This package.json exists only to run the calculator formula tests.",
+  "scripts": {
+    "test": "node --test assets/js/*.test.js"
+  }
+}
