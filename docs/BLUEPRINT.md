@@ -101,7 +101,7 @@ Ships with 3 placeholder cards, each visibly marked `[Sample — replace with re
 
 Section order: Hero → Contact Grid (Office card + Form card) → Map.
 
-- **Office card:** Aangi Associates · 8615, Krupal Pathshala, Shivaranjani Cross Road, Ahmedabad · +91 90331 32791
+- **Office card:** Aangi Associates · 615, Krupal Pathshala, Shivaranjani Cross Road, Ahmedabad · +91 90331 32791
 - **Form fields:** Name, Phone, Interested In (Protection/Wealth/Retirement/Business/General/Associate Program), Message → submits as a formatted WhatsApp message.
 
 ---

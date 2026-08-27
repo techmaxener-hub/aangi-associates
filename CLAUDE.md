@@ -9,7 +9,7 @@ Full detail (sitemap, page-by-page copy, calculator formulas, CRM architecture) 
 Executive advisory portal + internal CRM for **Jainik Shah**, Chief Business Associate Leader with TATA AIA Life Insurance, brand name **Aangi Associates**. Client-first funnel (insurance/wealth clients) with a secondary funnel for recruiting and mentoring new advisors (CBA Mentorship Wing).
 
 - Founder: Jainik Shah, 17+ years experience, 1,400+ client families, MDRT-recognised practice
-- Office: 8615, Krupal Pathshala, Shivaranjani Cross Road, Ahmedabad · +91 90331 32791
+- Office: 615, Krupal Pathshala, Shivaranjani Cross Road, Ahmedabad · +91 90331 32791
 - GSTIN: 24ACBFA747OP1Z2
 - Brand line: "Protecting What Matters. Securing What You Build."
 - IRDAI/corporate-agent license number: not yet available — footer disclaimer ships with a visible `[IRDAI Registration / Corporate Agent Code — to be inserted]` placeholder, never a fabricated number.
@@ -84,7 +84,7 @@ aangi-associates/
 
 ## Compliance footer (use verbatim until a real IRDAI number is supplied)
 
-> Aangi Associates is an insurance and financial advisory practice led by Jainik Shah, associated with TATA AIA Life Insurance Company Ltd. as a Chief Business Associate (CBA). Insurance is the subject matter of solicitation. For more details on risk factors, terms and conditions, and exclusions, please read the sales brochure and policy wording carefully before concluding a sale. [IRDAI Registration / Corporate Agent Code — to be inserted]. Mutual Fund investments referenced on this site are subject to market risks; please read all scheme-related documents carefully before investing. Tax benefits mentioned, if any, are subject to changes in applicable tax laws. This website is for general informational purposes only and does not constitute financial, legal, or tax advice — please consult directly with Jainik Shah / Aangi Associates for advice specific to your situation. GSTIN: 24ACBFA747OP1Z2. Registered Office: 8615, Krupal Pathshala, Shivaranjani Cross Road, Ahmedabad.
+> Aangi Associates is an insurance and financial advisory practice led by Jainik Shah, associated with TATA AIA Life Insurance Company Ltd. as a Chief Business Associate (CBA). Insurance is the subject matter of solicitation. For more details on risk factors, terms and conditions, and exclusions, please read the sales brochure and policy wording carefully before concluding a sale. [IRDAI Registration / Corporate Agent Code — to be inserted]. Mutual Fund investments referenced on this site are subject to market risks; please read all scheme-related documents carefully before investing. Tax benefits mentioned, if any, are subject to changes in applicable tax laws. This website is for general informational purposes only and does not constitute financial, legal, or tax advice — please consult directly with Jainik Shah / Aangi Associates for advice specific to your situation. GSTIN: 24ACBFA747OP1Z2. Registered Office: 615, Krupal Pathshala, Shivaranjani Cross Road, Ahmedabad.
 
 ## Guardrails
 
