@@ -24,6 +24,7 @@ const IntegrationsSettingsPage = lazy(() =>
 const TelephonySettingsPage = lazy(() =>
   import("./portals/admin/settings/TelephonySettingsPage").then((m) => ({ default: m.TelephonySettingsPage })),
 );
+const AuditLogPage = lazy(() => import("./portals/admin/AuditLogPage").then((m) => ({ default: m.AuditLogPage })));
 const StaffDashboard = lazy(() =>
   import("./portals/staff/StaffDashboard").then((m) => ({ default: m.StaffDashboard })),
 );
@@ -149,6 +150,14 @@ export default function App() {
                 element={
                   <RequireRole role="admin">
                     <TelephonySettingsPage />
+                  </RequireRole>
+                }
+              />
+              <Route
+                path="/admin/audit-log"
+                element={
+                  <RequireRole role="admin">
+                    <AuditLogPage />
                   </RequireRole>
                 }
               />

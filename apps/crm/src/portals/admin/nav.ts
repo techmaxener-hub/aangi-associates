@@ -6,5 +6,6 @@ export const adminNavItems = [
   { label: "Claim Desk", href: "/admin/claims" },
   { label: "Tasks", href: "/admin/tasks" },
   { label: "Telephony & AI Calling", href: "/admin/telephony" },
+  { label: "Audit Log", href: "/admin/audit-log" },
   { label: "Settings", href: "/admin/settings" },
 ];
