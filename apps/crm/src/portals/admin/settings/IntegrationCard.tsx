@@ -97,7 +97,6 @@ export function IntegrationCard({ def }: { def: IntegrationDef }) {
                 {def.category}
               </span>
             </h2>
-            <p className="text-xs text-text-soft">Routes inbound leads to the Aangi Associates CRM.</p>
           </div>
         </div>
         <StatusBadge status={status} />

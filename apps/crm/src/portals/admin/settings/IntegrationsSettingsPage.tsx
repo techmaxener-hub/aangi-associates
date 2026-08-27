@@ -1,12 +1,14 @@
 import { useState, type ReactNode } from "react";
-import { UserPlus, UploadCloud, Code } from "lucide-react";
+import { UserPlus, UploadCloud, Code, Calculator } from "lucide-react";
 import { PortalLayout } from "../../PortalLayout";
 import { adminNavItems } from "../nav";
 import { INTEGRATIONS } from "./integrations.config";
+import { EMAIL_AUTOMATION } from "./automation.config";
 import { IntegrationCard } from "./IntegrationCard";
 import { ManualLeadEntry } from "./ManualLeadEntry";
 import { BulkLeadUpload } from "./BulkLeadUpload";
 import { WebformEmbed } from "./WebformEmbed";
+import { CalculatorDefaultsCard } from "./CalculatorDefaultsCard";
 
 type Selection = "single-entry" | "bulk-entry" | "webform" | (string & {});
 
@@ -59,13 +61,33 @@ export function IntegrationsSettingsPage() {
               ))}
             </div>
           </div>
+
+          <div>
+            <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-text-soft">Automation & Config</p>
+            <div className="space-y-1">
+              <SubNavButton
+                active={selected === EMAIL_AUTOMATION.id}
+                onClick={() => setSelected(EMAIL_AUTOMATION.id)}
+                icon={<EMAIL_AUTOMATION.icon className="h-4 w-4" style={{ color: EMAIL_AUTOMATION.color }} />}
+                label={EMAIL_AUTOMATION.name}
+              />
+              <SubNavButton
+                active={selected === "calculator-defaults"}
+                onClick={() => setSelected("calculator-defaults")}
+                icon={<Calculator className="h-4 w-4 text-gold" />}
+                label="Calculator Defaults"
+              />
+            </div>
+          </div>
         </nav>
 
         <div>
           {selected === "single-entry" && <ManualLeadEntry />}
           {selected === "bulk-entry" && <BulkLeadUpload />}
           {selected === "webform" && <WebformEmbed />}
-          {!["single-entry", "bulk-entry", "webform"].includes(selected) &&
+          {selected === EMAIL_AUTOMATION.id && <IntegrationCard def={EMAIL_AUTOMATION} />}
+          {selected === "calculator-defaults" && <CalculatorDefaultsCard />}
+          {!["single-entry", "bulk-entry", "webform", EMAIL_AUTOMATION.id, "calculator-defaults"].includes(selected) &&
             (() => {
               const def = INTEGRATIONS.find((i) => i.id === selected);
               return def ? <IntegrationCard def={def} /> : null;

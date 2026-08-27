@@ -192,19 +192,18 @@ Example: age 35, retiring 60 (n=25), living to 85 (m=25), monthly expenses ₹60
 
 ## 05 — CRM & Team Platform Architecture
 
-### A. New Customer CRM
-Pipeline: **Inquiry → Quote → Application → Underwriting → Bind/Issue → Renewal** (alerts at 60/30/14 days).
-Modules: household & policy roster · renewal/churn alerts · claims tracking (mirrors the 4-step Claim Assistance system as real case records: Notified → Documentation → Insurer Liaison → Settled) · cross-sell signals (surfaced to Jainik, not auto-messaged to clients) · communication log (every WhatsApp/call/email touchpoint).
+### A. New Customer CRM — built 2026-08-27
+Pipeline: **Inquiry → Quote → Application → Underwriting → Bind/Issue** as `public.opportunities` (`stage` enum), one row per in-progress sale — `apps/crm/src/modules/clients/ClientDetailPage.tsx`'s Pipeline tab. **Renewal** tracked via `public.client_policies.renewal_date`, surfaced as a highlighted countdown on the Policies tab once within 60 days (a live threshold check, not a separate alerts table/cron job — the 60/30/14-day *notification* cadence from the original spec isn't built, just the visual flag).
+Built modules: household & policy roster (`clients` + `client_policies`) · claims tracking mirroring the 4-step Claim Assistance system as real case records (Notified → Documentation → Insurer Liaison → Settled, `public.claims`, both a per-client tab and a cross-client Claim Desk queue) · cross-sell signals (derived client-side by checking which of the 5 solution categories have no active policy, shown as a banner on the client detail page — surfaced to Admin/Staff, never auto-messaged) · communication log (`public.communications`, WhatsApp/call/email/other + notes).
+RLS: Admin/Staff full access; Associate scoped to `clients.owner_id = auth.uid()` (and child tables via a join back to `clients`); Client role scoped to `clients.portal_user_id = auth.uid()` for read-only self-view — the linkage from a `clients` row to that client's own portal login exists in the schema, but the Client portal itself (My Policies / Claim Status pages) is not yet wired up to read it, so this is schema-ready, not user-facing yet.
 
-### B. Associate & Staff Onboarding (two tracks, one shared task-allotment engine)
+### B. Associate & Staff Onboarding — built 2026-08-27 (single shared `candidates` table, `track` column distinguishes the two)
 
-**Track 1 — Associate (Field Advisor), regulated (IRDAI/PoSP):**
-Application (via Become-an-Associate form → Candidate record) → Document collection (ID/PAN/Aadhaar, education proof min. Class 10, address proof, bank details, photo) → Mandatory pre-code IRDAI/PoSP training tracked to completion → Exam/assessment (IC-38 or insurer-specified) → Code issued (Candidate → Active Associate) → Days 1–30: mentor assigned, product training, shadowing (KPIs: modules completed, simulations run) → Days 31–60: supervised client interactions, first quotes → Days 61–90: first policy bound independently, pipeline targets, formal evaluation.
+**Track 1 — Associate (Field Advisor):** `apps/crm/src/modules/onboarding/CandidatesPage.tsx` implements the stage sequence as a literal enum-like progression: application → documentation → training → exam → code_issued → days_1_30 → days_31_60 → days_61_90 → active_associate, advanced manually via a dropdown (no automated KPI tracking of modules-completed/simulations-run — that would need its own sub-schema, not built).
 
-**Track 2 — Staff (Back-Office Employee), internal/HR, no licensing:**
-Day 0: offer, documents, employment agreement → Day 1: system access provisioned, SOPs walkthrough → Week 1: role-specific training (claim desk / client servicing / admin ops) → Ongoing: task allotment, weekly review cadence.
+**Track 2 — Staff (Back-Office):** offer → documentation → system_access → week_1_training → active_staff, same page, filtered by track.
 
-**Task allotment engine (shared):** assign task → owner + due date + linked client/candidate record → status (To Do/In Progress/Done) → visible on assignee's dashboard and assigner's team view.
+**Task allotment engine (shared, built):** `public.tasks` — title/description, `assigned_to` (any Admin/Staff/Associate profile), `due_date`, `status` (To Do/In Progress/Done, shown as a 3-column board), optional links to a client or candidate record (columns exist; the create-task form doesn't expose linking yet — fast-follow). Admin/Staff can create and assign; Associates see and update only tasks assigned to them (RLS-enforced, not just UI-hidden).
 
 ### C. Roles & Login (4-tier)
 - **Admin** — Jainik + leadership. Full visibility. Only Admin creates Staff/Admin accounts.
@@ -225,9 +224,9 @@ See `CLAUDE.md` → Repo structure. One GitHub repo, two runtimes: `apps/website
 - **Lead Input & Ingestion**: Manual Single Lead (form → `leads` table, then opens a WhatsApp hand-off link, same pattern as the public site's forms), Bulk CSV Import (drag-and-drop, client-side parsing, phone/email duplicate detection against existing leads, real bulk insert — CSV only, `.xlsx` isn't wired up), Webforms & Calculators (copyable link-button/script snippets pointing to the real `calculators.html` on the live site — there's no chrome-less embeddable iframe widget yet, so this is a styled outbound link, not an inline form).
 - Backing table: `public.leads` (full_name, phone, email, city, lead_type, source, owner, notes, status), admin-only RLS for now — Staff/Associate access lands with the full Client CRM pipeline (§05A/B) in a later migration.
 
-Original settings sketch (still accurate, not yet built as UI):
-- **Email Automation** — fields: provider (SMTP/SendGrid/Postmark/Resend), API key or SMTP credentials, sender name & verified from-address. Same save-and-test pattern as the Integration Hub cards. Automated sequences (renewal/welcome/onboarding drip emails) follow once real credentials are supplied.
-- **Calculator Configuration Panel** — one page listing all 4 calculators with editable default assumptions (discount rate, income growth, education inflation, SIP return, pre/post-retirement return, default retirement age, default life expectancy). Architecture note: the website's calculators do a lightweight read-only fetch to Supabase for current defaults on page load, instead of hardcoded JS constants — the only place the "static site" touches a backend call.
+Also built 2026-08-27, under Admin Settings' "Automation & Config" group:
+- **Email Automation** (`automation.config.ts` + the same `IntegrationCard`/`integration_settings` machinery as the 15 lead sources) — fields: provider (SMTP/SendGrid/Postmark/Resend), API key or SMTP credentials, sender name & verified from-address. Credentials save for real; the automated sequences themselves (renewal/welcome/onboarding drip emails) are not built — this is credential storage only.
+- **Calculator Configuration Panel** (`CalculatorDefaultsCard.tsx` + `public.calculator_config`, a singleton row) — editable defaults for all 4 calculators (self-consumption %, income growth, discount rate, education inflation/return, SIP return, retirement inflation, pre/post-retirement return, default retirement age, default life expectancy). **Verified live end-to-end**: `apps/website/assets/js/calculators.js` fetches this table read-only via the anon key on page load (RLS: public `select`, Admin-only `update`) and overrides the hardcoded HTML defaults — changing a value in the CRM and reloading the public calculators page picks it up immediately, confirmed by testing both sides against the real project. Falls back to the original hardcoded defaults if the fetch fails.
 
 ### F. Infrastructure — Supabase Build-Then-Handoff Plan
 See `CLAUDE.md` → Locked decisions and Build order. Build on developer's free-tier project (test accounts only) → after ~5 days, create a dedicated project under Jainik/Aangi Associates' own Supabase account → replay versioned migrations, dump/restore real data → re-point env vars (config change only) → recreate real logins on the new project (Auth credentials don't migrate cleanly across projects).

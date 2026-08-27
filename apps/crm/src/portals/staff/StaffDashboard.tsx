@@ -1,18 +1,10 @@
 import { PortalLayout } from "../PortalLayout";
-
-const navItems = [
-  { label: "Dashboard", href: "/staff" },
-  { label: "Clients", href: "/staff/clients" },
-  { label: "Claim Desk", href: "/staff/claims" },
-  { label: "My Tasks", href: "/staff/tasks" },
-];
+import { staffNavItems } from "./nav";
 
 export function StaffDashboard() {
   return (
-    <PortalLayout title="Staff Dashboard" navItems={navItems}>
-      <p className="text-text-soft">
-        Client CRM and claim desk access, plus assigned tasks. Modules land here in the next build step.
-      </p>
+    <PortalLayout title="Staff Dashboard" navItems={staffNavItems}>
+      <p className="text-text-soft">Client CRM, the claim desk, and your assigned tasks — pick a section from the left.</p>
     </PortalLayout>
   );
 }

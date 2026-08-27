@@ -179,6 +179,53 @@
     renderResult(key, engine(form));
   }
 
+  // Admin-editable defaults (Admin Settings → Calculator Defaults) live in
+  // Supabase and are fetched here read-only via the public anon key — the
+  // only place this static site touches a backend call, per
+  // docs/BLUEPRINT.md §05E. Falls back to the hardcoded HTML defaults
+  // above if the fetch fails (offline, key rotated, etc.).
+  var SUPABASE_URL = "https://vdiymedmnrqmosazaaro.supabase.co";
+  var SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkaXltZWRtbnJxbW9zYXphYXJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4MzMxNDMsImV4cCI6MjEwMzQwOTE0M30.gkIUIKKjuxe03jM9tLgzclTb9H3-P3ulhRaWECTqAzc";
+
+  function applyRemoteDefaults() {
+    return fetch(SUPABASE_URL + "/rest/v1/calculator_config?select=*", {
+      headers: { apikey: SUPABASE_ANON_KEY },
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (rows) {
+        var cfg = rows && rows[0];
+        if (!cfg) return;
+
+        var fieldMap = {
+          "hlv-selfConsumption": cfg.self_consumption_pct,
+          "hlv-incomeGrowth": cfg.income_growth_pct,
+          "hlv-discountRate": cfg.discount_rate_pct,
+          "hlv-retirementAge": cfg.default_retirement_age,
+          "edu-eduInflation": cfg.edu_inflation_pct,
+          "edu-returnRate": cfg.edu_return_pct,
+          "sip-returnRate": cfg.sip_return_pct,
+          "ret-retirementAge": cfg.default_retirement_age,
+          "ret-lifeExpectancy": cfg.default_life_expectancy,
+          "ret-inflation": cfg.retirement_inflation_pct,
+          "ret-preReturn": cfg.pre_retirement_return_pct,
+          "ret-postReturn": cfg.post_retirement_return_pct,
+        };
+
+        Object.keys(fieldMap).forEach(function (id) {
+          var el = document.getElementById(id);
+          var value = fieldMap[id];
+          if (el && value !== undefined && value !== null) el.value = value;
+        });
+      })
+      .catch(function (err) {
+        console.warn("[calculators] using built-in defaults — could not fetch calculator_config:", err);
+      });
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     var tabGroup = document.querySelector("[data-tabs='calculators']");
     if (!tabGroup) return;
@@ -196,8 +243,10 @@
       runCalc(event.detail.key);
     });
 
-    // Run the default (first) calculator once on load.
-    var activeTab = tabGroup.querySelector('.tab[aria-selected="true"]');
-    if (activeTab) runCalc(activeTab.getAttribute("data-tab-key"));
+    applyRemoteDefaults().then(function () {
+      // Run the default (first) calculator once defaults are applied.
+      var activeTab = tabGroup.querySelector('.tab[aria-selected="true"]');
+      if (activeTab) runCalc(activeTab.getAttribute("data-tab-key"));
+    });
   });
 })();
