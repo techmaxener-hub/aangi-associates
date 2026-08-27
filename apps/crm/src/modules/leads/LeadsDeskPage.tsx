@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { Download } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../auth/useAuth";
 import { useToast } from "../../components/ui/toast";
@@ -8,6 +9,7 @@ import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Select } from "../../components/ui/select";
 import { PortalLayout } from "../../portals/PortalLayout";
+import { downloadCsv } from "../../lib/csv";
 import { formatDate } from "../../lib/format";
 import { LEAD_PIPELINE, LEAD_STATUS_LABEL, type Lead, type LeadAssignee, type LeadStatus } from "./types";
 
@@ -218,9 +220,36 @@ export function LeadsDeskPage({ navItems, basePath }: { navItems: NavItem[]; bas
           )}
           .
         </p>
-        <Button variant="ghost" size="sm" onClick={() => setShowDropped((v) => !v)}>
-          {showDropped ? "Hide dropped" : `Show dropped (${byStatus.dropped.length})`}
-        </Button>
+        <div className="flex shrink-0 gap-2">
+          {leads.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() =>
+                downloadCsv(
+                  "leads.csv",
+                  ["Name", "Phone", "Email", "City", "Type", "Source", "Status", "Assigned To", "Created"],
+                  leads.map((l) => [
+                    l.full_name,
+                    l.phone,
+                    l.email,
+                    l.city,
+                    l.lead_type,
+                    l.source,
+                    l.status,
+                    l.assignee?.full_name,
+                    formatDate(l.created_at),
+                  ]),
+                )
+              }
+            >
+              <Download className="h-4 w-4" /> Export CSV
+            </Button>
+          )}
+          <Button variant="ghost" size="sm" onClick={() => setShowDropped((v) => !v)}>
+            {showDropped ? "Hide dropped" : `Show dropped (${byStatus.dropped.length})`}
+          </Button>
+        </div>
       </div>
 
       {loading ? (

@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
+import { Download } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../auth/useAuth";
 import { useToast } from "../../components/ui/toast";
@@ -10,6 +11,7 @@ import { Label } from "../../components/ui/label";
 import { Select } from "../../components/ui/select";
 import { Textarea } from "../../components/ui/textarea";
 import { PortalLayout } from "../../portals/PortalLayout";
+import { downloadCsv } from "../../lib/csv";
 import { formatDate } from "../../lib/format";
 import { TASK_STATUSES, type Task, type TaskAssignee, type TaskStatus } from "./types";
 
@@ -116,13 +118,36 @@ export function TasksPage({ navItems, basePath }: { navItems: NavItem[]; basePat
 
   return (
     <PortalLayout title="Tasks" navItems={navItems}>
-      {canAssign && (
-        <div className="mb-4">
+      <div className="mb-4 flex flex-wrap gap-2">
+        {canAssign && (
           <Button size="sm" onClick={() => setShowForm((v) => !v)}>
             {showForm ? "Cancel" : "New Task"}
           </Button>
-        </div>
-      )}
+        )}
+        {tasks.length > 0 && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() =>
+              downloadCsv(
+                "tasks.csv",
+                ["Title", "Description", "Assigned To", "Due Date", "Status", "Linked Client", "Linked Candidate"],
+                tasks.map((t) => [
+                  t.title,
+                  t.description,
+                  t.assignee?.full_name,
+                  formatDate(t.due_date),
+                  STATUS_LABEL[t.status],
+                  t.linked_client?.full_name,
+                  t.linked_candidate?.full_name,
+                ]),
+              )
+            }
+          >
+            <Download className="h-4 w-4" /> Export CSV
+          </Button>
+        )}
+      </div>
 
       {showForm && (
         <Card className="mb-6 max-w-xl">

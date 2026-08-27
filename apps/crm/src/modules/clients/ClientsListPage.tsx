@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { UserPlus } from "lucide-react";
+import { UserPlus, Download } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../auth/useAuth";
 import { useToast } from "../../components/ui/toast";
@@ -9,6 +9,8 @@ import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { PortalLayout } from "../../portals/PortalLayout";
+import { downloadCsv } from "../../lib/csv";
+import { formatDate } from "../../lib/format";
 import type { Client } from "./types";
 
 interface NavItem {
@@ -62,15 +64,28 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
     void load();
   }
 
+  function exportCsv() {
+    downloadCsv(
+      "clients.csv",
+      ["Name", "Phone", "Email", "City", "Household", "Created"],
+      clients.map((c) => [c.full_name, c.phone, c.email, c.city, c.household_name, formatDate(c.created_at)]),
+    );
+  }
+
   return (
     <PortalLayout title="Clients" navItems={navItems}>
-      {canCreate && (
-        <div className="mb-4">
+      <div className="mb-4 flex flex-wrap gap-2">
+        {canCreate && (
           <Button onClick={() => setShowForm((v) => !v)}>
             <UserPlus className="h-4 w-4" /> {showForm ? "Cancel" : "Add Client"}
           </Button>
-        </div>
-      )}
+        )}
+        {clients.length > 0 && (
+          <Button variant="ghost" onClick={exportCsv}>
+            <Download className="h-4 w-4" /> Export CSV
+          </Button>
+        )}
+      </div>
 
       {showForm && (
         <Card className="mb-6 max-w-xl">
