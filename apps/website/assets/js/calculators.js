@@ -77,6 +77,263 @@
     };
   }
 
+  // Shared "future goal" formula for Dream Wedding / Car-Bike-Property /
+  // Vacation — same shape as Calc 02, but with separate return rates for
+  // existing vs. new investment (matches how these goal calculators are
+  // conventionally modeled).
+  function calcGoal(f, label) {
+    var yearsToGoal = num(f, "yearsToGoal", 5);
+    var currentCost = num(f, "currentCost", 0);
+    var inflation = num(f, "inflation", 6);
+    var existingInvestment = num(f, "existingInvestment", 0);
+    var returnExisting = num(f, "returnExisting", 10);
+    var returnNew = num(f, "returnNew", 12);
+
+    var n = Math.max(yearsToGoal, 1);
+    var futureCost = currentCost * Math.pow(1 + inflation / 100, n);
+    var fvExisting = existingInvestment * Math.pow(1 + returnExisting / 100, n);
+    var shortfall = Math.max(futureCost - fvExisting, 0);
+    var rm = returnNew / 100 / 12;
+    var nm = n * 12;
+    var sip = shortfall <= 0 ? 0 : (shortfall * rm) / ((Math.pow(1 + rm, nm) - 1) * (1 + rm));
+
+    return {
+      headline: "Required monthly SIP",
+      value: sip,
+      lines: [
+        "Future cost in " + n + " year(s): " + formatINR(futureCost) + " (" + formatCrLakh(futureCost) + ")",
+        "Shortfall after existing investment: " + formatINR(shortfall) + " (" + formatCrLakh(shortfall) + ")",
+      ],
+      whatsapp: label + ": future cost " + formatCrLakh(futureCost) + ", required monthly SIP " + formatINR(sip),
+    };
+  }
+
+  // SIP future value helper — shared by several calculators below.
+  function sipFutureValue(monthly, ratePct, months) {
+    if (months <= 0) return 0;
+    var rm = ratePct / 100 / 12;
+    if (Math.abs(rm) < 1e-9) return monthly * months;
+    return monthly * ((Math.pow(1 + rm, months) - 1) / rm) * (1 + rm);
+  }
+
+  // EMI helper — shared by EMI and Home Loan vs SIP.
+  function emiOf(principal, ratePct, months) {
+    var rm = ratePct / 100 / 12;
+    if (months <= 0) return 0;
+    if (Math.abs(rm) < 1e-9) return principal / months;
+    return (principal * rm * Math.pow(1 + rm, months)) / (Math.pow(1 + rm, months) - 1);
+  }
+
+  // SIP Calculator
+  function calcSipCalc(f) {
+    var monthlyAmount = num(f, "monthlyAmount", 0);
+    var years = num(f, "years", 15);
+    var returnRate = num(f, "returnRate", 12);
+    var months = years * 12;
+
+    var maturity = sipFutureValue(monthlyAmount, returnRate, months);
+    var invested = monthlyAmount * months;
+    var gain = maturity - invested;
+
+    return {
+      headline: "Maturity value",
+      value: maturity,
+      lines: [
+        "Total invested: " + formatINR(invested) + " (" + formatCrLakh(invested) + ")",
+        "Wealth gained: " + formatINR(gain) + " (" + formatCrLakh(gain) + ")",
+      ],
+      whatsapp: "SIP calculator: " + formatINR(monthlyAmount) + "/month for " + years + " years grows to " + formatCrLakh(maturity),
+    };
+  }
+
+  // Lumpsum Calculator
+  function calcLumpsum(f) {
+    var investmentAmount = num(f, "investmentAmount", 0);
+    var years = num(f, "years", 10);
+    var returnRate = num(f, "returnRate", 12);
+
+    var maturity = investmentAmount * Math.pow(1 + returnRate / 100, years);
+    var gain = maturity - investmentAmount;
+
+    return {
+      headline: "Maturity value",
+      value: maturity,
+      lines: [
+        "Amount invested: " + formatINR(investmentAmount) + " (" + formatCrLakh(investmentAmount) + ")",
+        "Wealth gained: " + formatINR(gain) + " (" + formatCrLakh(gain) + ")",
+      ],
+      whatsapp: "lumpsum calculator: " + formatCrLakh(investmentAmount) + " for " + years + " years grows to " + formatCrLakh(maturity),
+    };
+  }
+
+  // SIP Top-Up (step-up SIP) — contribution rises by a fixed % every year.
+  function calcSipTopup(f) {
+    var monthlyAmount = num(f, "monthlyAmount", 0);
+    var yearlyTopupPct = num(f, "yearlyTopupPct", 10);
+    var returnRate = num(f, "returnRate", 12);
+    var years = num(f, "years", 15);
+
+    var rm = returnRate / 100 / 12;
+    var balance = 0;
+    var invested = 0;
+    var currentMonthly = monthlyAmount;
+    for (var y = 0; y < years; y++) {
+      for (var m = 0; m < 12; m++) {
+        balance = balance * (1 + rm) + currentMonthly;
+        invested += currentMonthly;
+      }
+      currentMonthly = currentMonthly * (1 + yearlyTopupPct / 100);
+    }
+    var gain = balance - invested;
+
+    return {
+      headline: "Maturity value",
+      value: balance,
+      lines: [
+        "Total invested (with step-ups): " + formatINR(invested) + " (" + formatCrLakh(invested) + ")",
+        "Wealth gained: " + formatINR(gain) + " (" + formatCrLakh(gain) + ")",
+      ],
+      whatsapp: "SIP top-up calculator: starting " + formatINR(monthlyAmount) + "/month + " + yearlyTopupPct + "% yearly step-up over " + years + " years grows to " + formatCrLakh(balance),
+    };
+  }
+
+  // Limited Period SIP — contribute for a limited term, then let the
+  // corpus keep compounding untouched until the total horizon ends.
+  function calcLimitedSip(f) {
+    var monthlyAmount = num(f, "monthlyAmount", 0);
+    var contributionYears = num(f, "contributionYears", 10);
+    var totalYears = num(f, "totalYears", 20);
+    var returnRate = num(f, "returnRate", 12);
+
+    var nContrib = contributionYears * 12;
+    var nTotal = Math.max(totalYears * 12, nContrib);
+    var corpusAtContribEnd = sipFutureValue(monthlyAmount, returnRate, nContrib);
+    var remainingMonths = nTotal - nContrib;
+    var rm = returnRate / 100 / 12;
+    var finalCorpus = corpusAtContribEnd * Math.pow(1 + rm, remainingMonths);
+
+    return {
+      headline: "Final corpus at end of horizon",
+      value: finalCorpus,
+      lines: [
+        "Corpus when contributions stop (year " + contributionYears + "): " + formatINR(corpusAtContribEnd) + " (" + formatCrLakh(corpusAtContribEnd) + ")",
+        "Grows untouched for " + (totalYears - contributionYears) + " more year(s) to: " + formatCrLakh(finalCorpus),
+      ],
+      whatsapp: "limited period SIP calculator: " + formatINR(monthlyAmount) + "/month for " + contributionYears + " years, held to year " + totalYears + ", grows to " + formatCrLakh(finalCorpus),
+    };
+  }
+
+  // Birthday SIP — hypothetical SIP since birth month/year, to today.
+  function calcBirthday(f) {
+    var sipAmount = num(f, "sipAmount", 0);
+    var returnRate = num(f, "returnRate", 12);
+    var birthDateEl = f.elements["birthDate"];
+    var birthDate = birthDateEl && birthDateEl.value ? new Date(birthDateEl.value) : null;
+
+    var months = 1;
+    if (birthDate && !isNaN(birthDate.getTime())) {
+      var now = new Date();
+      months = Math.max((now.getFullYear() - birthDate.getFullYear()) * 12 + (now.getMonth() - birthDate.getMonth()), 1);
+    }
+
+    var maturity = sipFutureValue(sipAmount, returnRate, months);
+    var invested = sipAmount * months;
+    var gain = maturity - invested;
+    var years = Math.floor(months / 12);
+
+    return {
+      headline: "What it would be worth today",
+      value: maturity,
+      lines: [
+        "A SIP of " + formatINR(sipAmount) + "/month since your birth month (" + years + " years, " + (months % 12) + " months ago)",
+        "Total invested: " + formatINR(invested) + " · Wealth gained: " + formatINR(gain),
+      ],
+      whatsapp: "birthday SIP calculator: " + formatINR(sipAmount) + "/month since birth would be worth " + formatCrLakh(maturity) + " today",
+    };
+  }
+
+  // EMI Calculator
+  function calcEmi(f) {
+    var loanAmount = num(f, "loanAmount", 0);
+    var tenureYears = num(f, "tenureYears", 20);
+    var interestRate = num(f, "interestRate", 8.5);
+    var months = tenureYears * 12;
+
+    var emi = emiOf(loanAmount, interestRate, months);
+    var totalPayment = emi * months;
+    var totalInterest = totalPayment - loanAmount;
+
+    return {
+      headline: "Monthly EMI",
+      value: emi,
+      lines: [
+        "Total payment over " + tenureYears + " years: " + formatINR(totalPayment) + " (" + formatCrLakh(totalPayment) + ")",
+        "Total interest paid: " + formatINR(totalInterest) + " (" + formatCrLakh(totalInterest) + ")",
+      ],
+      whatsapp: "EMI calculator: " + formatCrLakh(loanAmount) + " loan over " + tenureYears + " years, EMI " + formatINR(emi),
+    };
+  }
+
+  // Home Loan vs SIP — the loan's EMI alongside a parallel SIP over the
+  // same tenure, so you can see debt cost and wealth-building side by side.
+  function calcHomeLoanSip(f) {
+    var loanAmount = num(f, "loanAmount", 0);
+    var tenureYears = num(f, "tenureYears", 20);
+    var interestRate = num(f, "interestRate", 8.5);
+    var sipAmount = num(f, "sipAmount", 0);
+    var sipReturnRate = num(f, "sipReturnRate", 12);
+    var months = tenureYears * 12;
+
+    var emi = emiOf(loanAmount, interestRate, months);
+    var totalInterest = emi * months - loanAmount;
+    var sipMaturity = sipFutureValue(sipAmount, sipReturnRate, months);
+
+    return {
+      headline: "Monthly EMI",
+      value: emi,
+      lines: [
+        "Total interest on the loan: " + formatINR(totalInterest) + " (" + formatCrLakh(totalInterest) + ")",
+        "A parallel " + formatINR(sipAmount) + "/month SIP over the same " + tenureYears + " years grows to: " + formatCrLakh(sipMaturity),
+      ],
+      whatsapp: "home loan vs SIP calculator: EMI " + formatINR(emi) + ", parallel SIP grows to " + formatCrLakh(sipMaturity) + " over " + tenureYears + " years",
+    };
+  }
+
+  // SWP Calculator — lumpsum grows through an optional deferred period,
+  // then a fixed monthly amount is withdrawn for the tenure.
+  function calcSwp(f) {
+    var lumpsum = num(f, "lumpsum", 0);
+    var deferredYears = num(f, "deferredYears", 0);
+    var withdrawal = num(f, "withdrawal", 0);
+    var tenureYears = num(f, "tenureYears", 15);
+    var returnRate = num(f, "returnRate", 8);
+
+    var rm = returnRate / 100 / 12;
+    var deferredMonths = deferredYears * 12;
+    var fvAfterDeferred = lumpsum * Math.pow(1 + rm, deferredMonths);
+
+    var balance = fvAfterDeferred;
+    var totalWithdrawn = 0;
+    var tenureMonths = tenureYears * 12;
+    for (var m = 0; m < tenureMonths && balance > 0; m++) {
+      balance = balance * (1 + rm);
+      var draw = Math.min(withdrawal, balance);
+      balance -= draw;
+      totalWithdrawn += draw;
+    }
+    balance = Math.max(balance, 0);
+
+    return {
+      headline: "Fund value at end of tenure",
+      value: balance,
+      lines: [
+        "Fund value after the " + deferredYears + "-year deferred period: " + formatINR(fvAfterDeferred) + " (" + formatCrLakh(fvAfterDeferred) + ")",
+        "Total withdrawn through SWP: " + formatINR(totalWithdrawn) + " (" + formatCrLakh(totalWithdrawn) + ")",
+      ],
+      whatsapp: "SWP calculator: " + formatCrLakh(lumpsum) + " lumpsum, " + formatINR(withdrawal) + "/month for " + tenureYears + " years, fund value at the end " + formatCrLakh(balance),
+    };
+  }
+
   // Calc 03 — SIP Delay Cost
   function calcSipDelay(f) {
     var monthlySip = num(f, "monthlySip", 0);
@@ -145,7 +402,23 @@
     };
   }
 
-  var ENGINES = { hlv: calcHLV, education: calcEducation, "sip-delay": calcSipDelay, retirement: calcRetirement };
+  var ENGINES = {
+    hlv: calcHLV,
+    education: calcEducation,
+    wedding: function (f) { return calcGoal(f, "dream wedding planner"); },
+    car: function (f) { return calcGoal(f, "dream car/bike/property planner"); },
+    vacation: function (f) { return calcGoal(f, "dream vacation planner"); },
+    retirement: calcRetirement,
+    "sip-calc": calcSipCalc,
+    lumpsum: calcLumpsum,
+    "sip-delay": calcSipDelay,
+    "sip-topup": calcSipTopup,
+    "limited-sip": calcLimitedSip,
+    birthday: calcBirthday,
+    emi: calcEmi,
+    "home-loan-sip": calcHomeLoanSip,
+    swp: calcSwp,
+  };
 
   function renderResult(key, result) {
     var panel = document.querySelector("#calc-result");

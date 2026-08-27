@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Calculators — Aangi Associates</title>
-<meta name="description" content="Four calculators — term insurance need, child education planning, SIP delay cost, retirement corpus — turn a plan into a number you can act on.">
+<meta name="description" content="15 calculators across protection planning, goal planning, SIP investing, and loans — turn a plan into a number you can act on.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Calculators — Aangi Associates">
-<meta property="og:description" content="Four calculators — term insurance need, child education planning, SIP delay cost, retirement corpus — turn a plan into a number you can act on.">
+<meta property="og:description" content="15 calculators across protection planning, goal planning, SIP investing, and loans — turn a plan into a number you can act on.">
 <meta property="og:url" content="https://aa.tmarinternational.com/calculators.html">
 <meta property="og:image" content="https://aa.tmarinternational.com/assets/img/founder-desk.jpg">
 <meta property="og:site_name" content="Aangi Associates">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Calculators — Aangi Associates">
-<meta name="twitter:description" content="Four calculators — term insurance need, child education planning, SIP delay cost, retirement corpus — turn a plan into a number you can act on.">
+<meta name="twitter:description" content="15 calculators across protection planning, goal planning, SIP investing, and loans — turn a plan into a number you can act on.">
 <meta name="twitter:image" content="https://aa.tmarinternational.com/assets/img/founder-desk.jpg">
 <link rel="canonical" href="https://aa.tmarinternational.com/calculators.html">
 <link rel="stylesheet" href="assets/css/main.css">
@@ -36,18 +36,34 @@
   <section class="section" id="hero">
     <div class="container section-header reveal">
       <h1>Know your number before you decide.</h1>
-      <p>Four calculators, one purpose — turn "I should probably plan for this" into an actual figure you can act on.</p>
+      <p>15 calculators across protection, goal planning, SIP investing, and loans — turn "I should probably plan for this" into an actual figure you can act on.</p>
     </div>
   </section>
 
-  <!-- Tool Tabs (4) -->
+  <!-- Tool Tabs (15, grouped into 3 categories) -->
   <section class="section" id="tool-tabs">
     <div class="container">
       <div class="tabs" role="tablist" aria-label="Calculator selection" data-tabs="calculators" data-tabs-panels="#calc-panels">
+        <div class="tabs-divider"><span>Protection &amp; Goal Planning</span></div>
         <button class="tab" role="tab" aria-selected="true" data-tab-key="hlv">Term Insurance Need</button>
         <button class="tab" role="tab" aria-selected="false" data-tab-key="education">Child Education</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab-key="sip-delay">SIP Delay Cost</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab-key="wedding">Dream Wedding</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab-key="car">Dream Car / Bike / Property</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab-key="vacation">Dream Vacation</button>
         <button class="tab" role="tab" aria-selected="false" data-tab-key="retirement">Retirement Corpus</button>
+
+        <div class="tabs-divider"><span>SIP &amp; Investment Planning</span></div>
+        <button class="tab" role="tab" aria-selected="false" data-tab-key="sip-calc">SIP Calculator</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab-key="lumpsum">Lumpsum Calculator</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab-key="sip-delay">Cost of Delay</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab-key="sip-topup">SIP Top-Up</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab-key="limited-sip">Limited Period SIP</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab-key="birthday">Birthday SIP</button>
+
+        <div class="tabs-divider"><span>Loans &amp; Withdrawals</span></div>
+        <button class="tab" role="tab" aria-selected="false" data-tab-key="emi">EMI Calculator</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab-key="home-loan-sip">Home Loan vs SIP</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab-key="swp">SWP Calculator</button>
       </div>
 
       <div id="calc-panels">
@@ -128,9 +144,155 @@
           </form>
         </div>
 
+        <!-- Dream Wedding Planner -->
+        <div class="card tab-panel" data-tab-panel="wedding">
+          <h3>Dream Wedding Planner</h3>
+          <form data-calc-form="wedding">
+            <div class="calc-form-grid">
+              <div class="field">
+                <label for="wed-yearsToGoal">Years to the Wedding</label>
+                <input id="wed-yearsToGoal" name="yearsToGoal" type="number" value="10" min="1" max="40">
+              </div>
+              <div class="field">
+                <label for="wed-currentCost">Current Cost of Wedding (₹)</label>
+                <input id="wed-currentCost" name="currentCost" type="number" value="2000000" min="0" step="10000">
+              </div>
+              <div class="field">
+                <label for="wed-inflation">Inflation (%)</label>
+                <input id="wed-inflation" name="inflation" type="number" value="7" min="0" max="20" step="0.5">
+              </div>
+              <div class="field">
+                <label for="wed-existingInvestment">Current Investment for This Goal (₹)</label>
+                <input id="wed-existingInvestment" name="existingInvestment" type="number" value="0" min="0" step="10000">
+              </div>
+              <div class="field">
+                <label for="wed-returnExisting">Return on Existing Investment (%)</label>
+                <input id="wed-returnExisting" name="returnExisting" type="number" value="10" min="0" max="20" step="0.5">
+              </div>
+              <div class="field">
+                <label for="wed-returnNew">Return on New Investment (%)</label>
+                <input id="wed-returnNew" name="returnNew" type="number" value="12" min="0" max="20" step="0.5">
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Calculate</button>
+          </form>
+        </div>
+
+        <!-- Dream Car / Bike / Property Planner -->
+        <div class="card tab-panel" data-tab-panel="car">
+          <h3>Dream Car / Bike / Property Planner</h3>
+          <form data-calc-form="car">
+            <div class="calc-form-grid">
+              <div class="field">
+                <label for="car-yearsToGoal">After How Many Years?</label>
+                <input id="car-yearsToGoal" name="yearsToGoal" type="number" value="5" min="1" max="40">
+              </div>
+              <div class="field">
+                <label for="car-currentCost">Current Cost of Goal (₹)</label>
+                <input id="car-currentCost" name="currentCost" type="number" value="1500000" min="0" step="10000">
+              </div>
+              <div class="field">
+                <label for="car-inflation">Inflation (%)</label>
+                <input id="car-inflation" name="inflation" type="number" value="6" min="0" max="20" step="0.5">
+              </div>
+              <div class="field">
+                <label for="car-existingInvestment">Current Investment for This Goal (₹)</label>
+                <input id="car-existingInvestment" name="existingInvestment" type="number" value="0" min="0" step="10000">
+              </div>
+              <div class="field">
+                <label for="car-returnExisting">Return on Existing Investment (%)</label>
+                <input id="car-returnExisting" name="returnExisting" type="number" value="10" min="0" max="20" step="0.5">
+              </div>
+              <div class="field">
+                <label for="car-returnNew">Return on New Investment (%)</label>
+                <input id="car-returnNew" name="returnNew" type="number" value="12" min="0" max="20" step="0.5">
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Calculate</button>
+          </form>
+        </div>
+
+        <!-- Dream Vacation Planner -->
+        <div class="card tab-panel" data-tab-panel="vacation">
+          <h3>Dream Vacation Planner</h3>
+          <form data-calc-form="vacation">
+            <div class="calc-form-grid">
+              <div class="field">
+                <label for="vac-yearsToGoal">After How Many Years?</label>
+                <input id="vac-yearsToGoal" name="yearsToGoal" type="number" value="3" min="1" max="40">
+              </div>
+              <div class="field">
+                <label for="vac-currentCost">Current Cost of Vacation (₹)</label>
+                <input id="vac-currentCost" name="currentCost" type="number" value="300000" min="0" step="5000">
+              </div>
+              <div class="field">
+                <label for="vac-inflation">Inflation (%)</label>
+                <input id="vac-inflation" name="inflation" type="number" value="6" min="0" max="20" step="0.5">
+              </div>
+              <div class="field">
+                <label for="vac-existingInvestment">Current Investment for This Goal (₹)</label>
+                <input id="vac-existingInvestment" name="existingInvestment" type="number" value="0" min="0" step="5000">
+              </div>
+              <div class="field">
+                <label for="vac-returnExisting">Return on Existing Investment (%)</label>
+                <input id="vac-returnExisting" name="returnExisting" type="number" value="10" min="0" max="20" step="0.5">
+              </div>
+              <div class="field">
+                <label for="vac-returnNew">Return on New Investment (%)</label>
+                <input id="vac-returnNew" name="returnNew" type="number" value="12" min="0" max="20" step="0.5">
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Calculate</button>
+          </form>
+        </div>
+
+        <!-- SIP Calculator -->
+        <div class="card tab-panel" data-tab-panel="sip-calc">
+          <h3>SIP Calculator</h3>
+          <form data-calc-form="sip-calc">
+            <div class="calc-form-grid">
+              <div class="field">
+                <label for="sipcalc-monthlyAmount">Monthly Investment (₹)</label>
+                <input id="sipcalc-monthlyAmount" name="monthlyAmount" type="number" value="10000" min="0" step="500">
+              </div>
+              <div class="field">
+                <label for="sipcalc-years">No. of Years</label>
+                <input id="sipcalc-years" name="years" type="number" value="15" min="1" max="40">
+              </div>
+              <div class="field">
+                <label for="sipcalc-returnRate">Expected Return (%)</label>
+                <input id="sipcalc-returnRate" name="returnRate" type="number" value="12" min="0" max="20" step="0.5">
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Calculate</button>
+          </form>
+        </div>
+
+        <!-- Lumpsum Calculator -->
+        <div class="card tab-panel" data-tab-panel="lumpsum">
+          <h3>Lumpsum Calculator</h3>
+          <form data-calc-form="lumpsum">
+            <div class="calc-form-grid">
+              <div class="field">
+                <label for="lump-investmentAmount">Investment Amount (₹)</label>
+                <input id="lump-investmentAmount" name="investmentAmount" type="number" value="500000" min="0" step="10000">
+              </div>
+              <div class="field">
+                <label for="lump-years">No. of Years</label>
+                <input id="lump-years" name="years" type="number" value="10" min="1" max="40">
+              </div>
+              <div class="field">
+                <label for="lump-returnRate">Expected Return (%)</label>
+                <input id="lump-returnRate" name="returnRate" type="number" value="12" min="0" max="20" step="0.5">
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Calculate</button>
+          </form>
+        </div>
+
         <!-- Calc 03 — SIP Delay Cost -->
         <div class="card tab-panel" data-tab-panel="sip-delay">
-          <h3>SIP Delay Cost Calculator</h3>
+          <h3>Cost of Delay Calculator</h3>
           <form data-calc-form="sip-delay">
             <div class="calc-form-grid">
               <div class="field">
@@ -190,6 +352,166 @@
               <div class="field">
                 <label for="ret-existingSavings">Existing Retirement Savings (₹)</label>
                 <input id="ret-existingSavings" name="retExistingSavings" type="number" value="0" min="0" step="10000">
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Calculate</button>
+          </form>
+        </div>
+
+        <!-- SIP Top-Up (Step-Up SIP) -->
+        <div class="card tab-panel" data-tab-panel="sip-topup">
+          <h3>SIP Top-Up Calculator</h3>
+          <form data-calc-form="sip-topup">
+            <div class="calc-form-grid">
+              <div class="field">
+                <label for="topup-monthlyAmount">Starting Monthly Investment (₹)</label>
+                <input id="topup-monthlyAmount" name="monthlyAmount" type="number" value="10000" min="0" step="500">
+              </div>
+              <div class="field">
+                <label for="topup-yearlyTopupPct">Yearly Top-Up (%)</label>
+                <input id="topup-yearlyTopupPct" name="yearlyTopupPct" type="number" value="10" min="0" max="50" step="1">
+              </div>
+              <div class="field">
+                <label for="topup-returnRate">Expected Return (%)</label>
+                <input id="topup-returnRate" name="returnRate" type="number" value="12" min="0" max="20" step="0.5">
+              </div>
+              <div class="field">
+                <label for="topup-years">No. of Years</label>
+                <input id="topup-years" name="years" type="number" value="15" min="1" max="40">
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Calculate</button>
+          </form>
+        </div>
+
+        <!-- Limited Period SIP -->
+        <div class="card tab-panel" data-tab-panel="limited-sip">
+          <h3>Limited Period SIP Calculator</h3>
+          <p>Invest monthly for a limited term, then let the corpus keep growing untouched until your total horizon.</p>
+          <form data-calc-form="limited-sip">
+            <div class="calc-form-grid">
+              <div class="field">
+                <label for="lsip-monthlyAmount">Monthly Investment (₹)</label>
+                <input id="lsip-monthlyAmount" name="monthlyAmount" type="number" value="10000" min="0" step="500">
+              </div>
+              <div class="field">
+                <label for="lsip-contributionYears">Limited Investment Term (years)</label>
+                <input id="lsip-contributionYears" name="contributionYears" type="number" value="10" min="1" max="40">
+              </div>
+              <div class="field">
+                <label for="lsip-totalYears">Total Investment Horizon (years)</label>
+                <input id="lsip-totalYears" name="totalYears" type="number" value="20" min="1" max="50">
+              </div>
+              <div class="field">
+                <label for="lsip-returnRate">Expected Return (%)</label>
+                <input id="lsip-returnRate" name="returnRate" type="number" value="12" min="0" max="20" step="0.5">
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Calculate</button>
+          </form>
+        </div>
+
+        <!-- Birthday SIP -->
+        <div class="card tab-panel" data-tab-panel="birthday">
+          <h3>Birthday SIP Calculator</h3>
+          <p>See what a SIP started in your birth month and year would have grown to by today.</p>
+          <form data-calc-form="birthday">
+            <div class="calc-form-grid">
+              <div class="field">
+                <label for="bday-sipAmount">Monthly SIP Amount (₹)</label>
+                <input id="bday-sipAmount" name="sipAmount" type="number" value="5000" min="0" step="500">
+              </div>
+              <div class="field">
+                <label for="bday-birthDate">Birth Date</label>
+                <input id="bday-birthDate" name="birthDate" type="date" value="1995-06-01">
+              </div>
+              <div class="field">
+                <label for="bday-returnRate">Expected Return (%)</label>
+                <input id="bday-returnRate" name="returnRate" type="number" value="12" min="0" max="20" step="0.5">
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Calculate</button>
+          </form>
+        </div>
+
+        <!-- EMI Calculator -->
+        <div class="card tab-panel" data-tab-panel="emi">
+          <h3>EMI Calculator</h3>
+          <form data-calc-form="emi">
+            <div class="calc-form-grid">
+              <div class="field">
+                <label for="emi-loanAmount">Loan Amount (₹)</label>
+                <input id="emi-loanAmount" name="loanAmount" type="number" value="3000000" min="0" step="10000">
+              </div>
+              <div class="field">
+                <label for="emi-tenureYears">Tenure (years)</label>
+                <input id="emi-tenureYears" name="tenureYears" type="number" value="20" min="1" max="35">
+              </div>
+              <div class="field">
+                <label for="emi-interestRate">Loan Interest (%)</label>
+                <input id="emi-interestRate" name="interestRate" type="number" value="8.5" min="0" max="20" step="0.05">
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Calculate</button>
+          </form>
+        </div>
+
+        <!-- Home Loan vs SIP -->
+        <div class="card tab-panel" data-tab-panel="home-loan-sip">
+          <h3>Home Loan vs SIP Calculator</h3>
+          <p>See your loan EMI alongside what a parallel SIP of your choosing would grow to over the same tenure.</p>
+          <form data-calc-form="home-loan-sip">
+            <div class="calc-form-grid">
+              <div class="field">
+                <label for="hlsip-loanAmount">Loan Amount (₹)</label>
+                <input id="hlsip-loanAmount" name="loanAmount" type="number" value="3000000" min="0" step="10000">
+              </div>
+              <div class="field">
+                <label for="hlsip-tenureYears">Tenure (years)</label>
+                <input id="hlsip-tenureYears" name="tenureYears" type="number" value="20" min="1" max="35">
+              </div>
+              <div class="field">
+                <label for="hlsip-interestRate">Loan Interest (%)</label>
+                <input id="hlsip-interestRate" name="interestRate" type="number" value="8.5" min="0" max="20" step="0.05">
+              </div>
+              <div class="field">
+                <label for="hlsip-sipAmount">Parallel Monthly SIP (₹)</label>
+                <input id="hlsip-sipAmount" name="sipAmount" type="number" value="10000" min="0" step="500">
+              </div>
+              <div class="field">
+                <label for="hlsip-sipReturnRate">Expected SIP Return (%)</label>
+                <input id="hlsip-sipReturnRate" name="sipReturnRate" type="number" value="12" min="0" max="20" step="0.5">
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Calculate</button>
+          </form>
+        </div>
+
+        <!-- SWP Calculator -->
+        <div class="card tab-panel" data-tab-panel="swp">
+          <h3>SWP Calculator</h3>
+          <p>A Systematic Withdrawal Plan: invest a lumpsum, optionally let it grow untouched for a deferred period, then draw a fixed monthly amount.</p>
+          <form data-calc-form="swp">
+            <div class="calc-form-grid">
+              <div class="field">
+                <label for="swp-lumpsum">Lumpsum Investment (₹)</label>
+                <input id="swp-lumpsum" name="lumpsum" type="number" value="5000000" min="0" step="10000">
+              </div>
+              <div class="field">
+                <label for="swp-deferredYears">Deferred Period (years)</label>
+                <input id="swp-deferredYears" name="deferredYears" type="number" value="0" min="0" max="30">
+              </div>
+              <div class="field">
+                <label for="swp-withdrawal">Monthly SWP Amount (₹)</label>
+                <input id="swp-withdrawal" name="withdrawal" type="number" value="30000" min="0" step="1000">
+              </div>
+              <div class="field">
+                <label for="swp-tenureYears">Withdrawal Tenure (years)</label>
+                <input id="swp-tenureYears" name="tenureYears" type="number" value="15" min="1" max="40">
+              </div>
+              <div class="field">
+                <label for="swp-returnRate">Assumed Return (%)</label>
+                <input id="swp-returnRate" name="returnRate" type="number" value="8" min="0" max="20" step="0.5">
               </div>
             </div>
             <button class="btn btn-primary" type="submit">Calculate</button>
