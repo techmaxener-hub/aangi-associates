@@ -18,6 +18,8 @@ export interface Task {
   created_by: string | null;
   created_at: string;
   assignee?: TaskAssignee | null;
+  linked_client?: { id: string; full_name: string } | null;
+  linked_candidate?: { id: string; full_name: string } | null;
 }
 
 export const TASK_STATUSES: TaskStatus[] = ["todo", "in_progress", "done"];

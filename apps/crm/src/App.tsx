@@ -14,6 +14,8 @@ import { staffNavItems } from "./portals/staff/nav";
 import { AssociateDashboard } from "./portals/associate/AssociateDashboard";
 import { associateNavItems } from "./portals/associate/nav";
 import { ClientDashboard } from "./portals/client/ClientDashboard";
+import { ClaimStatusPage as ClientClaimStatusPage } from "./portals/client/ClaimStatusPage";
+import { RenewalsPage as ClientRenewalsPage } from "./portals/client/RenewalsPage";
 import { ClientsListPage } from "./modules/clients/ClientsListPage";
 import { ClientDetailPage } from "./modules/clients/ClientDetailPage";
 import { ClaimsQueuePage } from "./modules/claims/ClaimsQueuePage";
@@ -60,7 +62,7 @@ export default function App() {
               path="/admin/tasks"
               element={
                 <RequireRole role="admin">
-                  <TasksPage navItems={adminNavItems} />
+                  <TasksPage navItems={adminNavItems} basePath="/admin" />
                 </RequireRole>
               }
             />
@@ -103,7 +105,7 @@ export default function App() {
               path="/staff/tasks"
               element={
                 <RequireRole role="staff">
-                  <TasksPage navItems={staffNavItems} />
+                  <TasksPage navItems={staffNavItems} basePath="/staff" />
                 </RequireRole>
               }
             />
@@ -130,13 +132,15 @@ export default function App() {
               path="/associate/tasks"
               element={
                 <RequireRole role="associate">
-                  <TasksPage navItems={associateNavItems} />
+                  <TasksPage navItems={associateNavItems} basePath="/associate" />
                 </RequireRole>
               }
             />
 
             {/* Client */}
             <Route path="/client" element={<RequireRole role="client"><ClientDashboard /></RequireRole>} />
+            <Route path="/client/claims" element={<RequireRole role="client"><ClientClaimStatusPage /></RequireRole>} />
+            <Route path="/client/renewals" element={<RequireRole role="client"><ClientRenewalsPage /></RequireRole>} />
 
             <Route path="/" element={<RoleRedirect />} />
             <Route path="*" element={<NotFound />} />

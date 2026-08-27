@@ -139,11 +139,24 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
       </div>
 
       {tab === "overview" && (
-        <p className="text-text-soft">
-          {policies.length} polic{policies.length === 1 ? "y" : "ies"} · {opportunities.length} open opportunit
-          {opportunities.length === 1 ? "y" : "ies"} · {claims.filter((c) => c.stage !== "settled").length} active claim(s) ·{" "}
-          {comms.length} logged communication(s).
-        </p>
+        <div className="space-y-3">
+          <p className="text-text-soft">
+            {policies.length} polic{policies.length === 1 ? "y" : "ies"} · {opportunities.length} open opportunit
+            {opportunities.length === 1 ? "y" : "ies"} · {claims.filter((c) => c.stage !== "settled").length} active claim(s) ·{" "}
+            {comms.length} logged communication(s).
+          </p>
+          <p className="text-sm">
+            <span className="font-semibold text-text">Portal access: </span>
+            {client.portal_user_id ? (
+              <span className="text-gold">Active</span>
+            ) : (
+              <span className="text-text-soft">
+                Not yet activated — it links automatically the first time {client.full_name} logs in with phone{" "}
+                {client.phone} at the client portal.
+              </span>
+            )}
+          </p>
+        </div>
       )}
       {tab === "policies" && <PoliciesTab clientId={client.id} policies={policies} onChange={loadAll} />}
       {tab === "pipeline" && <PipelineTab clientId={client.id} opportunities={opportunities} onChange={loadAll} />}

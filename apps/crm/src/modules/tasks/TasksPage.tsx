@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../auth/useAuth";
 import { useToast } from "../../components/ui/toast";
@@ -17,17 +18,31 @@ interface NavItem {
   href: string;
 }
 
+interface LinkOption {
+  id: string;
+  full_name: string;
+}
+
 const STATUS_LABEL: Record<TaskStatus, string> = { todo: "To Do", in_progress: "In Progress", done: "Done" };
 
-export function TasksPage({ navItems }: { navItems: NavItem[] }) {
+export function TasksPage({ navItems, basePath }: { navItems: NavItem[]; basePath: string }) {
   const { profile } = useAuth();
   const { showToast } = useToast();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [assignees, setAssignees] = useState<TaskAssignee[]>([]);
+  const [clientOptions, setClientOptions] = useState<LinkOption[]>([]);
+  const [candidateOptions, setCandidateOptions] = useState<LinkOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ title: "", description: "", assigned_to: "", due_date: "" });
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    assigned_to: "",
+    due_date: "",
+    linked_client_id: "",
+    linked_candidate_id: "",
+  });
 
   const canAssign = profile?.role === "admin" || profile?.role === "staff";
 
@@ -35,15 +50,23 @@ export function TasksPage({ navItems }: { navItems: NavItem[] }) {
     setLoading(true);
     const { data, error } = await supabase
       .from("tasks")
-      .select("*, assignee:profiles!assigned_to(id, full_name, role)")
+      .select(
+        "*, assignee:profiles!assigned_to(id, full_name, role), linked_client:clients(id, full_name), linked_candidate:candidates(id, full_name)",
+      )
       .order("due_date", { ascending: true, nullsFirst: false });
     if (error) showToast(`Failed to load tasks: ${error.message}`, "error");
     setTasks((data as unknown as Task[]) ?? []);
     setLoading(false);
 
     if (canAssign) {
-      const { data: profs } = await supabase.from("profiles").select("id, full_name, role").in("role", ["admin", "staff", "associate"]);
-      setAssignees(profs ?? []);
+      const [profs, clients, candidates] = await Promise.all([
+        supabase.from("profiles").select("id, full_name, role").in("role", ["admin", "staff", "associate"]),
+        supabase.from("clients").select("id, full_name").order("full_name"),
+        supabase.from("candidates").select("id, full_name").order("full_name"),
+      ]);
+      setAssignees(profs.data ?? []);
+      setClientOptions(clients.data ?? []);
+      setCandidateOptions(candidates.data ?? []);
     }
   }
 
@@ -60,6 +83,8 @@ export function TasksPage({ navItems }: { navItems: NavItem[] }) {
       description: form.description || null,
       assigned_to: form.assigned_to || null,
       due_date: form.due_date || null,
+      linked_client_id: form.linked_client_id || null,
+      linked_candidate_id: form.linked_candidate_id || null,
       created_by: profile?.id ?? null,
     });
     setSaving(false);
@@ -68,7 +93,7 @@ export function TasksPage({ navItems }: { navItems: NavItem[] }) {
       return;
     }
     showToast("Task created.");
-    setForm({ title: "", description: "", assigned_to: "", due_date: "" });
+    setForm({ title: "", description: "", assigned_to: "", due_date: "", linked_client_id: "", linked_candidate_id: "" });
     setShowForm(false);
     void load();
   }
@@ -118,6 +143,28 @@ export function TasksPage({ navItems }: { navItems: NavItem[] }) {
               <Label>Due Date</Label>
               <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
             </div>
+            <div className="space-y-1.5">
+              <Label>Link to Client (optional)</Label>
+              <Select value={form.linked_client_id} onChange={(e) => setForm({ ...form, linked_client_id: e.target.value })}>
+                <option value="">None</option>
+                {clientOptions.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.full_name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Link to Candidate (optional)</Label>
+              <Select value={form.linked_candidate_id} onChange={(e) => setForm({ ...form, linked_candidate_id: e.target.value })}>
+                <option value="">None</option>
+                {candidateOptions.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.full_name}
+                  </option>
+                ))}
+              </Select>
+            </div>
             <div className="col-span-2 flex justify-end">
               <Button type="submit" disabled={saving}>
                 {saving ? "Creating…" : "Create Task"}
@@ -146,6 +193,16 @@ export function TasksPage({ navItems }: { navItems: NavItem[] }) {
                       <p className="mt-1 text-xs text-text-soft">
                         {t.assignee?.full_name ?? "Unassigned"} {t.due_date ? `· Due ${formatDate(t.due_date)}` : ""}
                       </p>
+                      {t.linked_client && (
+                        <p className="mt-1 text-xs">
+                          <Link to={`${basePath}/clients/${t.linked_client.id}`} className="text-gold hover:underline">
+                            Client: {t.linked_client.full_name}
+                          </Link>
+                        </p>
+                      )}
+                      {t.linked_candidate && (
+                        <p className="mt-1 text-xs text-text-soft">Candidate: {t.linked_candidate.full_name}</p>
+                      )}
                       <Select
                         value={t.status}
                         onChange={(e) => void updateStatus(t, e.target.value as TaskStatus)}
