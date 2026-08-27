@@ -402,6 +402,39 @@
     };
   }
 
+  // Protection Gap Score — 10 questions, 0-2 points each. Each radio
+  // group's checked value is read the same way as any other field: a
+  // RadioNodeList's .value is the checked option's value, per the DOM spec.
+  function calcGapScore(f) {
+    var keys = ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"];
+    var total = 0;
+    keys.forEach(function (k) {
+      total += num(f, k, 0);
+    });
+    var max = keys.length * 2;
+
+    var band, guidance;
+    if (total <= max * 0.4) {
+      band = "Significant Protection Gap";
+      guidance =
+        "There's real exposure here — a term plan, health cover, or both would meaningfully change your family's risk today.";
+    } else if (total <= max * 0.7) {
+      band = "Partial Coverage — Room to Strengthen";
+      guidance = "You've made a start. A focused review would show exactly where the gaps are before they matter.";
+    } else {
+      band = "Well Protected";
+      guidance = "You're in a strong position. A periodic review keeps it that way as your income and family needs change.";
+    }
+
+    return {
+      headline: band,
+      value: total,
+      displayValue: total + " / " + max,
+      lines: [guidance],
+      whatsapp: "Protection Gap Score quiz: scored " + total + "/" + max + " (" + band + ")",
+    };
+  }
+
   var ENGINES = {
     hlv: calcHLV,
     education: calcEducation,
@@ -418,6 +451,7 @@
     emi: calcEmi,
     "home-loan-sip": calcHomeLoanSip,
     swp: calcSwp,
+    "gap-score": calcGapScore,
   };
 
   function renderResult(key, result) {
@@ -425,7 +459,8 @@
     if (!panel) return;
 
     panel.querySelector("[data-result-headline]").textContent = result.headline;
-    panel.querySelector("[data-result-value]").textContent = formatINR(result.value) + " (" + formatCrLakh(result.value) + ")";
+    panel.querySelector("[data-result-value]").textContent =
+      result.displayValue || formatINR(result.value) + " (" + formatCrLakh(result.value) + ")";
 
     var detailHost = panel.querySelector("[data-result-details]");
     detailHost.innerHTML = "";
