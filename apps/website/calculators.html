@@ -44,30 +44,46 @@
   <!-- Tool Tabs (15, grouped into 3 categories) -->
   <section class="section" id="tool-tabs">
     <div class="container">
-      <div class="tabs" role="tablist" aria-label="Calculator selection" data-tabs="calculators" data-tabs-panels="#calc-panels">
-        <div class="tabs-divider"><span>Protection &amp; Goal Planning</span></div>
-        <button class="tab" role="tab" aria-selected="true" data-tab-key="hlv">Term Insurance Need</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab-key="education">Child Education</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab-key="wedding">Dream Wedding</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab-key="car">Dream Car / Bike / Property</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab-key="vacation">Dream Vacation</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab-key="retirement">Retirement Corpus</button>
+      <div class="tabs tabs-grouped" role="tablist" aria-label="Calculator selection" data-tabs="calculators" data-tabs-panels="#calc-panels">
+        <div class="tab-group">
+          <span class="tab-group-label">Protection &amp; Goal Planning</span>
+          <div class="tab-group-items">
+            <button class="tab" role="tab" aria-selected="true" data-tab-key="hlv">Term Insurance Need</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab-key="education">Child Education</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab-key="wedding">Dream Wedding</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab-key="car">Dream Car / Bike / Property</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab-key="vacation">Dream Vacation</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab-key="retirement">Retirement Corpus</button>
+          </div>
+        </div>
 
-        <div class="tabs-divider"><span>SIP &amp; Investment Planning</span></div>
-        <button class="tab" role="tab" aria-selected="false" data-tab-key="sip-calc">SIP Calculator</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab-key="lumpsum">Lumpsum Calculator</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab-key="sip-delay">Cost of Delay</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab-key="sip-topup">SIP Top-Up</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab-key="limited-sip">Limited Period SIP</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab-key="birthday">Birthday SIP</button>
+        <div class="tab-group">
+          <span class="tab-group-label">SIP &amp; Investment Planning</span>
+          <div class="tab-group-items">
+            <button class="tab" role="tab" aria-selected="false" data-tab-key="sip-calc">SIP Calculator</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab-key="lumpsum">Lumpsum Calculator</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab-key="sip-delay">Cost of Delay</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab-key="sip-topup">SIP Top-Up</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab-key="limited-sip">Limited Period SIP</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab-key="birthday">Birthday SIP</button>
+          </div>
+        </div>
 
-        <div class="tabs-divider"><span>Loans &amp; Withdrawals</span></div>
-        <button class="tab" role="tab" aria-selected="false" data-tab-key="emi">EMI Calculator</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab-key="home-loan-sip">Home Loan vs SIP</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab-key="swp">SWP Calculator</button>
+        <div class="tab-group">
+          <span class="tab-group-label">Loans &amp; Withdrawals</span>
+          <div class="tab-group-items">
+            <button class="tab" role="tab" aria-selected="false" data-tab-key="emi">EMI Calculator</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab-key="home-loan-sip">Home Loan vs SIP</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab-key="swp">SWP Calculator</button>
+          </div>
+        </div>
 
-        <div class="tabs-divider"><span>Readiness Check</span></div>
-        <button class="tab" role="tab" aria-selected="false" data-tab-key="gap-score">Protection Gap Score</button>
+        <div class="tab-group">
+          <span class="tab-group-label">Readiness Check</span>
+          <div class="tab-group-items">
+            <button class="tab" role="tab" aria-selected="false" data-tab-key="gap-score">Protection Gap Score</button>
+          </div>
+        </div>
       </div>
 
       <div id="calc-panels">

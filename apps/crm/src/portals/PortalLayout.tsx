@@ -17,6 +17,7 @@ const SEARCHABLE_ROLES: Record<string, string> = {
 interface NavItem {
   label: string;
   href: string;
+  group?: string;
 }
 
 interface Breadcrumb {
@@ -63,25 +64,34 @@ export function PortalLayout({
       >
         Skip to content
       </a>
-      <aside className="flex w-56 flex-col justify-between border-r border-line bg-navy p-4 text-on-navy">
+      <aside className="flex w-56 shrink-0 flex-col justify-between border-r border-line bg-navy p-4 text-on-navy">
         <div>
           <p className="mb-6 font-display text-lg">Aangi Associates</p>
-          <nav className="space-y-1">
-            {navItems.map((item) => {
+          <nav className="space-y-0.5">
+            {navItems.map((item, i) => {
+              const isNewGroup = item.group && item.group !== navItems[i - 1]?.group;
               const active = isNavItemActive(item.href, pathname);
               return (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  aria-current={active ? "page" : undefined}
-                  className={
-                    active
-                      ? "block rounded-md border-l-2 border-gold bg-white/10 px-3 py-2 text-sm font-semibold opacity-100"
-                      : "block rounded-md border-l-2 border-transparent px-3 py-2 text-sm opacity-85 hover:bg-white/10 hover:opacity-100"
-                  }
-                >
-                  {item.label}
-                </Link>
+                <div key={item.href}>
+                  {isNewGroup && (
+                    <p
+                      className={`mb-1.5 px-3 text-[0.65rem] font-semibold uppercase tracking-wide text-on-navy/40 ${i === 0 ? "" : "mt-4"}`}
+                    >
+                      {item.group}
+                    </p>
+                  )}
+                  <Link
+                    to={item.href}
+                    aria-current={active ? "page" : undefined}
+                    className={
+                      active
+                        ? "block rounded-md border-l-2 border-gold bg-white/10 px-3 py-2 text-sm font-semibold opacity-100"
+                        : "block rounded-md border-l-2 border-transparent px-3 py-2 text-sm opacity-85 hover:bg-white/10 hover:opacity-100"
+                    }
+                  >
+                    {item.label}
+                  </Link>
+                </div>
               );
             })}
           </nav>
@@ -98,47 +108,53 @@ export function PortalLayout({
           </Button>
         </div>
       </aside>
-      <main id="main-content" className="flex-1 p-8">
-        {breadcrumbs && breadcrumbs.length > 0 && (
-          <nav aria-label="Breadcrumb" className="mb-2">
-            <ol className="flex flex-wrap items-center gap-1.5 text-sm text-text-soft">
-              {breadcrumbs.map((crumb, i) => (
-                <li key={`${crumb.label}-${i}`} className="flex items-center gap-1.5">
-                  {i > 0 && <span aria-hidden="true">/</span>}
-                  {crumb.href ? (
-                    <Link to={crumb.href} className="hover:text-text hover:underline">
-                      {crumb.label}
-                    </Link>
-                  ) : (
-                    <span aria-current="page" className="text-text">
-                      {crumb.label}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ol>
-          </nav>
-        )}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <h1 className="font-display text-2xl">{title}</h1>
-          <div className="flex flex-1 items-center justify-end gap-3">
-            {searchBasePath && (
-              <div className="w-full max-w-sm">
-                <GlobalSearch basePath={searchBasePath} />
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line-strong text-text-soft hover:bg-surface-2"
-            >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-10 border-b border-line bg-surface px-8 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              {breadcrumbs && breadcrumbs.length > 0 && (
+                <nav aria-label="Breadcrumb" className="mb-1">
+                  <ol className="flex flex-wrap items-center gap-1.5 text-sm text-text-soft">
+                    {breadcrumbs.map((crumb, i) => (
+                      <li key={`${crumb.label}-${i}`} className="flex items-center gap-1.5">
+                        {i > 0 && <span aria-hidden="true">/</span>}
+                        {crumb.href ? (
+                          <Link to={crumb.href} className="hover:text-text hover:underline">
+                            {crumb.label}
+                          </Link>
+                        ) : (
+                          <span aria-current="page" className="text-text">
+                            {crumb.label}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                </nav>
+              )}
+              <h1 className="font-display text-2xl">{title}</h1>
+            </div>
+            <div className="flex flex-1 items-center justify-end gap-3">
+              {searchBasePath && (
+                <div className="w-full max-w-sm">
+                  <GlobalSearch basePath={searchBasePath} />
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line-strong text-text-soft hover:bg-surface-2"
+              >
+                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
-        </div>
-        <ErrorBoundary>{children}</ErrorBoundary>
-      </main>
+        </header>
+        <main id="main-content" className="flex-1 p-8">
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </main>
+      </div>
     </div>
   );
 }

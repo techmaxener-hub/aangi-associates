@@ -3,14 +3,51 @@
 @import url("../../../../packages/ui/fonts.css");
 @import url("../../../../packages/ui/components.css");
 
-/* Hero */
-.hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 2.5rem; align-items: center; padding-block: var(--space-lg); }
+/* Hero — a layered composition rather than a flat 50/50 split: a soft
+   gold glow sits behind the copy, and the photo carries an offset frame
+   that lets it break the grid slightly instead of sitting flush in its
+   own column. */
+.hero { position: relative; overflow: hidden; }
+.hero::before {
+  content: "";
+  position: absolute;
+  top: -15%;
+  left: -12%;
+  width: 55%;
+  height: 130%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--gold) 16%, transparent), transparent 70%);
+  pointer-events: none;
+}
+.hero-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 2.5rem;
+  align-items: center;
+  padding-block: var(--space-lg);
+}
 .hero-copy .badge { margin-bottom: var(--space-sm); }
 .hero-subhead { font-weight: 600; color: var(--text); }
 .hero-ctas { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: var(--space-md); }
 
+.hero-photo-frame { position: relative; }
+.hero-photo-frame::before {
+  content: "";
+  position: absolute;
+  inset: 1.25rem -1.25rem -1.25rem 1.25rem;
+  border: 2px solid var(--gold);
+  border-radius: var(--radius-md);
+  z-index: -1;
+}
+.hero-photo-frame .photo { display: block; }
+
+@media (min-width: 861px) {
+  .hero-photo-frame { margin-block-start: -1.5rem; margin-inline-end: -1.5rem; }
+}
+
 @media (max-width: 860px) {
   .hero-grid { grid-template-columns: 1fr; }
+  .hero-photo-frame::before { inset: 1rem -1rem -1rem 1rem; }
 }
 
 /* Trust strip */

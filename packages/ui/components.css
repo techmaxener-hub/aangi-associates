@@ -65,6 +65,19 @@ a { color: inherit; }
   box-shadow: var(--shadow-card);
 }
 
+/* Only the <a class="card"> variant is actually clickable — a static
+   <div class="card"> used as a plain content box shouldn't lift on
+   hover, since that would imply an interaction that isn't there. */
+a.card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+a.card:hover, a.card:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-raised);
+}
+@media (prefers-reduced-motion: reduce) {
+  a.card { transition: box-shadow 0.15s ease; }
+  a.card:hover, a.card:focus-visible { transform: none; }
+}
+
 /* Badge */
 .badge {
   display: inline-block;
@@ -336,22 +349,32 @@ a { color: inherit; }
   font-family: var(--font-mono);
   font-size: 0.85rem;
   cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 .tab[aria-selected="true"] { background: var(--navy); color: var(--on-navy); border-color: var(--navy); }
+.tab:not([aria-selected="true"]):hover { background: var(--surface-2); border-color: var(--text-soft); }
 
-.tabs-divider { flex-basis: 100%; height: 0; margin: 0.25rem 0 -0.25rem; }
-.tabs-divider span {
+/* Grouped tab bar (calculators.html, 16 tools across 4 categories) — a
+   flat wrapping list with a text divider read fine at 4-7 tabs, but at
+   16 it's a wall of pills. Boxing each category makes the split legible
+   at a glance instead of requiring the label text to be read first. */
+.tabs.tabs-grouped { flex-direction: column; gap: 0.85rem; }
+.tab-group {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem 1rem;
+  background: var(--surface);
+}
+.tab-group-label {
   display: block;
   font-family: var(--font-mono);
   font-size: 0.7rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-soft);
-  padding-top: 0.85rem;
-  border-top: 1px solid var(--line);
+  margin-bottom: 0.65rem;
 }
-.tabs-divider:first-child { margin-top: 0; }
-.tabs-divider:first-child span { border-top: none; padding-top: 0; }
+.tab-group-items { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 
 .tab-panel { display: none; }
 .tab-panel.is-active { display: block; }
