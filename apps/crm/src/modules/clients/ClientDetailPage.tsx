@@ -230,8 +230,8 @@ function PrintableClientSummary({ client, policies }: { client: Client; policies
             <th className="py-1.5 pr-2">Product</th>
             <th className="py-1.5 pr-2">Insurer</th>
             <th className="py-1.5 pr-2">Policy No.</th>
-            <th className="py-1.5 pr-2">Sum Assured</th>
-            <th className="py-1.5 pr-2">Premium</th>
+            <th className="py-1.5 pr-2 text-right">Sum Assured</th>
+            <th className="py-1.5 pr-2 text-right">Premium</th>
             <th className="py-1.5 pr-2">Renewal</th>
             <th className="py-1.5">Status</th>
           </tr>
@@ -249,8 +249,8 @@ function PrintableClientSummary({ client, policies }: { client: Client; policies
                 <td className="py-1.5 pr-2">{p.product_type}</td>
                 <td className="py-1.5 pr-2">{p.insurer}</td>
                 <td className="py-1.5 pr-2">{p.policy_number ?? "—"}</td>
-                <td className="py-1.5 pr-2">{formatINR(p.sum_assured)}</td>
-                <td className="py-1.5 pr-2">{formatINR(p.premium)}</td>
+                <td className="py-1.5 pr-2 text-right font-mono tabular-nums">{formatINR(p.sum_assured)}</td>
+                <td className="py-1.5 pr-2 text-right font-mono tabular-nums">{formatINR(p.premium)}</td>
                 <td className="py-1.5 pr-2">{formatDate(p.renewal_date)}</td>
                 <td className="py-1.5 capitalize">{p.status}</td>
               </tr>
@@ -403,7 +403,7 @@ function PoliciesTab({
               <tr>
                 <th className="px-4 py-2.5">Product</th>
                 <th className="px-4 py-2.5">Insurer</th>
-                <th className="px-4 py-2.5">Sum Assured</th>
+                <th className="px-4 py-2.5 text-right">Sum Assured</th>
                 <th className="px-4 py-2.5">Renewal</th>
                 <th className="px-4 py-2.5">Status</th>
                 <th className="px-4 py-2.5" />
@@ -420,7 +420,9 @@ function PoliciesTab({
                   <tr key={p.id} className="border-t border-line">
                     <td className="px-4 py-2.5 text-text">{p.product_type}</td>
                     <td className="px-4 py-2.5 text-text-soft">{p.insurer}</td>
-                    <td className="px-4 py-2.5 text-text-soft">{formatINR(p.sum_assured)}</td>
+                    <td className="px-4 py-2.5 text-right font-mono tabular-nums text-text-soft">
+                      {formatINR(p.sum_assured)}
+                    </td>
                     <td className={`px-4 py-2.5 ${soon ? "font-semibold text-crimson" : "text-text-soft"}`}>
                       {formatDate(p.renewal_date)}
                       {soon ? ` (${dueIn}d)` : ""}

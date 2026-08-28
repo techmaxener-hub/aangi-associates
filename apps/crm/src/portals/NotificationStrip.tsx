@@ -70,7 +70,7 @@ export function NotificationStrip({
         <Link key={item.label} to={item.href}>
           <Card className="flex items-center justify-between p-4 transition-colors hover:border-line-strong">
             <p className="text-sm text-text-soft">{item.label}</p>
-            <p className="font-display text-2xl text-text">{item.value ?? "…"}</p>
+            <p className="font-mono text-2xl font-semibold tabular-nums text-text">{item.value ?? "…"}</p>
           </Card>
         </Link>
       ))}

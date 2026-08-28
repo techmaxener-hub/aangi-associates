@@ -32,7 +32,17 @@
 .quiz-options { display: flex; flex-direction: column; gap: 0.5rem; }
 .quiz-options label { display: flex; align-items: center; gap: 0.6rem; font-weight: 400; cursor: pointer; }
 .quiz-options input { accent-color: var(--crimson); }
-.result-value { font-family: var(--font-display); font-size: 2rem; color: var(--crimson); margin: 0.25rem 0 1rem; }
+/* Financial/data output gets the mono face + tabular-nums, per
+   CLAUDE.md's own stated intent for IBM Plex Mono ("formulas, data,
+   code-like UI") — the display serif is reserved for prose headings. */
+.result-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 2rem;
+  color: var(--crimson);
+  margin: 0.25rem 0 1rem;
+}
 #calc-result[hidden] { display: none; }
 
 @media (max-width: 600px) {

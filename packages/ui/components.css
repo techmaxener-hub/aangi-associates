@@ -30,7 +30,7 @@ a { color: inherit; }
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-sm);
   font-family: var(--font-body);
   font-weight: 600;
   font-size: 0.95rem;
@@ -51,19 +51,24 @@ a { color: inherit; }
 .section-navy .btn-secondary { border-color: var(--gold-on-navy); color: var(--gold-on-navy); }
 .section-navy .btn-secondary:hover { background: var(--gold-on-navy); color: var(--navy); }
 
-/* Card */
+/* Card — also used as <a class="card"> (e.g. the homepage solutions
+   preview): text-decoration: none is required here, not optional, since
+   the global `a { color: inherit; }` reset never touches decoration and
+   the browser default underline otherwise paints through every child. */
 .card {
+  display: block;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   padding: 1.5rem;
+  text-decoration: none;
 }
 
 /* Badge */
 .badge {
   display: inline-block;
   padding: 0.25rem 0.75rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: 0.75rem;
   font-family: var(--font-mono);
   background: var(--surface-2);
@@ -84,7 +89,7 @@ a { color: inherit; }
   height: 100%;
   min-height: 280px;
   object-fit: cover;
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   display: block;
   border: 1px solid var(--line);
 }
@@ -92,7 +97,7 @@ a { color: inherit; }
 .media-placeholder {
   background: var(--surface-2);
   border: 1px dashed var(--line-strong);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   min-height: 280px;
   display: flex;
   align-items: center;
@@ -142,7 +147,7 @@ a { color: inherit; }
   justify-content: center;
   width: 2rem;
   height: 2rem;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-sm);
   background: var(--navy);
   color: var(--on-navy);
   font-family: var(--font-mono);
@@ -162,7 +167,7 @@ a { color: inherit; }
   gap: 0.25rem;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 0.375rem;
+  border-radius: var(--radius-sm);
   padding: 0.5rem;
   min-width: 240px;
   list-style: none;
@@ -173,14 +178,14 @@ a { color: inherit; }
 .header-ctas { display: flex; align-items: center; gap: 0.75rem; }
 .theme-toggle {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 2.25rem; height: 2.25rem; border-radius: 999px;
+  width: 2.25rem; height: 2.25rem; border-radius: var(--radius-pill);
   border: 1px solid var(--line-strong); background: var(--surface);
   font-size: 1rem; line-height: 1; cursor: pointer; color: var(--text);
 }
 .theme-toggle:hover { background: var(--surface-2); }
 
 .lang-switcher {
-  display: flex; border: 1px solid var(--line-strong); border-radius: 999px; overflow: hidden;
+  display: flex; border: 1px solid var(--line-strong); border-radius: var(--radius-pill); overflow: hidden;
 }
 .lang-switcher button {
   border: none; background: var(--surface); color: var(--text-soft); font-family: var(--font-mono);
@@ -192,7 +197,7 @@ a { color: inherit; }
   display: none;
   background: none;
   border: 1px solid var(--line-strong);
-  border-radius: 0.375rem;
+  border-radius: var(--radius-sm);
   padding: 0.4rem 0.6rem;
   font-size: 1.1rem;
   cursor: pointer;
@@ -281,7 +286,7 @@ a { color: inherit; }
 .tabs { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 2rem; }
 .tab {
   padding: 0.5rem 1.25rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   border: 1px solid var(--line-strong);
   background: var(--surface);
   color: var(--text);
@@ -313,7 +318,7 @@ a { color: inherit; }
 
 /* Stepper (Claim Assistance 4-step system) */
 .stepper { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
-.step { position: relative; padding: 1.5rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.step { position: relative; padding: 1.5rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); }
 .step-number { font-family: var(--font-mono); color: var(--gold); font-size: 1.5rem; display: block; margin-bottom: 0.5rem; }
 
 @media (max-width: 860px) {
@@ -358,7 +363,7 @@ a { color: inherit; }
 .accordion-panel.is-open { display: block; }
 
 /* Result panel (Calculators) */
-.result-panel { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 2rem; }
+.result-panel { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 2rem; }
 
 /* Forms */
 .field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
@@ -366,7 +371,7 @@ a { color: inherit; }
 .field input, .field select, .field textarea {
   padding: 0.65rem 0.85rem;
   border: 1px solid var(--line-strong);
-  border-radius: 0.375rem;
+  border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--text);
   font-family: var(--font-body);
@@ -376,7 +381,7 @@ a { color: inherit; }
 /* Modal (lead capture / associate application) */
 .modal {
   border: none;
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   padding: 2rem;
   max-width: 480px;
   width: calc(100% - 2rem);
@@ -397,7 +402,7 @@ a { color: inherit; }
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid color-mix(in srgb, var(--line-strong) 60%, transparent);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
 }
 
 /* Reveal-on-scroll */
@@ -421,7 +426,7 @@ a { color: inherit; }
   background: var(--navy);
   color: var(--on-navy);
   padding: 0.6rem 1rem;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-sm);
   font-family: var(--font-body);
   font-weight: 600;
   text-decoration: none;

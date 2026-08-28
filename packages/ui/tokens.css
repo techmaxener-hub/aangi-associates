@@ -32,7 +32,13 @@
   --font-body: "Public Sans", -apple-system, Segoe UI, sans-serif;
   --font-mono: "IBM Plex Mono", "Courier New", monospace;
 
-  --radius: 0.5rem;
+  /* Radius scale — named by role, not just a size, so new components pick
+     the right one instead of guessing between a leftover set of literals:
+     controls (buttons, inputs, small chrome) vs. containers (cards,
+     panels, media) vs. fully-rounded pills (badges, tabs, toggles). */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-pill: 999px;
   --container-max: 1200px;
 }
 

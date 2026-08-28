@@ -117,19 +117,19 @@ export function AdminDashboard() {
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <Card className="p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-text-soft">Total Clients</p>
-              <p className="mt-1 font-display text-2xl text-text">{clientCount}</p>
+              <p className="mt-1 font-mono text-2xl font-semibold tabular-nums text-text">{clientCount}</p>
             </Card>
             <Card className="p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-text-soft">Active Policies</p>
-              <p className="mt-1 font-display text-2xl text-text">{activePolicyCount}</p>
+              <p className="mt-1 font-mono text-2xl font-semibold tabular-nums text-text">{activePolicyCount}</p>
             </Card>
             <Card className="p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-text-soft">Open Claims</p>
-              <p className="mt-1 font-display text-2xl text-text">{openClaimCount}</p>
+              <p className="mt-1 font-mono text-2xl font-semibold tabular-nums text-text">{openClaimCount}</p>
             </Card>
             <Card className="p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-text-soft">New Leads (30d)</p>
-              <p className="mt-1 font-display text-2xl text-text">{newLeadCount}</p>
+              <p className="mt-1 font-mono text-2xl font-semibold tabular-nums text-text">{newLeadCount}</p>
             </Card>
           </div>
 
@@ -252,7 +252,7 @@ export function AdminDashboard() {
               <div className="grid grid-cols-3 gap-3 text-center">
                 {Object.keys(TASK_STATUS_LABEL).map((status) => (
                   <div key={status}>
-                    <p className="font-display text-2xl text-text">{taskCounts[status] ?? 0}</p>
+                    <p className="font-mono text-2xl font-semibold tabular-nums text-text">{taskCounts[status] ?? 0}</p>
                     <p className="text-xs text-text-soft">{TASK_STATUS_LABEL[status]}</p>
                   </div>
                 ))}

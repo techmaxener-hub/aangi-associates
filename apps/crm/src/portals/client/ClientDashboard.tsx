@@ -47,7 +47,7 @@ export function ClientDashboard() {
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
                   <p className="text-text-soft">
-                    Sum Assured: <span className="text-text">{formatINR(p.sum_assured)}</span>
+                    Sum Assured: <span className="font-mono tabular-nums text-text">{formatINR(p.sum_assured)}</span>
                   </p>
                   <p className={soon ? "font-semibold text-crimson" : "text-text-soft"}>
                     Renewal: {formatDate(p.renewal_date)}
