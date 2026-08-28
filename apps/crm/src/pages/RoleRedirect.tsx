@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
+import { RouteLoading } from "../components/ui/route-loading";
 import type { Role } from "../auth/types";
 
 const ROLE_HOME: Record<Role, string> = {
@@ -12,8 +13,7 @@ const ROLE_HOME: Record<Role, string> = {
 export function RoleRedirect() {
   const { session, profile, loading } = useAuth();
 
-  if (loading)
-    return <div className="flex min-h-screen items-center justify-center bg-bg text-text-soft">Loading…</div>;
+  if (loading) return <RouteLoading />;
   if (!session) return <Navigate to="/login" replace />;
   if (!profile) {
     return (

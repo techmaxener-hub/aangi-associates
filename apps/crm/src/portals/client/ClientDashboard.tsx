@@ -3,7 +3,11 @@ import { clientNavItems } from "./nav";
 import { useMyClient } from "../../modules/clientPortal/useMyClient";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
+import { ListSkeleton } from "../../components/ui/skeleton";
+import { EmptyState } from "../../components/ui/empty-state";
 import { formatINR, formatDate, daysUntil } from "../../lib/format";
+import { POLICY_STATUS_VARIANT } from "../../modules/clients/types";
 
 const ADVISOR_WHATSAPP =
   "https://wa.me/919033132791?text=Hi%20Aangi%20Associates%2C%20I%27d%20like%20to%20talk%20to%20my%20advisor.";
@@ -22,11 +26,11 @@ export function ClientDashboard() {
       </div>
 
       {loading ? (
-        <p className="text-text-soft">Loading…</p>
+        <ListSkeleton rows={2} />
       ) : !client ? (
         <NotLinkedNotice />
       ) : policies.length === 0 ? (
-        <p className="text-text-soft">No policies on file yet.</p>
+        <EmptyState message="No policies on file yet." />
       ) : (
         <div className="space-y-3">
           {policies.map((p) => {
@@ -41,9 +45,7 @@ export function ClientDashboard() {
                       {p.insurer} {p.policy_number ? `· ${p.policy_number}` : ""}
                     </p>
                   </div>
-                  <span className="rounded-full border border-line px-2.5 py-1 text-xs font-semibold capitalize text-text-soft">
-                    {p.status}
-                  </span>
+                  <Badge variant={POLICY_STATUS_VARIANT[p.status]}>{p.status}</Badge>
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
                   <p className="text-text-soft">

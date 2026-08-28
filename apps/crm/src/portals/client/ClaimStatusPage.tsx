@@ -3,6 +3,8 @@ import { clientNavItems } from "./nav";
 import { NotLinkedNotice } from "./ClientDashboard";
 import { useMyClient } from "../../modules/clientPortal/useMyClient";
 import { Card } from "../../components/ui/card";
+import { ListSkeleton } from "../../components/ui/skeleton";
+import { EmptyState } from "../../components/ui/empty-state";
 import { formatDate } from "../../lib/format";
 import { CLAIM_STAGES } from "../../modules/clients/types";
 
@@ -12,11 +14,11 @@ export function ClaimStatusPage() {
   return (
     <PortalLayout title="Claim Status" navItems={clientNavItems}>
       {loading ? (
-        <p className="text-text-soft">Loading…</p>
+        <ListSkeleton rows={2} />
       ) : !client ? (
         <NotLinkedNotice />
       ) : claims.length === 0 ? (
-        <p className="text-text-soft">No claims on file — hopefully it stays that way.</p>
+        <EmptyState message="No claims on file — hopefully it stays that way." />
       ) : (
         <div className="space-y-3">
           {claims.map((c) => (

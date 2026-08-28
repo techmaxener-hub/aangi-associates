@@ -4,6 +4,8 @@ import { supabase } from "../../lib/supabase";
 import { useToast } from "../../components/ui/toast";
 import { Card } from "../../components/ui/card";
 import { Select } from "../../components/ui/select";
+import { ListSkeleton } from "../../components/ui/skeleton";
+import { EmptyState } from "../../components/ui/empty-state";
 import { PortalLayout } from "../../portals/PortalLayout";
 import { formatDate } from "../../lib/format";
 import { CLAIM_STAGES, type Claim } from "../clients/types";
@@ -66,9 +68,9 @@ export function ClaimsQueuePage({ navItems, basePath }: { navItems: NavItem[]; b
       </div>
 
       {loading ? (
-        <p className="text-text-soft">Loading…</p>
+        <ListSkeleton />
       ) : visible.length === 0 ? (
-        <p className="text-text-soft">No claims to show.</p>
+        <EmptyState message="No claims to show." />
       ) : (
         <div className="space-y-3">
           {visible.map((c) => (

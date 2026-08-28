@@ -8,6 +8,8 @@ import { Select } from "../../components/ui/select";
 import { Textarea } from "../../components/ui/textarea";
 import { PortalLayout } from "../../portals/PortalLayout";
 import { adminNavItems } from "../../portals/admin/nav";
+import { DetailSkeleton } from "../../components/ui/skeleton";
+import { EmptyState } from "../../components/ui/empty-state";
 import { formatDate } from "../../lib/format";
 import { stagesFor, stageLabel, type Candidate } from "./types";
 import type { Task } from "../tasks/types";
@@ -69,7 +71,7 @@ export function CandidateDetailPage() {
   if (loading) {
     return (
       <PortalLayout title="Candidate" navItems={adminNavItems}>
-        <p className="text-text-soft">Loading…</p>
+        <DetailSkeleton />
       </PortalLayout>
     );
   }
@@ -138,7 +140,7 @@ export function CandidateDetailPage() {
       <div>
         <p className="mb-2 font-medium text-text">Linked tasks</p>
         {tasks.length === 0 ? (
-          <p className="text-sm text-text-soft">No tasks linked to this candidate yet.</p>
+          <EmptyState message="No tasks linked to this candidate yet." />
         ) : (
           <div className="space-y-2">
             {tasks.map((t) => (

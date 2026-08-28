@@ -9,12 +9,16 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Select } from "../../components/ui/select";
 import { Textarea } from "../../components/ui/textarea";
+import { Badge } from "../../components/ui/badge";
+import { DetailSkeleton } from "../../components/ui/skeleton";
+import { EmptyState } from "../../components/ui/empty-state";
 import { PortalLayout } from "../../portals/PortalLayout";
 import { formatINR, formatDate, daysUntil } from "../../lib/format";
 import {
   OPPORTUNITY_STAGES,
   CLAIM_STAGES,
   PRODUCT_TYPES,
+  POLICY_STATUS_VARIANT,
   type Client,
   type ClientPolicy,
   type Opportunity,
@@ -95,7 +99,7 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
   if (loading) {
     return (
       <PortalLayout title="Client" navItems={navItems}>
-        <p className="text-text-soft">Loading…</p>
+        <DetailSkeleton />
       </PortalLayout>
     );
   }
@@ -397,7 +401,7 @@ function PoliciesTab({
       )}
 
       {policies.length === 0 ? (
-        <p className="text-text-soft">No policies yet.</p>
+        <EmptyState message="No policies yet." />
       ) : (
         <div className="overflow-hidden rounded-lg border border-line">
           <table className="w-full text-left text-sm">
@@ -429,7 +433,9 @@ function PoliciesTab({
                       {formatDate(p.renewal_date)}
                       {soon ? ` (${dueIn}d)` : ""}
                     </td>
-                    <td className="px-4 py-2.5 capitalize text-text-soft">{p.status}</td>
+                    <td className="px-4 py-2.5">
+                      <Badge variant={POLICY_STATUS_VARIANT[p.status]}>{p.status}</Badge>
+                    </td>
                     <td className="px-4 py-2.5 text-right">
                       {soon && (
                         <a
@@ -509,7 +515,7 @@ function PipelineTab({
       </div>
 
       {opportunities.length === 0 ? (
-        <p className="text-text-soft">No open opportunities.</p>
+        <EmptyState message="No open opportunities." />
       ) : (
         <div className="space-y-3">
           {opportunities.map((o) => (
@@ -616,7 +622,7 @@ function ClaimsTab({
       </Card>
 
       {claims.length === 0 ? (
-        <p className="text-text-soft">No claims on file.</p>
+        <EmptyState message="No claims on file." />
       ) : (
         <div className="space-y-3">
           {claims.map((c) => (
@@ -704,7 +710,7 @@ function CommunicationsTab({
       </Card>
 
       {comms.length === 0 ? (
-        <p className="text-text-soft">No communications logged yet.</p>
+        <EmptyState message="No communications logged yet." />
       ) : (
         <ul className="space-y-2">
           {comms.map((c) => (

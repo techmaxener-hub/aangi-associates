@@ -7,6 +7,8 @@ import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Select } from "../../../components/ui/select";
 import { Textarea } from "../../../components/ui/textarea";
+import { Badge, type BadgeVariant } from "../../../components/ui/badge";
+import { Skeleton } from "../../../components/ui/skeleton";
 import { defaultCredentials, type IntegrationDef } from "./integrations.config";
 
 type Status = "connected" | "disconnected" | "pending";
@@ -106,7 +108,10 @@ export function IntegrationCard({ def, presets }: { def: IntegrationDef; presets
       </div>
 
       {loading ? (
-        <p className="text-sm text-text-soft">Loading…</p>
+        <div className="space-y-4">
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
+        </div>
       ) : (
         <div className="space-y-4">
           {def.fields.map((field) => (
@@ -201,24 +206,17 @@ export function IntegrationCard({ def, presets }: { def: IntegrationDef; presets
   );
 }
 
-function StatusBadge({ status }: { status: Status }) {
-  const styles: Record<Status, string> = {
-    connected: "bg-surface-2 text-gold-text border-gold/40",
-    disconnected: "bg-surface-2 text-text-soft border-line-strong",
-    pending: "bg-surface-2 text-crimson border-crimson/40",
-  };
-  const labels: Record<Status, string> = {
-    connected: "Connected",
-    disconnected: "Disconnected",
-    pending: "Pending",
-  };
+const STATUS_VARIANT: Record<Status, BadgeVariant> = {
+  connected: "success",
+  disconnected: "neutral",
+  pending: "warning",
+};
+const STATUS_LABEL: Record<Status, string> = {
+  connected: "Connected",
+  disconnected: "Disconnected",
+  pending: "Pending",
+};
 
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${styles[status]}`}
-    >
-      <span className="h-2 w-2 rounded-full" style={{ background: "currentColor" }} />
-      {labels[status]}
-    </span>
-  );
+function StatusBadge({ status }: { status: Status }) {
+  return <Badge variant={STATUS_VARIANT[status]}>{STATUS_LABEL[status]}</Badge>;
 }

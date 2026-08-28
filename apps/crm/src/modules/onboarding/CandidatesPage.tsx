@@ -9,6 +9,8 @@ import { Label } from "../../components/ui/label";
 import { Select } from "../../components/ui/select";
 import { PortalLayout } from "../../portals/PortalLayout";
 import { adminNavItems } from "../../portals/admin/nav";
+import { ListSkeleton } from "../../components/ui/skeleton";
+import { EmptyState } from "../../components/ui/empty-state";
 import { formatDate } from "../../lib/format";
 import { stagesFor, stageLabel, type Candidate, type CandidateTrack } from "./types";
 
@@ -150,9 +152,9 @@ export function CandidatesPage() {
       )}
 
       {loading ? (
-        <p className="text-text-soft">Loading…</p>
+        <ListSkeleton />
       ) : visible.length === 0 ? (
-        <p className="text-text-soft">No candidates yet.</p>
+        <EmptyState message="No candidates yet." />
       ) : (
         <div className="space-y-3">
           {visible.map((c) => (

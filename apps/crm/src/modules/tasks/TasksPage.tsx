@@ -10,6 +10,8 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Select } from "../../components/ui/select";
 import { Textarea } from "../../components/ui/textarea";
+import { BoardSkeleton } from "../../components/ui/skeleton";
+import { EmptyState } from "../../components/ui/empty-state";
 import { PortalLayout } from "../../portals/PortalLayout";
 import { downloadCsv } from "../../lib/csv";
 import { formatDate } from "../../lib/format";
@@ -221,9 +223,9 @@ export function TasksPage({ navItems, basePath }: { navItems: NavItem[]; basePat
       )}
 
       {loading ? (
-        <p className="text-text-soft">Loading…</p>
+        <BoardSkeleton columns={3} />
       ) : tasks.length === 0 ? (
-        <p className="text-text-soft">No tasks yet.</p>
+        <EmptyState message="No tasks yet." />
       ) : (
         <div className="grid grid-cols-3 gap-4">
           {TASK_STATUSES.map((status) => (

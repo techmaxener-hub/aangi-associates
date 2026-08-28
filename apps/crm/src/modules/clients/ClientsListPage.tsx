@@ -9,6 +9,8 @@ import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { PortalLayout } from "../../portals/PortalLayout";
+import { TableSkeleton } from "../../components/ui/skeleton";
+import { EmptyState } from "../../components/ui/empty-state";
 import { downloadCsv } from "../../lib/csv";
 import { formatDate } from "../../lib/format";
 import type { Client } from "./types";
@@ -143,9 +145,9 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
       )}
 
       {loading ? (
-        <p className="text-text-soft">Loading…</p>
+        <TableSkeleton cols={5} />
       ) : clients.length === 0 ? (
-        <p className="text-text-soft">No clients yet.</p>
+        <EmptyState message="No clients yet." />
       ) : (
         <div className="overflow-hidden rounded-lg border border-line">
           <table className="w-full text-left text-sm">

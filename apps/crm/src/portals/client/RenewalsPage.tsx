@@ -3,6 +3,8 @@ import { clientNavItems } from "./nav";
 import { NotLinkedNotice } from "./ClientDashboard";
 import { useMyClient } from "../../modules/clientPortal/useMyClient";
 import { Card } from "../../components/ui/card";
+import { ListSkeleton } from "../../components/ui/skeleton";
+import { EmptyState } from "../../components/ui/empty-state";
 import { formatDate, daysUntil } from "../../lib/format";
 
 export function RenewalsPage() {
@@ -14,11 +16,11 @@ export function RenewalsPage() {
   return (
     <PortalLayout title="Renewals" navItems={clientNavItems}>
       {loading ? (
-        <p className="text-text-soft">Loading…</p>
+        <ListSkeleton rows={2} />
       ) : !client ? (
         <NotLinkedNotice />
       ) : withRenewal.length === 0 ? (
-        <p className="text-text-soft">No upcoming renewal dates on file.</p>
+        <EmptyState message="No upcoming renewal dates on file." />
       ) : (
         <div className="space-y-3">
           {withRenewal.map((p) => {

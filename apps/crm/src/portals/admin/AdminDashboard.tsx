@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { UserPlus, UploadCloud, type LucideIcon } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { Card } from "../../components/ui/card";
+import { DashboardSkeleton } from "../../components/ui/skeleton";
+import { EmptyState } from "../../components/ui/empty-state";
 import { PortalLayout } from "../PortalLayout";
 import { formatDate, daysUntil, localDateISO } from "../../lib/format";
 import { LEAD_PIPELINE, LEAD_STATUS_LABEL, type LeadStatus } from "../../modules/leads/types";
@@ -111,7 +113,7 @@ export function AdminDashboard() {
   return (
     <PortalLayout title="Admin Dashboard" navItems={adminNavItems}>
       {loading ? (
-        <p className="text-text-soft">Loading…</p>
+        <DashboardSkeleton />
       ) : (
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -142,7 +144,7 @@ export function AdminDashboard() {
                 </Link>
               </div>
               {sourceEntries.length === 0 ? (
-                <p className="text-sm text-text-soft">No leads captured yet.</p>
+                <EmptyState message="No leads captured yet." />
               ) : (
                 <div className="space-y-3">
                   {sourceEntries.map(([source, count]) => {
@@ -183,7 +185,7 @@ export function AdminDashboard() {
                 </Link>
               </div>
               {totalLeads === 0 ? (
-                <p className="text-sm text-text-soft">No leads yet.</p>
+                <EmptyState message="No leads yet." />
               ) : (
                 <div className="space-y-3">
                   {LEAD_PIPELINE.map((status) => (
@@ -217,7 +219,7 @@ export function AdminDashboard() {
                 </Link>
               </div>
               {renewals.length === 0 ? (
-                <p className="text-sm text-text-soft">Nothing due in the next 60 days.</p>
+                <EmptyState message="Nothing due in the next 60 days." />
               ) : (
                 <ul className="space-y-2">
                   {renewals.map((r) => {

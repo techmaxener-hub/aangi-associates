@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { useToast } from "../../components/ui/toast";
 import { Card } from "../../components/ui/card";
+import { ListSkeleton } from "../../components/ui/skeleton";
+import { EmptyState } from "../../components/ui/empty-state";
 import { PortalLayout } from "../PortalLayout";
 import { formatDate } from "../../lib/format";
 import { adminNavItems } from "./nav";
@@ -115,9 +117,9 @@ export function AuditLogPage() {
       )}
 
       {loading ? (
-        <p className="text-text-soft">Loading…</p>
+        <ListSkeleton />
       ) : visibleRows.length === 0 ? (
-        <p className="text-text-soft">No audit history yet.</p>
+        <EmptyState message="No audit history yet." />
       ) : (
         <div className="space-y-2">
           {visibleRows.map((row) => {

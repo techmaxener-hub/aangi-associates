@@ -9,6 +9,9 @@ import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Select } from "../../../components/ui/select";
 import { Textarea } from "../../../components/ui/textarea";
+import { Badge, type BadgeVariant } from "../../../components/ui/badge";
+import { TableSkeleton } from "../../../components/ui/skeleton";
+import { EmptyState } from "../../../components/ui/empty-state";
 import { formatDate } from "../../../lib/format";
 
 type IntentScore = "high" | "medium" | "low" | null;
@@ -29,10 +32,10 @@ interface CallRow {
 
 const ADVISOR_PHONE = "919033132791";
 
-const INTENT_STYLES: Record<string, string> = {
-  high: "bg-surface-2 text-crimson border-crimson/40",
-  medium: "bg-surface-2 text-gold-text border-gold/40",
-  low: "bg-surface-2 text-text-soft border-line-strong",
+const INTENT_VARIANT: Record<string, BadgeVariant> = {
+  high: "critical",
+  medium: "warning",
+  low: "neutral",
 };
 
 export function CallLogsDesk() {
@@ -210,9 +213,9 @@ export function CallLogsDesk() {
       )}
 
       {loading ? (
-        <p className="text-text-soft">Loading…</p>
+        <TableSkeleton cols={6} />
       ) : calls.length === 0 ? (
-        <p className="text-text-soft">No calls yet.</p>
+        <EmptyState message="No calls yet." />
       ) : (
         <div className="overflow-x-auto rounded-lg border border-line">
           <table className="w-full text-left text-sm">
@@ -240,15 +243,7 @@ export function CallLogsDesk() {
                   <td className="px-4 py-2.5 text-text-soft">{c.language_detected ?? "—"}</td>
                   <td className="px-4 py-2.5 text-text-soft">{c.duration_seconds ? `${c.duration_seconds}s` : "—"}</td>
                   <td className="px-4 py-2.5">
-                    {c.intent_score ? (
-                      <span
-                        className={`rounded-full border px-2 py-0.5 text-xs font-semibold capitalize ${INTENT_STYLES[c.intent_score]}`}
-                      >
-                        {c.intent_score}
-                      </span>
-                    ) : (
-                      "—"
-                    )}
+                    {c.intent_score ? <Badge variant={INTENT_VARIANT[c.intent_score]}>{c.intent_score}</Badge> : "—"}
                   </td>
                   <td className="px-4 py-2.5">
                     {c.recording_url ? (

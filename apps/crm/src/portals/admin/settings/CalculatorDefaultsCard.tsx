@@ -5,6 +5,7 @@ import { useToast } from "../../../components/ui/toast";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
+import { Skeleton } from "../../../components/ui/skeleton";
 
 interface Config {
   self_consumption_pct: number;
@@ -89,7 +90,14 @@ export function CalculatorDefaultsCard() {
       </div>
 
       {loading || !config ? (
-        <p className="text-sm text-text-soft">Loading…</p>
+        <div className="grid grid-cols-2 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="space-y-1.5">
+              <Skeleton className="h-3 w-32" />
+              <Skeleton className="h-9 w-full" />
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="grid grid-cols-2 gap-4">
           {(Object.keys(FIELD_LABELS) as (keyof Config)[]).map((key) => (

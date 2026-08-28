@@ -12,6 +12,12 @@ export interface Client {
 
 export type PolicyStatus = "active" | "lapsed" | "matured";
 
+export const POLICY_STATUS_VARIANT: Record<PolicyStatus, "success" | "critical" | "neutral"> = {
+  active: "success",
+  lapsed: "critical",
+  matured: "neutral",
+};
+
 export interface ClientPolicy {
   id: string;
   client_id: string;

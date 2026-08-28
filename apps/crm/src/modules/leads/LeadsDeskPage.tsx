@@ -8,6 +8,8 @@ import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Select } from "../../components/ui/select";
+import { BoardSkeleton } from "../../components/ui/skeleton";
+import { EmptyState } from "../../components/ui/empty-state";
 import { PortalLayout } from "../../portals/PortalLayout";
 import { downloadCsv } from "../../lib/csv";
 import { formatDate } from "../../lib/format";
@@ -253,9 +255,9 @@ export function LeadsDeskPage({ navItems, basePath }: { navItems: NavItem[]; bas
       </div>
 
       {loading ? (
-        <p className="text-text-soft">Loading…</p>
+        <BoardSkeleton columns={4} />
       ) : leads.length === 0 ? (
-        <p className="text-text-soft">No leads yet.</p>
+        <EmptyState message="No leads yet." />
       ) : (
         <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${showDropped ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}>
           {visiblePipeline.map((status) => (
