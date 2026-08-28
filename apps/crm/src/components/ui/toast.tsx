@@ -36,7 +36,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={t.id}
             className={
-              "flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-medium shadow-2xl " +
+              "flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-medium shadow-raised " +
               (t.variant === "success"
                 ? "border-gold/50 bg-navy text-on-navy"
                 : "border-crimson/50 bg-navy text-on-navy")

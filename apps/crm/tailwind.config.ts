@@ -28,6 +28,11 @@ export default {
         body: ["Public Sans", "sans-serif"],
         mono: ["IBM Plex Mono", "monospace"],
       },
+      boxShadow: {
+        card: "var(--shadow-card)",
+        raised: "var(--shadow-raised)",
+        modal: "var(--shadow-modal)",
+      },
     },
   },
   plugins: [],

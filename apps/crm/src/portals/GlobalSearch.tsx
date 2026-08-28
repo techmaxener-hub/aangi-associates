@@ -131,7 +131,7 @@ export function GlobalSearch({ basePath }: { basePath: string }) {
       </div>
 
       {open && query.trim().length >= 2 && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-96 overflow-y-auto rounded-md border border-line bg-surface shadow-lg">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-96 overflow-y-auto rounded-md border border-line bg-surface shadow-raised">
           {loading ? (
             <p className="p-3 text-sm text-text-soft">Searching…</p>
           ) : !hasResults ? (

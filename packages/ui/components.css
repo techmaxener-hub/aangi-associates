@@ -21,8 +21,8 @@ a { color: inherit; }
   padding-inline: 1.5rem;
 }
 
-.section { padding-block: 4rem; }
-.section-header { max-width: 640px; margin-bottom: 2rem; }
+.section { padding-block: var(--space-2xl); }
+.section-header { max-width: 640px; margin-bottom: var(--space-lg); }
 
 /* Buttons */
 .btn {
@@ -62,6 +62,7 @@ a { color: inherit; }
   border-radius: var(--radius-md);
   padding: 1.5rem;
   text-decoration: none;
+  box-shadow: var(--shadow-card);
 }
 
 /* Badge */
@@ -175,6 +176,7 @@ a { color: inherit; }
   min-width: 240px;
   list-style: none;
   margin: 0.25rem 0 0;
+  box-shadow: var(--shadow-raised);
   opacity: 0;
   visibility: hidden;
   transform: translateY(-4px);
@@ -270,17 +272,17 @@ a { color: inherit; }
 }
 
 /* Site footer */
-.site-footer { background: var(--navy); color: var(--on-navy); margin-top: 4rem; }
+.site-footer { background: var(--navy); color: var(--on-navy); margin-top: var(--space-2xl); }
 .site-footer p, .site-footer address { color: inherit; }
-.footer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; padding-block: 3rem; }
+.footer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; padding-block: var(--space-xl); }
 .footer-col h4 { font-family: var(--font-display); margin-bottom: 0.75rem; color: inherit; }
 .footer-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
 .footer-col a { color: var(--on-navy); opacity: 0.85; text-decoration: none; }
 .footer-col a:hover { opacity: 1; }
 .tagline { opacity: 0.75; font-size: 0.9rem; }
 .gstin { font-family: var(--font-mono); font-size: 0.8rem; opacity: 0.75; }
-.footer-compliance { border-top: 1px solid rgba(255, 255, 255, 0.15); padding-block: 1.5rem; font-size: 0.75rem; opacity: 0.7; }
-.footer-bottom { padding-block: 1rem; font-size: 0.75rem; opacity: 0.6; }
+.footer-compliance { border-top: 1px solid rgba(255, 255, 255, 0.15); padding-block: var(--space-md); font-size: 0.75rem; opacity: 0.7; }
+.footer-bottom { padding-block: var(--space-sm); font-size: 0.75rem; opacity: 0.6; }
 
 @media (max-width: 860px) {
   .footer-grid { grid-template-columns: repeat(2, 1fr); }
@@ -324,7 +326,7 @@ a { color: inherit; }
 }
 
 /* Tabs (filter tabs, calculator tool tabs) */
-.tabs { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 2rem; }
+.tabs { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: var(--space-lg); }
 .tab {
   padding: 0.5rem 1.25rem;
   border-radius: var(--radius-pill);
@@ -359,7 +361,14 @@ a { color: inherit; }
 
 /* Stepper (Claim Assistance 4-step system) */
 .stepper { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
-.step { position: relative; padding: 1.5rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); }
+.step {
+  position: relative;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
 .step-number { font-family: var(--font-mono); color: var(--gold); font-size: 1.5rem; display: block; margin-bottom: 0.5rem; }
 
 @media (max-width: 860px) {
@@ -404,7 +413,13 @@ a { color: inherit; }
 .accordion-panel.is-open { display: block; }
 
 /* Result panel (Calculators) */
-.result-panel { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 2rem; }
+.result-panel {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 2rem;
+  box-shadow: var(--shadow-card);
+}
 
 /* Forms */
 .field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
@@ -428,7 +443,7 @@ a { color: inherit; }
   width: calc(100% - 2rem);
   background: var(--surface);
   color: var(--text);
-  box-shadow: 0 24px 64px -24px rgba(15, 42, 74, 0.45);
+  box-shadow: var(--shadow-modal);
 }
 .modal::backdrop { background: rgba(15, 42, 74, 0.55); backdrop-filter: blur(2px); }
 .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-soft); }
@@ -444,6 +459,7 @@ a { color: inherit; }
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid color-mix(in srgb, var(--line-strong) 60%, transparent);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-raised);
 }
 
 /* Reveal-on-scroll */

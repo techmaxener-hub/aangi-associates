@@ -40,6 +40,29 @@
   --radius-md: 0.5rem;
   --radius-pill: 999px;
   --container-max: 1200px;
+
+  /* Section-rhythm spacing scale — a strict multiple of one 0.5rem base
+     unit, named by role rather than size, so section-to-section spacing
+     reads as one enforced rhythm instead of each section picking its own
+     padding. Doesn't touch small component-internal spacing (form field
+     gaps, icon padding, etc.) — those vary for reasons unrelated to page
+     rhythm. */
+  --space-xs: 0.5rem; /* 1x */
+  --space-sm: 1rem; /* 2x */
+  --space-md: 1.5rem; /* 3x */
+  --space-lg: 2rem; /* 4x */
+  --space-xl: 3rem; /* 6x */
+  --space-2xl: 4rem; /* 8x */
+
+  /* Elevation scale — every card/panel/modal was a flat 1px border with
+     no shadow at all. Named by the layer it puts content on, not just a
+     size: resting content (card), content that floats above the page on
+     interaction (dropdown/popover), and content that blocks the page
+     entirely (modal). Tinted navy rather than pure black so it reads as
+     part of this palette instead of a generic UI-kit shadow. */
+  --shadow-card: 0 1px 2px rgba(15, 42, 74, 0.06), 0 2px 8px -2px rgba(15, 42, 74, 0.08);
+  --shadow-raised: 0 12px 32px -12px rgba(15, 42, 74, 0.28);
+  --shadow-modal: 0 24px 64px -24px rgba(15, 42, 74, 0.45);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -57,6 +80,11 @@
     --gold: #d9b96a;
     --gold-text: #d9b96a;
     --success: #6fcf97;
+    /* Navy-on-navy shadows disappear on a dark surface — black reads as
+       depth here instead. */
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.24), 0 2px 8px -2px rgba(0, 0, 0, 0.3);
+    --shadow-raised: 0 12px 32px -12px rgba(0, 0, 0, 0.55);
+    --shadow-modal: 0 24px 64px -24px rgba(0, 0, 0, 0.7);
   }
 }
 
@@ -74,4 +102,7 @@
   --gold: #d9b96a;
   --gold-text: #d9b96a;
   --success: #6fcf97;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.24), 0 2px 8px -2px rgba(0, 0, 0, 0.3);
+  --shadow-raised: 0 12px 32px -12px rgba(0, 0, 0, 0.55);
+  --shadow-modal: 0 24px 64px -24px rgba(0, 0, 0, 0.7);
 }
