@@ -159,7 +159,10 @@ a { color: inherit; }
 .main-nav a[aria-current="page"] { color: var(--crimson); }
 .has-dropdown { position: relative; }
 .dropdown {
-  display: none;
+  /* display stays flex always so opacity/transform can transition —
+     display:none/flex can't be animated, so visibility carries the
+     "actually hidden" state (and removes it from tab order) instead. */
+  display: flex;
   position: absolute;
   top: 100%;
   left: 0;
@@ -172,10 +175,33 @@ a { color: inherit; }
   min-width: 240px;
   list-style: none;
   margin: 0.25rem 0 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s;
 }
 .has-dropdown:hover .dropdown,
-.has-dropdown:focus-within .dropdown { display: flex; }
-.header-ctas { display: flex; align-items: center; gap: 0.75rem; }
+.has-dropdown:focus-within .dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dropdown { transition: none; }
+}
+.header-ctas { display: flex; align-items: center; gap: 1.25rem; }
+/* Utilities (language, theme) and actions (the two CTAs) are different
+   kinds of control at the same visual weight before this — group each
+   kind together and separate the groups with a real divider, not just
+   a shared gap value. */
+.header-utils {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-right: 1.25rem;
+  border-right: 1px solid var(--line);
+}
+.header-actions { display: flex; align-items: center; gap: 0.75rem; }
 .theme-toggle {
   display: inline-flex; align-items: center; justify-content: center;
   width: 2.25rem; height: 2.25rem; border-radius: var(--radius-pill);
@@ -224,7 +250,22 @@ a { color: inherit; }
     gap: 1rem;
   }
   body.nav-open .main-nav ul { flex-direction: column; gap: 0.75rem; }
-  body.nav-open .dropdown { position: static; display: flex; border: none; padding-left: 1rem; }
+  body.nav-open .dropdown {
+    position: static;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    border: none;
+    padding-left: 1rem;
+  }
+  body.nav-open .header-ctas { align-items: stretch; }
+  body.nav-open .header-utils {
+    padding-right: 0;
+    padding-bottom: 0.75rem;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+  body.nav-open .header-actions { flex-direction: column; align-items: stretch; }
   .header-inner { position: relative; }
 }
 

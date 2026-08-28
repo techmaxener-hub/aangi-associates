@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Printer } from "lucide-react";
+import { Printer } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useToast } from "../../components/ui/toast";
 import { Button } from "../../components/ui/button";
@@ -102,7 +102,11 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
 
   if (!client) {
     return (
-      <PortalLayout title="Client not found" navItems={navItems}>
+      <PortalLayout
+        title="Client not found"
+        navItems={navItems}
+        breadcrumbs={[{ label: "Clients", href: `${basePath}/clients` }, { label: "Not found" }]}
+      >
         <Link to={`${basePath}/clients`} className="text-gold-text hover:underline">
           ← Back to clients
         </Link>
@@ -111,16 +115,14 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
   }
 
   return (
-    <PortalLayout title={client.full_name} navItems={navItems}>
+    <PortalLayout
+      title={client.full_name}
+      navItems={navItems}
+      breadcrumbs={[{ label: "Clients", href: `${basePath}/clients` }, { label: client.full_name }]}
+    >
       <PrintableClientSummary client={client} policies={policies} />
 
-      <div className="mb-4 flex items-center justify-between">
-        <Link
-          to={`${basePath}/clients`}
-          className="inline-flex items-center gap-1 text-sm text-text-soft hover:text-text"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to clients
-        </Link>
+      <div className="mb-4 flex justify-end">
         <Button variant="ghost" size="sm" onClick={() => window.print()}>
           <Printer className="h-3.5 w-3.5" /> Print Summary
         </Button>

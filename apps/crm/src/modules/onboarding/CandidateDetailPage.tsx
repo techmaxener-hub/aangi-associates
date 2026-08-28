@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useToast } from "../../components/ui/toast";
 import { Button } from "../../components/ui/button";
@@ -77,7 +76,11 @@ export function CandidateDetailPage() {
 
   if (!candidate) {
     return (
-      <PortalLayout title="Candidate not found" navItems={adminNavItems}>
+      <PortalLayout
+        title="Candidate not found"
+        navItems={adminNavItems}
+        breadcrumbs={[{ label: "Onboarding", href: "/admin/team" }, { label: "Not found" }]}
+      >
         <Link to="/admin/team" className="text-gold-text hover:underline">
           ← Back to onboarding
         </Link>
@@ -86,11 +89,11 @@ export function CandidateDetailPage() {
   }
 
   return (
-    <PortalLayout title={candidate.full_name} navItems={adminNavItems}>
-      <Link to="/admin/team" className="mb-4 inline-flex items-center gap-1 text-sm text-text-soft hover:text-text">
-        <ArrowLeft className="h-3.5 w-3.5" /> Back to onboarding
-      </Link>
-
+    <PortalLayout
+      title={candidate.full_name}
+      navItems={adminNavItems}
+      breadcrumbs={[{ label: "Onboarding", href: "/admin/team" }, { label: candidate.full_name }]}
+    >
       <div className="mb-6 grid grid-cols-4 gap-4 text-sm">
         <InfoItem label="Track" value={candidate.track} />
         <InfoItem label="Phone" value={candidate.phone} />
