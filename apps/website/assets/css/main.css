@@ -1,7 +1,11 @@
-/* apps/website — page-level styles, built on packages/ui primitives */
-@import url("../../../../packages/ui/tokens.css");
-@import url("../../../../packages/ui/fonts.css");
-@import url("../../../../packages/ui/components.css");
+/* apps/website — page-level styles, built on packages/ui primitives.
+   packages/ui is deployed as a subfolder of this site's own document
+   root (see .github/workflows/ci.yml's deploy job), not a sibling above
+   it — that keeps the path math self-contained and correct regardless
+   of where the FTP account's root actually sits on the server. */
+@import url("../../packages/ui/tokens.css");
+@import url("../../packages/ui/fonts.css");
+@import url("../../packages/ui/components.css");
 
 /* Hero — a layered composition rather than a flat 50/50 split: a soft
    gold glow sits behind the copy, and the photo carries an offset frame

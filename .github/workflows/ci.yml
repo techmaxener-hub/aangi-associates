@@ -37,3 +37,66 @@ jobs:
         with:
           node-version: 20
       - run: npm test
+
+  deploy:
+    name: Deploy to Hostinger (FTP)
+    needs: [crm, website]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/crm/package-lock.json
+
+      # The anon key is safe to bake into the client bundle — it's the
+      # public, RLS-protected key by design (see apps/crm/.env.example),
+      # not a secret. It still lives here rather than in .env because
+      # nothing commits apps/crm/.env to the repo.
+      - name: Build CRM
+        working-directory: apps/crm
+        env:
+          VITE_SUPABASE_URL: https://vdiymedmnrqmosazaaro.supabase.co
+          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkaXltZWRtbnJxbW9zYXphYXJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4MzMxNDMsImV4cCI6MjEwMzQwOTE0M30.gkIUIKKjuxe03jM9tLgzclTb9H3-P3ulhRaWECTqAzc
+        run: |
+          npm ci
+          npm run build
+
+      # 3 independent uploads to the SAME Hostinger FTP account (an
+      # aa.tmarinternational.com-scoped account, so "/" here already
+      # means that subdomain's own document root — not the server's
+      # actual filesystem root). packages/ui deploys as a subfolder of
+      # that same document root rather than a sibling above it, so this
+      # never depends on knowing how deep the FTP account's root sits
+      # in the real filesystem.
+      - name: Deploy website (document root)
+        uses: SamKirkland/FTP-Deploy-Action@v4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: apps/website/
+          server-dir: /
+          exclude: |
+            package.json
+            **/*.test.js
+
+      - name: Deploy shared design system (packages/ui)
+        uses: SamKirkland/FTP-Deploy-Action@v4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: packages/ui/
+          server-dir: /packages/ui/
+
+      - name: Deploy CRM build (/app/ subpath)
+        uses: SamKirkland/FTP-Deploy-Action@v4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: apps/crm/dist/
+          server-dir: /app/
