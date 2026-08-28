@@ -178,6 +178,16 @@ a { color: inherit; }
   font-size: 1rem; line-height: 1; cursor: pointer; color: var(--text);
 }
 .theme-toggle:hover { background: var(--surface-2); }
+
+.lang-switcher {
+  display: flex; border: 1px solid var(--line-strong); border-radius: 999px; overflow: hidden;
+}
+.lang-switcher button {
+  border: none; background: var(--surface); color: var(--text-soft); font-family: var(--font-mono);
+  font-size: 0.75rem; padding: 0.4rem 0.65rem; cursor: pointer;
+}
+.lang-switcher button + button { border-left: 1px solid var(--line-strong); }
+.lang-switcher button[aria-pressed="true"] { background: var(--navy); color: var(--on-navy); }
 .nav-toggle {
   display: none;
   background: none;
