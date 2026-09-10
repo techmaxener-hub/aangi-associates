@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Eye, EyeOff, Copy, Activity, Loader2 } from "lucide-react";
-import { supabase } from "../../../lib/supabase";
+import { api, ApiError } from "../../../lib/api";
 import { useToast } from "../../../components/ui/toast";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
@@ -26,19 +26,21 @@ export function IntegrationCard({ def, presets }: { def: IntegrationDef; presets
     let cancelled = false;
     setLoading(true);
 
-    supabase
-      .from("integration_settings")
-      .select("status, credentials")
-      .eq("provider", def.id)
-      .maybeSingle()
-      .then(({ data, error }) => {
+    api
+      .get<{ status: Status; credentials: Record<string, string> } | null>(
+        `/integration_settings.php?provider=${def.id}`,
+      )
+      .then((data) => {
         if (cancelled) return;
-        if (error) {
-          console.error("Failed to load integration settings", error);
-        } else if (data) {
-          setValues({ ...defaultCredentials(def, presets), ...(data.credentials as Record<string, string>) });
-          setStatus(data.status as Status);
+        if (data) {
+          setValues({ ...defaultCredentials(def, presets), ...data.credentials });
+          setStatus(data.status);
         }
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error("Failed to load integration settings", err);
         setLoading(false);
       });
 
@@ -54,20 +56,20 @@ export function IntegrationCard({ def, presets }: { def: IntegrationDef; presets
 
   async function handleSave() {
     setSaving(true);
-    const { error } = await supabase.from("integration_settings").upsert({
-      provider: def.id,
-      category: def.category,
-      display_name: def.name,
-      status: "connected",
-      credentials: values,
-      updated_at: new Date().toISOString(),
-    });
-    setSaving(false);
-
-    if (error) {
-      showToast(`Failed to save ${def.name}: ${error.message}`, "error");
+    try {
+      await api.post("/integration_settings.php", {
+        provider: def.id,
+        category: def.category,
+        display_name: def.name,
+        status: "connected",
+        credentials: values,
+      });
+    } catch (err) {
+      setSaving(false);
+      showToast(`Failed to save ${def.name}: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
+    setSaving(false);
 
     setStatus("connected");
     showToast(`${def.name} credentials saved and channel activated.`);
@@ -182,8 +184,8 @@ export function IntegrationCard({ def, presets }: { def: IntegrationDef; presets
                   )}
                   {field.type === "copy" && (
                     <p className="text-[11px] text-text-soft">
-                      Points to where a Supabase Edge Function receiver would live — not deployed yet, so this URL isn't
-                      live until that function ships.
+                      Points to where a PHP webhook receiver under apps/crm-api/ would live — not deployed yet, so
+                      this URL isn't live until that endpoint ships.
                     </p>
                   )}
                 </>

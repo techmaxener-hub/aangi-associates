@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { UserPlus, Download } from "lucide-react";
-import { supabase } from "../../lib/supabase";
+import { api, ApiError } from "../../lib/api";
 import { useAuth } from "../../auth/useAuth";
 import { useToast } from "../../components/ui/toast";
 import { Button } from "../../components/ui/button";
@@ -33,9 +33,11 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
 
   async function load() {
     setLoading(true);
-    const { data, error } = await supabase.from("clients").select("*").order("created_at", { ascending: false });
-    if (error) showToast(`Failed to load clients: ${error.message}`, "error");
-    setClients(data ?? []);
+    try {
+      setClients((await api.get<Client[]>("/clients.php")) ?? []);
+    } catch (err) {
+      showToast(`Failed to load clients: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
+    }
     setLoading(false);
   }
 
@@ -47,19 +49,21 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
   async function handleAdd(event: FormEvent) {
     event.preventDefault();
     setSaving(true);
-    const { error } = await supabase.from("clients").insert({
-      full_name: form.full_name,
-      phone: form.phone,
-      email: form.email || null,
-      city: form.city || null,
-      household_name: form.household_name || null,
-      owner_id: profile?.role === "associate" ? profile.id : null,
-    });
-    setSaving(false);
-    if (error) {
-      showToast(`Failed to add client: ${error.message}`, "error");
+    try {
+      await api.post("/clients.php", {
+        full_name: form.full_name,
+        phone: form.phone,
+        email: form.email || null,
+        city: form.city || null,
+        household_name: form.household_name || null,
+        owner_id: profile?.role === "associate" ? profile.id : null,
+      });
+    } catch (err) {
+      setSaving(false);
+      showToast(`Failed to add client: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
+    setSaving(false);
     showToast("Client added.");
     setForm({ full_name: "", phone: "", email: "", city: "", household_name: "" });
     setShowForm(false);

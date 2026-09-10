@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { Download } from "lucide-react";
-import { supabase } from "../../lib/supabase";
+import { api, ApiError } from "../../lib/api";
 import { useAuth } from "../../auth/useAuth";
 import { useToast } from "../../components/ui/toast";
 import { Button } from "../../components/ui/button";
@@ -52,25 +52,26 @@ export function TasksPage({ navItems, basePath }: { navItems: NavItem[]; basePat
 
   async function load() {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("tasks")
-      .select(
-        "*, assignee:profiles!assigned_to(id, full_name, role), linked_client:clients(id, full_name), linked_candidate:candidates(id, full_name)",
-      )
-      .order("due_date", { ascending: true, nullsFirst: false });
-    if (error) showToast(`Failed to load tasks: ${error.message}`, "error");
-    setTasks((data as unknown as Task[]) ?? []);
+    try {
+      setTasks((await api.get<Task[]>("/tasks.php")) ?? []);
+    } catch (err) {
+      showToast(`Failed to load tasks: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
+    }
     setLoading(false);
 
     if (canAssign) {
-      const [profs, clients, candidates] = await Promise.all([
-        supabase.from("profiles").select("id, full_name, role").in("role", ["admin", "staff", "associate"]),
-        supabase.from("clients").select("id, full_name").order("full_name"),
-        supabase.from("candidates").select("id, full_name").order("full_name"),
-      ]);
-      setAssignees(profs.data ?? []);
-      setClientOptions(clients.data ?? []);
-      setCandidateOptions(candidates.data ?? []);
+      try {
+        const [profs, clients, candidates] = await Promise.all([
+          api.get<TaskAssignee[]>("/users.php"),
+          api.get<LinkOption[]>("/clients.php?picker=1"),
+          api.get<LinkOption[]>("/candidates.php?picker=1"),
+        ]);
+        setAssignees(profs ?? []);
+        setClientOptions(clients ?? []);
+        setCandidateOptions(candidates ?? []);
+      } catch (err) {
+        showToast(`Failed to load pickers: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
+      }
     }
   }
 
@@ -82,20 +83,21 @@ export function TasksPage({ navItems, basePath }: { navItems: NavItem[]; basePat
   async function handleCreate(event: FormEvent) {
     event.preventDefault();
     setSaving(true);
-    const { error } = await supabase.from("tasks").insert({
-      title: form.title,
-      description: form.description || null,
-      assigned_to: form.assigned_to || null,
-      due_date: form.due_date || null,
-      linked_client_id: form.linked_client_id || null,
-      linked_candidate_id: form.linked_candidate_id || null,
-      created_by: profile?.id ?? null,
-    });
-    setSaving(false);
-    if (error) {
-      showToast(`Failed to create task: ${error.message}`, "error");
+    try {
+      await api.post("/tasks.php", {
+        title: form.title,
+        description: form.description || null,
+        assigned_to: form.assigned_to || null,
+        due_date: form.due_date || null,
+        linked_client_id: form.linked_client_id || null,
+        linked_candidate_id: form.linked_candidate_id || null,
+      });
+    } catch (err) {
+      setSaving(false);
+      showToast(`Failed to create task: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
+    setSaving(false);
     showToast("Task created.");
     setForm({
       title: "",
@@ -110,9 +112,10 @@ export function TasksPage({ navItems, basePath }: { navItems: NavItem[]; basePat
   }
 
   async function updateStatus(task: Task, status: TaskStatus) {
-    const { error } = await supabase.from("tasks").update({ status }).eq("id", task.id);
-    if (error) {
-      showToast(`Failed to update task: ${error.message}`, "error");
+    try {
+      await api.put(`/tasks.php?id=${task.id}`, { status });
+    } catch (err) {
+      showToast(`Failed to update task: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
     void load();
@@ -153,7 +156,7 @@ export function TasksPage({ navItems, basePath }: { navItems: NavItem[]; basePat
 
       {showForm && (
         <Card className="mb-6 max-w-xl">
-          <form onSubmit={(e) => void handleCreate(e)} className="grid grid-cols-2 gap-4">
+          <form onSubmit={(e) => void handleCreate(e)} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="col-span-2 space-y-1.5">
               <Label>Title</Label>
               <Input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
@@ -227,7 +230,7 @@ export function TasksPage({ navItems, basePath }: { navItems: NavItem[]; basePat
       ) : tasks.length === 0 ? (
         <EmptyState message="No tasks yet." />
       ) : (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {TASK_STATUSES.map((status) => (
             <div key={status}>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-soft">

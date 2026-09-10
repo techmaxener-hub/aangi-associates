@@ -51,15 +51,14 @@ jobs:
           cache: npm
           cache-dependency-path: apps/crm/package-lock.json
 
-      # The anon key is safe to bake into the client bundle — it's the
-      # public, RLS-protected key by design (see apps/crm/.env.example),
-      # not a secret. It still lives here rather than in .env because
-      # nothing commits apps/crm/.env to the repo.
+      # The backend is now apps/crm-api/ (plain PHP + MySQL on this same
+      # Hostinger host, see apps/crm-api/README.md) — the Supabase project
+      # this used to point at was deleted. /api is a same-origin relative
+      # path, not a secret, safe to bake into the bundle.
       - name: Build CRM
         working-directory: apps/crm
         env:
-          VITE_SUPABASE_URL: https://vdiymedmnrqmosazaaro.supabase.co
-          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkaXltZWRtbnJxbW9zYXphYXJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4MzMxNDMsImV4cCI6MjEwMzQwOTE0M30.gkIUIKKjuxe03jM9tLgzclTb9H3-P3ulhRaWECTqAzc
+          VITE_API_BASE_URL: /api
         run: |
           npm ci
           npm run build
@@ -100,3 +99,27 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: apps/crm/dist/
           server-dir: /app/
+
+      # apps/crm-api/env.php (real DB/WhatsApp/SMS credentials) is
+      # gitignored — it never exists in this checkout, so it's never
+      # overwritten by this step. Create/edit it once directly on the
+      # server (Hostinger file manager or a one-off FTP client), from
+      # env.example.php. setup_admin.php is deliberately excluded from
+      # every automated deploy after the first — CI would otherwise keep
+      # re-uploading it even after you delete it post-bootstrap; upload
+      # it manually the one time you need it.
+      - name: Deploy CRM API (/api/ subpath)
+        uses: SamKirkland/FTP-Deploy-Action@v4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: apps/crm-api/
+          server-dir: /api/
+          exclude: |
+            env.php
+            env.example.php
+            setup_admin.php
+            schema.sql
+            seed.sql
+            README.md

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Timer } from "lucide-react";
-import { supabase } from "../../../lib/supabase";
+import { api, ApiError } from "../../../lib/api";
 import { useToast } from "../../../components/ui/toast";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
@@ -21,30 +21,24 @@ export function DialerRulesCard() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    supabase
-      .from("dialer_rules")
-      .select("delay_seconds, max_retries, post_call_whatsapp_template")
-      .eq("id", 1)
-      .single()
-      .then(({ data, error }) => {
-        if (error) console.error(error);
-        else setRules(data as DialerRules);
-        setLoading(false);
-      });
+    api
+      .get<DialerRules>("/dialer_rules.php")
+      .then((data) => setRules(data))
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
   }, []);
 
   async function handleSave() {
     if (!rules) return;
     setSaving(true);
-    const { error } = await supabase
-      .from("dialer_rules")
-      .update({ ...rules, updated_at: new Date().toISOString() })
-      .eq("id", 1);
-    setSaving(false);
-    if (error) {
-      showToast(`Failed to save: ${error.message}`, "error");
+    try {
+      await api.put("/dialer_rules.php", rules);
+    } catch (err) {
+      setSaving(false);
+      showToast(`Failed to save: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
+    setSaving(false);
     showToast("Auto-dialer rules saved.");
   }
 

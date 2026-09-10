@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { supabase } from "../../lib/supabase";
+import { api, ApiError } from "../../lib/api";
 import { useToast } from "../../components/ui/toast";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
@@ -26,18 +26,18 @@ export function CandidateDetailPage() {
   async function load() {
     if (!id) return;
     setLoading(true);
-    const [c, t] = await Promise.all([
-      supabase.from("candidates").select("*").eq("id", id).single(),
-      supabase
-        .from("tasks")
-        .select("*, assignee:profiles!assigned_to(id, full_name, role)")
-        .eq("linked_candidate_id", id)
-        .order("due_date", { ascending: true, nullsFirst: false }),
-    ]);
-    if (c.error) showToast(`Failed to load candidate: ${c.error.message}`, "error");
-    setCandidate(c.data ?? null);
-    setNotes(c.data?.notes ?? "");
-    setTasks((t.data as unknown as Task[]) ?? []);
+    try {
+      const [c, t] = await Promise.all([
+        api.get<Candidate>(`/candidates.php?id=${id}`),
+        api.get<Task[]>(`/tasks.php?linked_candidate_id=${id}`),
+      ]);
+      setCandidate(c ?? null);
+      setNotes(c?.notes ?? "");
+      setTasks(t ?? []);
+    } catch (err) {
+      showToast(`Failed to load candidate: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
+      setCandidate(null);
+    }
     setLoading(false);
   }
 
@@ -48,9 +48,10 @@ export function CandidateDetailPage() {
 
   async function advanceStage(stage: string) {
     if (!candidate) return;
-    const { error } = await supabase.from("candidates").update({ stage }).eq("id", candidate.id);
-    if (error) {
-      showToast(`Failed to update stage: ${error.message}`, "error");
+    try {
+      await api.put(`/candidates.php?id=${candidate.id}`, { stage });
+    } catch (err) {
+      showToast(`Failed to update stage: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
     void load();
@@ -59,12 +60,14 @@ export function CandidateDetailPage() {
   async function saveNotes() {
     if (!candidate) return;
     setSaving(true);
-    const { error } = await supabase.from("candidates").update({ notes }).eq("id", candidate.id);
-    setSaving(false);
-    if (error) {
-      showToast(`Failed to save notes: ${error.message}`, "error");
+    try {
+      await api.put(`/candidates.php?id=${candidate.id}`, { notes });
+    } catch (err) {
+      setSaving(false);
+      showToast(`Failed to save notes: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
+    setSaving(false);
     showToast("Notes saved.");
   }
 
@@ -96,7 +99,7 @@ export function CandidateDetailPage() {
       navItems={adminNavItems}
       breadcrumbs={[{ label: "Onboarding", href: "/admin/team" }, { label: candidate.full_name }]}
     >
-      <div className="mb-6 grid grid-cols-4 gap-4 text-sm">
+      <div className="mb-6 grid grid-cols-2 gap-4 text-sm lg:grid-cols-4">
         <InfoItem label="Track" value={candidate.track} />
         <InfoItem label="Phone" value={candidate.phone} />
         <InfoItem label="City" value={candidate.city ?? "—"} />

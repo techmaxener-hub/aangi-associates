@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { supabase } from "../../lib/supabase";
+import { api, ApiError } from "../../lib/api";
 import { useToast } from "../../components/ui/toast";
 import { Card } from "../../components/ui/card";
 import { Select } from "../../components/ui/select";
@@ -23,12 +23,12 @@ export function ClaimsQueuePage({ navItems, basePath }: { navItems: NavItem[]; b
 
   async function load() {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("claims")
-      .select("*, clients(full_name, phone)")
-      .order("notified_at", { ascending: false });
-    if (error) showToast(`Failed to load claims: ${error.message}`, "error");
-    setClaims((data as unknown as Claim[]) ?? []);
+    try {
+      const data = await api.get<Claim[]>("/claims.php");
+      setClaims(data ?? []);
+    } catch (err) {
+      showToast(`Failed to load claims: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
+    }
     setLoading(false);
   }
 
@@ -38,12 +38,13 @@ export function ClaimsQueuePage({ navItems, basePath }: { navItems: NavItem[]; b
   }, []);
 
   async function advanceStage(claim: Claim, stage: Claim["stage"]) {
-    const { error } = await supabase
-      .from("claims")
-      .update({ stage, settled_at: stage === "settled" ? new Date().toISOString() : null })
-      .eq("id", claim.id);
-    if (error) {
-      showToast(`Failed to update claim: ${error.message}`, "error");
+    try {
+      await api.put(`/claims.php?id=${claim.id}`, {
+        stage,
+        settled_at: stage === "settled" ? new Date().toISOString() : null,
+      });
+    } catch (err) {
+      showToast(`Failed to update claim: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
     void load();

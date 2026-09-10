@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../../lib/supabase";
+import { api, ApiError } from "../../lib/api";
 import { useToast } from "../../components/ui/toast";
 import { Card } from "../../components/ui/card";
 import { ListSkeleton } from "../../components/ui/skeleton";
@@ -69,13 +69,11 @@ export function AuditLogPage() {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("audit_log")
-        .select("*, actor:profiles!changed_by(full_name)")
-        .order("changed_at", { ascending: false })
-        .limit(200);
-      if (error) showToast(`Failed to load audit log: ${error.message}`, "error");
-      setRows((data as unknown as AuditRow[]) ?? []);
+      try {
+        setRows((await api.get<AuditRow[]>("/audit_log.php")) ?? []);
+      } catch (err) {
+        showToast(`Failed to load audit log: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
+      }
       setLoading(false);
     }
     void load();

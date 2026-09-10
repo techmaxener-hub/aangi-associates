@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { UserPlus } from "lucide-react";
-import { supabase } from "../../../lib/supabase";
-import { useAuth } from "../../../auth/useAuth";
+import { api, ApiError } from "../../../lib/api";
 import { useToast } from "../../../components/ui/toast";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
@@ -13,7 +12,6 @@ const LEAD_TYPES = ["Term", "Mediclaim", "Keyman", "Mutual Funds", "Agent Recrui
 const ADVISOR_PHONE = "919033132791";
 
 export function ManualLeadEntry() {
-  const { session } = useAuth();
   const { showToast } = useToast();
   const [form, setForm] = useState({
     full_name: "",
@@ -34,24 +32,23 @@ export function ManualLeadEntry() {
     event.preventDefault();
     setSaving(true);
 
-    const { error } = await supabase.from("leads").insert({
-      full_name: form.full_name,
-      phone: form.phone,
-      email: form.email || null,
-      city: form.city || null,
-      lead_type: form.lead_type,
-      source: "manual",
-      owner: form.owner || null,
-      notes: form.notes || null,
-      created_by: session?.user.id ?? null,
-    });
-
-    setSaving(false);
-
-    if (error) {
-      showToast(`Failed to save lead: ${error.message}`, "error");
+    try {
+      await api.post("/leads.php", {
+        full_name: form.full_name,
+        phone: form.phone,
+        email: form.email || null,
+        city: form.city || null,
+        lead_type: form.lead_type,
+        owner: form.owner || null,
+        notes: form.notes || null,
+      });
+    } catch (err) {
+      setSaving(false);
+      showToast(`Failed to save lead: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
+
+    setSaving(false);
 
     const message = [
       "New manual lead captured:",

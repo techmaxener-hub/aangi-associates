@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Printer } from "lucide-react";
-import { supabase } from "../../lib/supabase";
+import { api, ApiError } from "../../lib/api";
 import { useToast } from "../../components/ui/toast";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
@@ -67,19 +67,23 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
   async function loadAll() {
     if (!id) return;
     setLoading(true);
-    const [c, p, o, cl, co] = await Promise.all([
-      supabase.from("clients").select("*").eq("id", id).single(),
-      supabase.from("client_policies").select("*").eq("client_id", id).order("created_at", { ascending: false }),
-      supabase.from("opportunities").select("*").eq("client_id", id).order("created_at", { ascending: false }),
-      supabase.from("claims").select("*").eq("client_id", id).order("created_at", { ascending: false }),
-      supabase.from("communications").select("*").eq("client_id", id).order("occurred_at", { ascending: false }),
-    ]);
-    if (c.error) showToast(`Failed to load client: ${c.error.message}`, "error");
-    setClient(c.data ?? null);
-    setPolicies(p.data ?? []);
-    setOpportunities(o.data ?? []);
-    setClaims(cl.data ?? []);
-    setComms(co.data ?? []);
+    try {
+      const [c, p, o, cl, co] = await Promise.all([
+        api.get<Client>(`/clients.php?id=${id}`),
+        api.get<ClientPolicy[]>(`/client_policies.php?client_id=${id}`),
+        api.get<Opportunity[]>(`/opportunities.php?client_id=${id}`),
+        api.get<Claim[]>(`/claims.php?client_id=${id}`),
+        api.get<Communication[]>(`/communications.php?client_id=${id}`),
+      ]);
+      setClient(c ?? null);
+      setPolicies(p ?? []);
+      setOpportunities(o ?? []);
+      setClaims(cl ?? []);
+      setComms(co ?? []);
+    } catch (err) {
+      showToast(`Failed to load client: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
+      setClient(null);
+    }
     setLoading(false);
   }
 
@@ -132,7 +136,7 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
         </Button>
       </div>
 
-      <div className="mb-6 grid grid-cols-4 gap-4 text-sm">
+      <div className="mb-6 grid grid-cols-2 gap-4 text-sm lg:grid-cols-4">
         <InfoItem label="Phone" value={client.phone} />
         <InfoItem label="Email" value={client.email ?? "—"} />
         <InfoItem label="City" value={client.city ?? "—"} />
@@ -312,21 +316,23 @@ function PoliciesTab({
   async function handleAdd(event: FormEvent) {
     event.preventDefault();
     setSaving(true);
-    const { error } = await supabase.from("client_policies").insert({
-      client_id: clientId,
-      policy_number: form.policy_number || null,
-      insurer: form.insurer,
-      product_type: form.product_type,
-      sum_assured: form.sum_assured ? Number(form.sum_assured) : null,
-      premium: form.premium ? Number(form.premium) : null,
-      start_date: form.start_date || null,
-      renewal_date: form.renewal_date || null,
-    });
-    setSaving(false);
-    if (error) {
-      showToast(`Failed to add policy: ${error.message}`, "error");
+    try {
+      await api.post("/client_policies.php", {
+        client_id: clientId,
+        policy_number: form.policy_number || null,
+        insurer: form.insurer,
+        product_type: form.product_type,
+        sum_assured: form.sum_assured ? Number(form.sum_assured) : null,
+        premium: form.premium ? Number(form.premium) : null,
+        start_date: form.start_date || null,
+        renewal_date: form.renewal_date || null,
+      });
+    } catch (err) {
+      setSaving(false);
+      showToast(`Failed to add policy: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
+    setSaving(false);
     showToast("Policy added.");
     setShowForm(false);
     onChange();
@@ -474,23 +480,23 @@ function PipelineTab({
 
   async function createOpportunity() {
     setCreating(true);
-    const { error } = await supabase.from("opportunities").insert({ client_id: clientId, product_type: productType });
-    setCreating(false);
-    if (error) {
-      showToast(`Failed to create opportunity: ${error.message}`, "error");
+    try {
+      await api.post("/opportunities.php", { client_id: clientId, product_type: productType });
+    } catch (err) {
+      setCreating(false);
+      showToast(`Failed to create opportunity: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
+    setCreating(false);
     showToast("Opportunity created.");
     onChange();
   }
 
   async function advanceStage(opp: Opportunity, stage: Opportunity["stage"]) {
-    const { error } = await supabase
-      .from("opportunities")
-      .update({ stage, updated_at: new Date().toISOString() })
-      .eq("id", opp.id);
-    if (error) {
-      showToast(`Failed to update stage: ${error.message}`, "error");
+    try {
+      await api.put(`/opportunities.php?id=${opp.id}`, { stage, updated_at: new Date().toISOString() });
+    } catch (err) {
+      showToast(`Failed to update stage: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
     onChange();
@@ -570,28 +576,27 @@ function ClaimsTab({
 
   async function fileClaim() {
     setCreating(true);
-    const { error } = await supabase.from("claims").insert({
-      client_id: clientId,
-      policy_id: policyId || null,
-      notes: notes || null,
-    });
-    setCreating(false);
-    if (error) {
-      showToast(`Failed to file claim: ${error.message}`, "error");
+    try {
+      await api.post("/claims.php", { client_id: clientId, policy_id: policyId || null, notes: notes || null });
+    } catch (err) {
+      setCreating(false);
+      showToast(`Failed to file claim: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
+    setCreating(false);
     showToast("Claim filed — notified stage.");
     setNotes("");
     onChange();
   }
 
   async function advanceStage(claim: Claim, stage: Claim["stage"]) {
-    const { error } = await supabase
-      .from("claims")
-      .update({ stage, settled_at: stage === "settled" ? new Date().toISOString() : null })
-      .eq("id", claim.id);
-    if (error) {
-      showToast(`Failed to update claim: ${error.message}`, "error");
+    try {
+      await api.put(`/claims.php?id=${claim.id}`, {
+        stage,
+        settled_at: stage === "settled" ? new Date().toISOString() : null,
+      });
+    } catch (err) {
+      showToast(`Failed to update claim: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
     onChange();
@@ -678,12 +683,14 @@ function CommunicationsTab({
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from("communications").insert({ client_id: clientId, channel, notes });
-    setSaving(false);
-    if (error) {
-      showToast(`Failed to log: ${error.message}`, "error");
+    try {
+      await api.post("/communications.php", { client_id: clientId, channel, notes });
+    } catch (err) {
+      setSaving(false);
+      showToast(`Failed to log: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
+    setSaving(false);
     setNotes("");
     onChange();
   }

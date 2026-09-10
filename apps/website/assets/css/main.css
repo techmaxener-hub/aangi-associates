@@ -7,51 +7,174 @@
 @import url("../../packages/ui/fonts.css");
 @import url("../../packages/ui/components.css");
 
-/* Hero — a layered composition rather than a flat 50/50 split: a soft
-   gold glow sits behind the copy, and the photo carries an offset frame
-   that lets it break the grid slightly instead of sitting flush in its
-   own column. */
-.hero { position: relative; overflow: hidden; }
-.hero::before {
-  content: "";
-  position: absolute;
-  top: -15%;
-  left: -12%;
-  width: 55%;
-  height: 130%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--gold) 16%, transparent), transparent 70%);
-  pointer-events: none;
-}
-.hero-grid {
+/* Hero — a single unbroken dark field (not two visually separate panels):
+   a bold oversized headline sits directly on a solid charcoal-navy
+   backdrop on the left, Jainik's photo bleeds in from the right edge and
+   is mask-faded on its own left edge so it dissolves into that same dark
+   field rather than sitting in a hard-edged box, and a glass identity
+   card sits over the photo's bottom ~20% carrying the firm name and
+   profile line. Forced dark regardless of the site's light/dark toggle —
+   this is a branded, permanently-dark hero moment, not a themed surface.
+   Two-column CSS grid at the section level (not .container) so the photo
+   can bleed to the actual viewport edge while the copy stays aligned to
+   the site's normal container padding. */
+.hero-immersive {
   position: relative;
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 2.5rem;
-  align-items: center;
-  padding-block: var(--space-lg);
+  grid-template-columns: 1.05fr 0.95fr;
+  min-height: calc(100svh - 4.5rem);
+  background: var(--navy);
 }
-.hero-copy .badge { margin-bottom: var(--space-sm); }
-.hero-subhead { font-weight: 600; color: var(--text); }
-.hero-ctas { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: var(--space-md); }
-
-.hero-photo-frame { position: relative; }
-.hero-photo-frame::before {
-  content: "";
+.hero-immersive-copy-col { position: relative; display: flex; align-items: center; overflow: hidden; }
+.hero-immersive-backdrop {
   position: absolute;
-  inset: 1.25rem -1.25rem -1.25rem 1.25rem;
-  border: 2px solid var(--gold);
-  border-radius: var(--radius-md);
-  z-index: -1;
+  inset: 0;
+  background:
+    radial-gradient(circle at 15% 15%, color-mix(in srgb, var(--gold) 14%, transparent), transparent 50%),
+    var(--navy);
+  pointer-events: none;
 }
-.hero-photo-frame .photo { display: block; }
+.hero-copy-card {
+  position: relative;
+  padding: var(--space-xl) var(--space-lg);
+  max-width: 36rem;
+  /* Overrides .glass-panel — text sits directly on the dark field, no
+     card chrome, matching the reference's unboxed headline treatment. */
+  background: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: none;
+  box-shadow: none;
+}
+.hero-copy-card .badge {
+  margin-bottom: var(--space-md);
+  background: color-mix(in srgb, var(--on-navy) 12%, transparent);
+  border-color: color-mix(in srgb, var(--on-navy) 25%, transparent);
+  color: var(--on-navy);
+}
+.hero-copy-card h1 {
+  color: var(--on-navy);
+  font-size: clamp(2.75rem, 6vw, 5rem);
+  line-height: 0.98;
+  letter-spacing: -0.01em;
+  margin-bottom: var(--space-md);
+}
+.hero-subhead { font-weight: 600; color: var(--gold-on-navy); }
+.hero-copy-card .hero-body { color: color-mix(in srgb, var(--on-navy) 82%, transparent); }
+.hero-ctas { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: var(--space-lg); }
+.hero-copy-card .btn-secondary { color: var(--on-navy); border-color: color-mix(in srgb, var(--on-navy) 40%, transparent); }
+.hero-copy-card .btn-secondary:hover { background: color-mix(in srgb, var(--on-navy) 10%, transparent); }
 
-@media (min-width: 861px) {
-  .hero-photo-frame { margin-block-start: -1.5rem; margin-inline-end: -1.5rem; }
+.hero-immersive-photo-col { position: relative; overflow: hidden; min-height: 60svh; background: var(--navy); }
+.hero-immersive-photo {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 8%; display: block;
+  filter: grayscale(30%) saturate(1.05) contrast(1.08) brightness(0.94);
+  /* Dissolves the photo's left edge into the dark backdrop instead of a
+     hard rectangular cut — the "cutout floating on dark" look. */
+  mask-image: linear-gradient(to right, transparent 0%, black 16%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 16%);
+}
+.hero-photo-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, color-mix(in srgb, var(--navy) 85%, transparent) 0%, transparent 40%);
+  pointer-events: none;
+}
+.hero-identity-card {
+  position: absolute;
+  left: var(--space-md);
+  right: var(--space-md);
+  bottom: var(--space-md);
+  min-height: 20%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: var(--space-md) var(--space-lg);
+  background: color-mix(in srgb, var(--navy) 38%, transparent);
+  border-color: color-mix(in srgb, var(--gold) 45%, transparent);
+}
+.hero-identity-firm {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-on-navy);
+}
+.hero-identity-name {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+  font-weight: 600;
+  color: var(--on-navy);
+  line-height: 1.1;
+}
+.hero-identity-role { font-size: 0.85rem; color: var(--on-navy); opacity: 0.9; }
+
+@media (max-width: 860px) {
+  .hero-immersive { grid-template-columns: 1fr; min-height: auto; }
+  .hero-immersive-photo-col { order: -1; min-height: 68svh; }
+  .hero-copy-card { max-width: none; margin-block: var(--space-lg); }
+  /* The left-edge fade only reads as "dissolving in" next to the copy
+     column it's blending with — full width on mobile, so blend from the
+     top instead. */
+  .hero-immersive-photo {
+    mask-image: linear-gradient(to bottom, transparent 0%, black 12%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 12%);
+  }
+}
+
+/* On a small phone the identity card's own padding plus a 3-4 line wrap
+   of the role text (long even before wrapping: "Chief Business Associate
+   Leader · TATA AIA Life Insurance") can grow tall enough, anchored to
+   the photo's bottom edge, to cover most of Jainik's face — tighten both
+   the copy card and identity card at the point that actually starts
+   happening rather than only at the 860px stack breakpoint. */
+@media (max-width: 480px) {
+  .hero-copy-card { padding: var(--space-lg) var(--space-md); }
+  .hero-identity-card { padding: var(--space-sm) var(--space-md); left: var(--space-sm); right: var(--space-sm); bottom: var(--space-sm); }
+  .hero-identity-role { font-size: 0.78rem; }
+}
+
+/* Recognition & Achievements (about.html) */
+.recognition-card { padding: 0; overflow: hidden; }
+.recognition-card .photo { min-height: 220px; aspect-ratio: 4 / 5; border-radius: var(--radius-md) var(--radius-md) 0 0; border: none; border-bottom: 1px solid var(--line); }
+.recognition-card figcaption { display: flex; flex-direction: column; gap: 0.2rem; padding: 1rem 1.25rem 1.25rem; }
+.recognition-card strong { font-family: var(--font-display); font-size: 1rem; line-height: 1.3; }
+.recognition-card span { font-size: 0.85rem; color: var(--text-soft); }
+
+.conclave-strip {
+  display: flex;
+  gap: var(--space-sm);
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding-bottom: var(--space-xs);
+  -webkit-overflow-scrolling: touch;
+}
+.conclave-item {
+  flex: 0 0 auto;
+  width: 9.5rem;
+  scroll-snap-align: start;
+  text-align: center;
+}
+.conclave-item img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-card);
+  display: block;
+}
+.conclave-item span {
+  display: block;
+  margin-top: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-soft);
 }
 
 @media (max-width: 860px) {
-  .hero-grid { grid-template-columns: 1fr; }
-  .hero-photo-frame::before { inset: 1rem -1rem -1rem 1rem; }
+  .recognition-card .photo { aspect-ratio: 4 / 3; }
 }
 
 /* Trust strip */

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Calculator } from "lucide-react";
-import { supabase } from "../../../lib/supabase";
+import { api, ApiError } from "../../../lib/api";
 import { useToast } from "../../../components/ui/toast";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
@@ -42,19 +42,11 @@ export function CalculatorDefaultsCard() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    supabase
-      .from("calculator_config")
-      .select("*")
-      .eq("id", 1)
-      .single()
-      .then(({ data, error }) => {
-        if (error) {
-          console.error(error);
-        } else {
-          setConfig(data as Config);
-        }
-        setLoading(false);
-      });
+    api
+      .get<Config>("/calculator_config.php")
+      .then((data) => setConfig(data))
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
   }, []);
 
   function update(key: keyof Config, value: string) {
@@ -65,15 +57,14 @@ export function CalculatorDefaultsCard() {
   async function handleSave() {
     if (!config) return;
     setSaving(true);
-    const { error } = await supabase
-      .from("calculator_config")
-      .update({ ...config, updated_at: new Date().toISOString() })
-      .eq("id", 1);
-    setSaving(false);
-    if (error) {
-      showToast(`Failed to save: ${error.message}`, "error");
+    try {
+      await api.put("/calculator_config.php", config);
+    } catch (err) {
+      setSaving(false);
+      showToast(`Failed to save: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
+    setSaving(false);
     showToast("Calculator defaults saved — the public website reads these live.");
   }
 

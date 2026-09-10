@@ -35,10 +35,11 @@ export interface IntegrationDef {
   fields: IntegrationField[];
 }
 
-// Real, correctly-formed URL pattern for a future Supabase Edge Function
-// webhook receiver — no such function is deployed yet, so this is where one
-// *would* live, not a live endpoint. Surfaced with that caveat in the UI.
-const webhookUrl = (provider: string) => `https://vdiymedmnrqmosazaaro.supabase.co/functions/v1/leads-${provider}`;
+// Real, correctly-formed URL pattern for a future PHP webhook receiver
+// under apps/crm-api/ — no such endpoint file exists yet, so this is
+// where one *would* live, not a live endpoint. Surfaced with that caveat
+// in the UI.
+const webhookUrl = (provider: string) => `https://aa.tmarinternational.com/api/webhooks/leads-${provider}.php`;
 
 export const INTEGRATIONS: IntegrationDef[] = [
   {

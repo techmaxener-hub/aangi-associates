@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { UserPlus, UploadCloud, type LucideIcon } from "lucide-react";
-import { supabase } from "../../lib/supabase";
+import { api } from "../../lib/api";
 import { Card } from "../../components/ui/card";
 import { DashboardSkeleton } from "../../components/ui/skeleton";
 import { EmptyState } from "../../components/ui/empty-state";
@@ -31,7 +31,8 @@ interface RenewalRow {
   id: string;
   product_type: string;
   renewal_date: string;
-  clients: { id: string; full_name: string } | null;
+  status: string;
+  client: { id: string; full_name: string } | null;
 }
 
 const TASK_STATUS_LABEL: Record<string, string> = { todo: "To Do", in_progress: "In Progress", done: "Done" };
@@ -54,49 +55,53 @@ export function AdminDashboard() {
   const [taskCounts, setTaskCounts] = useState<Record<string, number>>({ todo: 0, in_progress: 0, done: 0 });
 
   useEffect(() => {
+    // No RLS anymore to do this scoping server-side per-query, and these
+    // endpoints return plain lists rather than Supabase's count:"exact"
+    // head requests — this is an admin-only dashboard over a small
+    // business's data, so fetching full lists and aggregating client-side
+    // is the simpler, equally-correct trade here rather than adding a
+    // dozen narrow count/filter query params to the PHP endpoints.
     async function load() {
       setLoading(true);
 
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).getTime();
       const now = new Date();
       const today = localDateISO(now);
       const sixtyDaysOut = localDateISO(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 60));
 
-      const [clients, activePolicies, openClaims, recentLeads, allLeads, renewalRows, tasks] = await Promise.all([
-        supabase.from("clients").select("*", { count: "exact", head: true }),
-        supabase.from("client_policies").select("*", { count: "exact", head: true }).eq("status", "active"),
-        supabase.from("claims").select("*", { count: "exact", head: true }).neq("stage", "settled"),
-        supabase.from("leads").select("*", { count: "exact", head: true }).gte("created_at", thirtyDaysAgo),
-        supabase.from("leads").select("source, status"),
-        supabase
-          .from("client_policies")
-          .select("id, product_type, renewal_date, clients(id, full_name)")
-          .eq("status", "active")
-          .gte("renewal_date", today)
-          .lte("renewal_date", sixtyDaysOut)
-          .order("renewal_date", { ascending: true })
-          .limit(8),
-        supabase.from("tasks").select("status"),
+      const [clients, allPolicies, allClaims, allLeads, allTasks] = await Promise.all([
+        api.get<{ id: string }[]>("/clients.php"),
+        api.get<RenewalRow[]>("/client_policies.php"),
+        api.get<{ stage: string }[]>("/claims.php"),
+        api.get<{ source: string; status: LeadStatus; created_at: string; assigned_to: string | null }[]>(
+          "/leads.php",
+        ),
+        api.get<{ status: string }[]>("/tasks.php"),
       ]);
 
-      setClientCount(clients.count ?? 0);
-      setActivePolicyCount(activePolicies.count ?? 0);
-      setOpenClaimCount(openClaims.count ?? 0);
-      setNewLeadCount(recentLeads.count ?? 0);
+      setClientCount(clients?.length ?? 0);
+      setActivePolicyCount((allPolicies ?? []).filter((p) => p.status === "active").length);
+      setOpenClaimCount((allClaims ?? []).filter((c) => c.stage !== "settled").length);
+      setNewLeadCount((allLeads ?? []).filter((l) => new Date(l.created_at).getTime() >= thirtyDaysAgo).length);
 
       const bySource: Record<string, number> = {};
       const byStatus: Record<LeadStatus, number> = { new: 0, contacted: 0, qualified: 0, converted: 0, dropped: 0 };
-      (allLeads.data ?? []).forEach((l) => {
+      (allLeads ?? []).forEach((l) => {
         bySource[l.source] = (bySource[l.source] ?? 0) + 1;
-        byStatus[l.status as LeadStatus] = (byStatus[l.status as LeadStatus] ?? 0) + 1;
+        byStatus[l.status] = (byStatus[l.status] ?? 0) + 1;
       });
       setLeadsBySource(bySource);
       setLeadsByStatus(byStatus);
 
-      setRenewals((renewalRows.data as unknown as RenewalRow[]) ?? []);
+      setRenewals(
+        (allPolicies ?? [])
+          .filter((p) => p.status === "active" && p.renewal_date >= today && p.renewal_date <= sixtyDaysOut)
+          .sort((a, b) => (a.renewal_date < b.renewal_date ? -1 : 1))
+          .slice(0, 8),
+      );
 
       const byTaskStatus: Record<string, number> = { todo: 0, in_progress: 0, done: 0 };
-      (tasks.data ?? []).forEach((t) => {
+      (allTasks ?? []).forEach((t) => {
         byTaskStatus[t.status] = (byTaskStatus[t.status] ?? 0) + 1;
       });
       setTaskCounts(byTaskStatus);
@@ -227,10 +232,10 @@ export function AdminDashboard() {
                     return (
                       <li key={r.id} className="flex items-center justify-between gap-2 text-sm">
                         <Link
-                          to={r.clients ? `/admin/clients/${r.clients.id}` : "#"}
+                          to={r.client ? `/admin/clients/${r.client.id}` : "#"}
                           className="min-w-0 truncate text-text hover:underline"
                         >
-                          {r.clients?.full_name ?? "—"} · {r.product_type}
+                          {r.client?.full_name ?? "—"} · {r.product_type}
                         </Link>
                         <span
                           className={`shrink-0 font-mono text-xs ${days <= 14 ? "text-crimson" : "text-text-soft"}`}

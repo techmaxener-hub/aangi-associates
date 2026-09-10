@@ -1,5 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
-import { supabase } from "../lib/supabase";
+import { api } from "../lib/api";
 import { Button } from "./ui/button";
 
 interface Props {
@@ -19,7 +19,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("Caught by ErrorBoundary:", error, info);
-    void supabase.from("app_errors").insert({
+    void api.post("/app_errors.php", {
       message: error.message,
       stack: error.stack ?? null,
       component_stack: info.componentStack ?? null,

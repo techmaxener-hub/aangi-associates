@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Download } from "lucide-react";
-import { supabase } from "../../lib/supabase";
+import { api, ApiError } from "../../lib/api";
 import { useAuth } from "../../auth/useAuth";
 import { useToast } from "../../components/ui/toast";
 import { Button } from "../../components/ui/button";
@@ -49,20 +49,19 @@ export function LeadsDeskPage({ navItems, basePath }: { navItems: NavItem[]; bas
 
   async function load() {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("leads")
-      .select("*, assignee:profiles!assigned_to(id, full_name, role)")
-      .order("updated_at", { ascending: false });
-    if (error) showToast(`Failed to load leads: ${error.message}`, "error");
-    setLeads((data as unknown as Lead[]) ?? []);
+    try {
+      setLeads((await api.get<Lead[]>("/leads.php")) ?? []);
+    } catch (err) {
+      showToast(`Failed to load leads: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
+    }
     setLoading(false);
 
     if (canAssign) {
-      const { data: profs } = await supabase
-        .from("profiles")
-        .select("id, full_name, role")
-        .in("role", ["admin", "staff", "associate"]);
-      setAssignees(profs ?? []);
+      try {
+        setAssignees((await api.get<LeadAssignee[]>("/users.php")) ?? []);
+      } catch {
+        // non-fatal — the board still renders without the assignee picker
+      }
     }
   }
 
@@ -93,12 +92,10 @@ export function LeadsDeskPage({ navItems, basePath }: { navItems: NavItem[]; bas
   }
 
   async function assignLead(lead: Lead, assignedTo: string) {
-    const { error } = await supabase
-      .from("leads")
-      .update({ assigned_to: assignedTo || null })
-      .eq("id", lead.id);
-    if (error) {
-      showToast(`Failed to assign lead: ${error.message}`, "error");
+    try {
+      await api.put(`/leads.php?id=${lead.id}`, { assigned_to: assignedTo || null });
+    } catch (err) {
+      showToast(`Failed to assign lead: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
     void load();
@@ -110,18 +107,17 @@ export function LeadsDeskPage({ navItems, basePath }: { navItems: NavItem[]; bas
   // meaning a client record genuinely exists, not just a label someone set.
   async function confirmContact(lead: Lead) {
     setBusy(true);
-    const { error } = await supabase
-      .from("leads")
-      .update({
+    try {
+      await api.put(`/leads.php?id=${lead.id}`, {
         status: "contacted",
         notes: appendNote(lead.notes, noteDraft.trim() || "First contact logged."),
-      })
-      .eq("id", lead.id);
-    setBusy(false);
-    if (error) {
-      showToast(`Failed to log contact: ${error.message}`, "error");
+      });
+    } catch (err) {
+      setBusy(false);
+      showToast(`Failed to log contact: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
+    setBusy(false);
     showToast(`${lead.full_name} moved to Contacted.`);
     closeAction();
     void load();
@@ -129,18 +125,17 @@ export function LeadsDeskPage({ navItems, basePath }: { navItems: NavItem[]; bas
 
   async function confirmQualify(lead: Lead) {
     setBusy(true);
-    const { error } = await supabase
-      .from("leads")
-      .update({
+    try {
+      await api.put(`/leads.php?id=${lead.id}`, {
         status: "qualified",
         notes: appendNote(lead.notes, noteDraft.trim() || "Qualified."),
-      })
-      .eq("id", lead.id);
-    setBusy(false);
-    if (error) {
-      showToast(`Failed to qualify lead: ${error.message}`, "error");
+      });
+    } catch (err) {
+      setBusy(false);
+      showToast(`Failed to qualify lead: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
+    setBusy(false);
     showToast(`${lead.full_name} moved to Qualified.`);
     closeAction();
     void load();
@@ -148,18 +143,17 @@ export function LeadsDeskPage({ navItems, basePath }: { navItems: NavItem[]; bas
 
   async function confirmDrop(lead: Lead) {
     setBusy(true);
-    const { error } = await supabase
-      .from("leads")
-      .update({
+    try {
+      await api.put(`/leads.php?id=${lead.id}`, {
         status: "dropped",
         notes: appendNote(lead.notes, `Dropped: ${noteDraft.trim() || "no reason given"}`),
-      })
-      .eq("id", lead.id);
-    setBusy(false);
-    if (error) {
-      showToast(`Failed to drop lead: ${error.message}`, "error");
+      });
+    } catch (err) {
+      setBusy(false);
+      showToast(`Failed to drop lead: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
+    setBusy(false);
     showToast(`${lead.full_name} dropped.`);
     closeAction();
     void load();
@@ -167,39 +161,37 @@ export function LeadsDeskPage({ navItems, basePath }: { navItems: NavItem[]; bas
 
   async function confirmConvert(lead: Lead) {
     setBusy(true);
-    const { data: client, error: clientError } = await supabase
-      .from("clients")
-      .insert({
+    let client: { id: string };
+    try {
+      client = await api.post<{ id: string }>("/clients.php", {
         full_name: lead.full_name,
         phone: lead.phone,
         email: lead.email,
         city: lead.city,
         owner_id: lead.assigned_to,
-      })
-      .select("id")
-      .single();
-
-    if (clientError || !client) {
+      });
+    } catch (err) {
       setBusy(false);
-      showToast(`Failed to create client: ${clientError?.message ?? "unknown error"}`, "error");
+      showToast(`Failed to create client: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
 
-    const { error: leadError } = await supabase
-      .from("leads")
-      .update({
+    try {
+      await api.put(`/leads.php?id=${lead.id}`, {
         status: "converted",
         converted_client_id: client.id,
         notes: appendNote(lead.notes, noteDraft.trim() || "Converted to client."),
-      })
-      .eq("id", lead.id);
-
-    setBusy(false);
-    if (leadError) {
-      showToast(`Client created, but failed to update lead: ${leadError.message}`, "error");
+      });
+    } catch (err) {
+      setBusy(false);
+      showToast(
+        `Client created, but failed to update lead: ${err instanceof ApiError ? err.message : "unknown error"}`,
+        "error",
+      );
       void load();
       return;
     }
+    setBusy(false);
     showToast(`${lead.full_name} converted — client record created.`);
     closeAction();
     void load();

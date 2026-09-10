@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { supabase } from "../../lib/supabase";
+import { api, ApiError } from "../../lib/api";
 import { useToast } from "../../components/ui/toast";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
@@ -32,9 +32,11 @@ export function CandidatesPage() {
 
   async function load() {
     setLoading(true);
-    const { data, error } = await supabase.from("candidates").select("*").order("created_at", { ascending: false });
-    if (error) showToast(`Failed to load candidates: ${error.message}`, "error");
-    setCandidates(data ?? []);
+    try {
+      setCandidates((await api.get<Candidate[]>("/candidates.php")) ?? []);
+    } catch (err) {
+      showToast(`Failed to load candidates: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
+    }
     setLoading(false);
   }
 
@@ -46,20 +48,22 @@ export function CandidatesPage() {
   async function handleAdd(event: FormEvent) {
     event.preventDefault();
     setSaving(true);
-    const { error } = await supabase.from("candidates").insert({
-      full_name: form.full_name,
-      phone: form.phone,
-      email: form.email || null,
-      city: form.city || null,
-      occupation: form.occupation || null,
-      track: form.track,
-      stage: stagesFor(form.track)[0],
-    });
-    setSaving(false);
-    if (error) {
-      showToast(`Failed to add candidate: ${error.message}`, "error");
+    try {
+      await api.post("/candidates.php", {
+        full_name: form.full_name,
+        phone: form.phone,
+        email: form.email || null,
+        city: form.city || null,
+        occupation: form.occupation || null,
+        track: form.track,
+        stage: stagesFor(form.track)[0],
+      });
+    } catch (err) {
+      setSaving(false);
+      showToast(`Failed to add candidate: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
+    setSaving(false);
     showToast("Candidate added.");
     setForm({ full_name: "", phone: "", email: "", city: "", occupation: "", track: "associate" });
     setShowForm(false);
@@ -67,9 +71,10 @@ export function CandidatesPage() {
   }
 
   async function advanceStage(candidate: Candidate, stage: string) {
-    const { error } = await supabase.from("candidates").update({ stage }).eq("id", candidate.id);
-    if (error) {
-      showToast(`Failed to update stage: ${error.message}`, "error");
+    try {
+      await api.put(`/candidates.php?id=${candidate.id}`, { stage });
+    } catch (err) {
+      showToast(`Failed to update stage: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
     void load();

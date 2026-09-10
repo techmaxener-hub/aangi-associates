@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { supabase } from "../lib/supabase";
+import { authApi, ApiError } from "../lib/api";
+import { useAuth } from "../auth/useAuth";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -8,6 +9,7 @@ import { Label } from "../components/ui/label";
 
 export function LoginPhone() {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [stage, setStage] = useState<"phone" | "otp">("phone");
@@ -18,23 +20,35 @@ export function LoginPhone() {
     event.preventDefault();
     setLoading(true);
     setError(null);
-    const { error } = await supabase.auth.signInWithOtp({ phone });
-    setLoading(false);
-    if (error) setError(error.message);
-    else setStage("otp");
+    try {
+      const { sms_sent } = await authApi.requestOtp(phone);
+      if (!sms_sent) {
+        // No SMS gateway configured yet (see apps/crm-api/lib/sms.php) —
+        // the code was still generated and logged server-side, so testing
+        // can continue; a real client can't receive it yet.
+        console.warn("SMS gateway not configured — OTP was generated but not sent. Check server logs.");
+      }
+      setStage("otp");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function verifyOtp(event: FormEvent) {
     event.preventDefault();
     setLoading(true);
     setError(null);
-    const { error } = await supabase.auth.verifyOtp({ phone, token: otp, type: "sms" });
-    setLoading(false);
-    if (error) {
-      setError(error.message);
-      return;
+    try {
+      const { user } = await authApi.verifyOtp(phone, otp);
+      setUser(user);
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
     }
-    navigate("/", { replace: true });
   }
 
   return (

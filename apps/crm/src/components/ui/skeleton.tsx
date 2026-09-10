@@ -45,7 +45,7 @@ export function ListSkeleton({ rows = 3 }: { rows?: number }) {
 export function DetailSkeleton({ infoItems = 4 }: { infoItems?: number }) {
   return (
     <div>
-      <div className="mb-6 grid grid-cols-4 gap-4">
+      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {Array.from({ length: infoItems }).map((_, i) => (
           <div key={i}>
             <Skeleton className="mb-1.5 h-3 w-16" />
@@ -89,9 +89,19 @@ export function DashboardSkeleton() {
 
 // For kanban-style pipeline boards (Leads Desk, Tasks) — a column header
 // bar plus a couple of card placeholders per column.
+// Column counts are literal Tailwind classes (not built from the `columns`
+// prop) so the responsive variants survive Tailwind's JIT scan — an inline
+// gridTemplateColumns style can't carry a breakpoint, which left this
+// skeleton forcing 3-4 equal columns on a phone right before the real,
+// properly-responsive board (LeadsDeskPage/TasksPage) loaded in at 1 column.
+const BOARD_COLS_CLASS: Record<number, string> = {
+  3: "grid-cols-1 sm:grid-cols-3",
+  4: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
+};
+
 export function BoardSkeleton({ columns = 3 }: { columns?: number }) {
   return (
-    <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
+    <div className={`grid gap-4 ${BOARD_COLS_CLASS[columns] ?? "grid-cols-1 sm:grid-cols-3"}`}>
       {Array.from({ length: columns }).map((_, c) => (
         <div key={c}>
           <Skeleton className="mb-3 h-3 w-20" />

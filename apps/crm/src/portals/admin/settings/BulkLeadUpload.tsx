@@ -1,7 +1,6 @@
 import { useRef, useState, type DragEvent } from "react";
 import { UploadCloud, Download, FileSpreadsheet, ShieldCheck } from "lucide-react";
-import { supabase } from "../../../lib/supabase";
-import { useAuth } from "../../../auth/useAuth";
+import { api, ApiError } from "../../../lib/api";
 import { useToast } from "../../../components/ui/toast";
 import { Button } from "../../../components/ui/button";
 
@@ -69,7 +68,6 @@ function downloadTemplate() {
 }
 
 export function BulkLeadUpload() {
-  const { session } = useAuth();
   const { showToast } = useToast();
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [dedupe, setDedupe] = useState(true);
@@ -80,35 +78,15 @@ export function BulkLeadUpload() {
   async function handleFile(file: File) {
     const parsed = await parseFile(file);
 
-    const phones = parsed.map((r) => r.phone).filter(Boolean);
-    const emails = parsed.map((r) => r.email).filter(Boolean);
-
-    let existingPhones = new Set<string>();
-    let existingEmails = new Set<string>();
-
-    if (dedupe && (phones.length || emails.length)) {
-      const { data } = await supabase
-        .from("leads")
-        .select("phone, email")
-        .or(
-          [
-            phones.length ? `phone.in.(${phones.join(",")})` : null,
-            emails.length ? `email.in.(${emails.join(",")})` : null,
-          ]
-            .filter(Boolean)
-            .join(","),
-        );
-      existingPhones = new Set((data ?? []).map((r) => r.phone).filter(Boolean));
-      existingEmails = new Set((data ?? []).map((r) => r.email).filter(Boolean));
-    }
-
+    // Within-file duplicates only — leads.php's bulk-import mode does the
+    // real dedupe check against existing DB rows server-side (parameterized,
+    // not a raw .or() string built from unescaped input) and reports back
+    // exactly how many it skipped, shown in the toast after import.
     const seenPhones = new Set<string>();
     const seenEmails = new Set<string>();
 
     const withDuplicates: ParsedRow[] = parsed.map((r) => {
-      const isDuplicate =
-        (!!r.phone && (existingPhones.has(r.phone) || seenPhones.has(r.phone))) ||
-        (!!r.email && (existingEmails.has(r.email) || seenEmails.has(r.email)));
+      const isDuplicate = dedupe && ((!!r.phone && seenPhones.has(r.phone)) || (!!r.email && seenEmails.has(r.email)));
       if (r.phone) seenPhones.add(r.phone);
       if (r.email) seenEmails.add(r.email);
       return {
@@ -117,7 +95,7 @@ export function BulkLeadUpload() {
         email: r.email ?? "",
         city: r.city ?? "",
         lead_type: r.lead_type ?? "",
-        isDuplicate: dedupe && isDuplicate,
+        isDuplicate,
       };
     });
 
@@ -139,25 +117,26 @@ export function BulkLeadUpload() {
     }
 
     setImporting(true);
-    const { error } = await supabase.from("leads").insert(
-      toImport.map((r) => ({
-        full_name: r.full_name,
-        phone: r.phone,
-        email: r.email || null,
-        city: r.city || null,
-        lead_type: r.lead_type || null,
-        source: "bulk_upload",
-        created_by: session?.user.id ?? null,
-      })),
-    );
-    setImporting(false);
-
-    if (error) {
-      showToast(`Import failed: ${error.message}`, "error");
+    try {
+      const result = await api.post<{ inserted: number; skipped: number }>("/leads.php", {
+        bulk: toImport.map((r) => ({
+          full_name: r.full_name,
+          phone: r.phone,
+          email: r.email || null,
+          city: r.city || null,
+          lead_type: r.lead_type || null,
+        })),
+      });
+      showToast(
+        `Imported ${result.inserted} lead(s)` +
+          (result.skipped ? ` — ${result.skipped} skipped as existing duplicates.` : "."),
+      );
+    } catch (err) {
+      setImporting(false);
+      showToast(`Import failed: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
-
-    showToast(`Imported ${toImport.length} lead(s).`);
+    setImporting(false);
     setRows([]);
   }
 

@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { supabase } from "../lib/supabase";
+import { api } from "../lib/api";
 import { useAuth } from "../auth/useAuth";
 import { Card } from "../components/ui/card";
 import { localDateISO } from "../lib/format";
 
-// Reads real, role-scoped counts for the signed-in user — RLS already
-// restricts each query to what this role/user can see (an Associate's
-// client_policies query only ever returns their own clients' policies,
-// for example), so this component needs no role branching of its own.
+// Reads real counts for the signed-in user. The PHP endpoints scope
+// associates to their own rows server-side, but admin/staff get the full
+// list back from each endpoint — so "my tasks due today" / "my leads"
+// are filtered by assigned_to === profile.id here client-side regardless
+// of role, since every role (including admin) wants their own, not
+// everyone's. Renewals-this-week has no owner concept, so no filter.
 export function NotificationStrip({
   tasksHref,
   leadsHref,
@@ -31,29 +33,26 @@ export function NotificationStrip({
       const today = localDateISO(now);
       const sevenDaysOut = localDateISO(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7));
 
-      const [tasks, leads, renewals] = await Promise.all([
-        supabase
-          .from("tasks")
-          .select("*", { count: "exact", head: true })
-          .eq("assigned_to", profile!.id)
-          .neq("status", "done")
-          .eq("due_date", today),
-        supabase
-          .from("leads")
-          .select("*", { count: "exact", head: true })
-          .eq("assigned_to", profile!.id)
-          .in("status", ["new", "contacted", "qualified"]),
-        supabase
-          .from("client_policies")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "active")
-          .gte("renewal_date", today)
-          .lte("renewal_date", sevenDaysOut),
+      const [tasks, leads, policies] = await Promise.all([
+        api.get<{ assigned_to: string | null; status: string; due_date: string | null }[]>("/tasks.php"),
+        api.get<{ assigned_to: string | null; status: string }[]>("/leads.php"),
+        api.get<{ status: string; renewal_date: string | null }[]>("/client_policies.php"),
       ]);
 
-      setTasksDueToday(tasks.count ?? 0);
-      setLeadsNeedingAction(leads.count ?? 0);
-      setRenewalsThisWeek(renewals.count ?? 0);
+      setTasksDueToday(
+        (tasks ?? []).filter((t) => t.assigned_to === profile!.id && t.status !== "done" && t.due_date === today)
+          .length,
+      );
+      setLeadsNeedingAction(
+        (leads ?? []).filter(
+          (l) => l.assigned_to === profile!.id && ["new", "contacted", "qualified"].includes(l.status),
+        ).length,
+      );
+      setRenewalsThisWeek(
+        (policies ?? []).filter(
+          (p) => p.status === "active" && p.renewal_date && p.renewal_date >= today && p.renewal_date <= sevenDaysOut,
+        ).length,
+      );
     }
     void load();
   }, [profile]);

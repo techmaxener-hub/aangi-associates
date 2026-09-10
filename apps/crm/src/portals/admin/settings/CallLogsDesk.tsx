@@ -1,7 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { PhoneOutgoing, Plus } from "lucide-react";
-import { supabase } from "../../../lib/supabase";
-import { useAuth } from "../../../auth/useAuth";
+import { api, ApiError } from "../../../lib/api";
 import { useToast } from "../../../components/ui/toast";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
@@ -39,7 +38,6 @@ const INTENT_VARIANT: Record<string, BadgeVariant> = {
 };
 
 export function CallLogsDesk() {
-  const { session } = useAuth();
   const { showToast } = useToast();
   const [calls, setCalls] = useState<CallRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,9 +55,11 @@ export function CallLogsDesk() {
 
   async function load() {
     setLoading(true);
-    const { data, error } = await supabase.from("calls").select("*").order("created_at", { ascending: false });
-    if (error) showToast(`Failed to load calls: ${error.message}`, "error");
-    setCalls(data ?? []);
+    try {
+      setCalls((await api.get<CallRow[]>("/calls.php")) ?? []);
+    } catch (err) {
+      showToast(`Failed to load calls: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
+    }
     setLoading(false);
   }
 
@@ -71,22 +71,22 @@ export function CallLogsDesk() {
   async function handleLogCall(event: FormEvent) {
     event.preventDefault();
     setSaving(true);
-    const { error } = await supabase.from("calls").insert({
-      lead_name: form.lead_name,
-      phone: form.phone,
-      source_channel: form.source_channel,
-      language_detected: form.language_detected,
-      duration_seconds: form.duration_seconds ? Number(form.duration_seconds) : null,
-      intent_score: form.intent_score,
-      status: "completed",
-      notes: form.notes || null,
-      created_by: session?.user.id ?? null,
-    });
-    setSaving(false);
-    if (error) {
-      showToast(`Failed to log call: ${error.message}`, "error");
+    try {
+      await api.post("/calls.php", {
+        lead_name: form.lead_name,
+        phone: form.phone,
+        source_channel: form.source_channel,
+        language_detected: form.language_detected,
+        duration_seconds: form.duration_seconds ? Number(form.duration_seconds) : null,
+        intent_score: form.intent_score,
+        notes: form.notes || null,
+      });
+    } catch (err) {
+      setSaving(false);
+      showToast(`Failed to log call: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
+    setSaving(false);
     showToast("Call logged.");
     setForm({
       lead_name: "",
@@ -114,9 +114,10 @@ export function CallLogsDesk() {
   }
 
   async function requeue(call: CallRow) {
-    const { error } = await supabase.from("calls").update({ status: "logged" }).eq("id", call.id);
-    if (error) {
-      showToast(`Failed to re-queue: ${error.message}`, "error");
+    try {
+      await api.put(`/calls.php?id=${call.id}`, { status: "logged" });
+    } catch (err) {
+      showToast(`Failed to re-queue: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       return;
     }
     showToast("Call re-queued.");

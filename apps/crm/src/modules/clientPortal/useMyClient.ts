@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../../lib/supabase";
+import { api } from "../../lib/api";
 import { useAuth } from "../../auth/useAuth";
 import type { Client, ClientPolicy, Claim } from "../clients/types";
 
@@ -16,40 +16,29 @@ export function useMyClient() {
     let cancelled = false;
     setLoading(true);
 
-    supabase
-      .from("clients")
-      .select("*")
-      .eq("portal_user_id", session.user.id)
-      .maybeSingle()
-      .then(async ({ data: clientRow, error }) => {
+    api
+      .get<Client | null>("/clients.php")
+      .then(async (clientRow) => {
         if (cancelled) return;
-        if (error) {
-          console.error("Failed to load client record", error);
-          setClient(null);
-          setLoading(false);
-          return;
-        }
         setClient(clientRow ?? null);
 
         if (clientRow) {
           const [p, c] = await Promise.all([
-            supabase
-              .from("client_policies")
-              .select("*")
-              .eq("client_id", clientRow.id)
-              .order("created_at", { ascending: false }),
-            supabase
-              .from("claims")
-              .select("*")
-              .eq("client_id", clientRow.id)
-              .order("notified_at", { ascending: false }),
+            api.get<ClientPolicy[]>(`/client_policies.php?client_id=${clientRow.id}`),
+            api.get<Claim[]>(`/claims.php?client_id=${clientRow.id}`),
           ]);
           if (!cancelled) {
-            setPolicies(p.data ?? []);
-            setClaims(c.data ?? []);
+            setPolicies(p ?? []);
+            setClaims(c ?? []);
           }
         }
         if (!cancelled) setLoading(false);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error("Failed to load client record", err);
+        setClient(null);
+        setLoading(false);
       });
 
     return () => {

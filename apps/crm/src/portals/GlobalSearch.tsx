@@ -1,18 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-import { supabase } from "../lib/supabase";
+import { api } from "../lib/api";
 
 interface ResultGroup {
   label: string;
   items: { id: string; title: string; subtitle: string; href: string }[];
 }
 
-// One search bar, reused across Admin/Staff/Associate. RLS already scopes
-// every one of these queries to what the signed-in role/user can see (an
-// Associate's clients/tasks query returns only their own rows; Candidates
-// returns nothing at all for an Associate, since that table has no
-// associate-facing policy) -- so this component needs no role branching.
+// One search bar, reused across Admin/Staff/Associate. The PHP endpoints
+// do the same role-scoping the old RLS policies did (an Associate's
+// clients/tasks query returns only their own rows), but /candidates.php
+// is admin/staff-only server-side and now 403s for an Associate rather
+// than silently returning zero rows — Promise.allSettled so that one
+// rejection doesn't blank out the other three result groups.
 export function GlobalSearch({ basePath }: { basePath: string }) {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
@@ -40,32 +41,24 @@ export function GlobalSearch({ basePath }: { basePath: string }) {
 
     setLoading(true);
     const timer = window.setTimeout(() => {
-      const pattern = `%${term}%`;
+      const q = encodeURIComponent(term);
 
-      void Promise.all([
-        supabase
-          .from("clients")
-          .select("id, full_name, phone")
-          .or(`full_name.ilike.${pattern},phone.ilike.${pattern}`)
-          .limit(5),
-        supabase
-          .from("candidates")
-          .select("id, full_name, phone, track")
-          .or(`full_name.ilike.${pattern},phone.ilike.${pattern}`)
-          .limit(5),
-        supabase
-          .from("leads")
-          .select("id, full_name, phone, status")
-          .or(`full_name.ilike.${pattern},phone.ilike.${pattern}`)
-          .limit(5),
-        supabase.from("tasks").select("id, title, status").ilike("title", pattern).limit(5),
+      void Promise.allSettled([
+        api.get<{ id: string; full_name: string; phone: string }[]>(`/clients.php?search=${q}`),
+        api.get<{ id: string; full_name: string; phone: string; track: string }[]>(`/candidates.php?search=${q}`),
+        api.get<{ id: string; full_name: string; phone: string; status: string }[]>(`/leads.php?search=${q}`),
+        // tasks.php has no ?search= param — filter the (already role-scoped)
+        // list client-side instead of adding a narrow endpoint mode for it.
+        api
+          .get<{ id: string; title: string; status: string }[]>("/tasks.php")
+          .then((tasks) => (tasks ?? []).filter((t) => t.title.toLowerCase().includes(term.toLowerCase()))),
       ]).then(([clients, candidates, leads, tasks]) => {
         const next: ResultGroup[] = [];
 
-        if (clients.data?.length) {
+        if (clients.status === "fulfilled" && clients.value?.length) {
           next.push({
             label: "Clients",
-            items: clients.data.map((c) => ({
+            items: clients.value.slice(0, 5).map((c) => ({
               id: c.id,
               title: c.full_name,
               subtitle: c.phone,
@@ -73,10 +66,10 @@ export function GlobalSearch({ basePath }: { basePath: string }) {
             })),
           });
         }
-        if (candidates.data?.length) {
+        if (candidates.status === "fulfilled" && candidates.value?.length) {
           next.push({
             label: "Onboarding",
-            items: candidates.data.map((c) => ({
+            items: candidates.value.slice(0, 5).map((c) => ({
               id: c.id,
               title: c.full_name,
               subtitle: `${c.track} · ${c.phone}`,
@@ -84,10 +77,10 @@ export function GlobalSearch({ basePath }: { basePath: string }) {
             })),
           });
         }
-        if (leads.data?.length) {
+        if (leads.status === "fulfilled" && leads.value?.length) {
           next.push({
             label: "Leads",
-            items: leads.data.map((l) => ({
+            items: leads.value.slice(0, 5).map((l) => ({
               id: l.id,
               title: l.full_name,
               subtitle: `${l.status} · ${l.phone}`,
@@ -95,10 +88,10 @@ export function GlobalSearch({ basePath }: { basePath: string }) {
             })),
           });
         }
-        if (tasks.data?.length) {
+        if (tasks.status === "fulfilled" && tasks.value?.length) {
           next.push({
             label: "Tasks",
-            items: tasks.data.map((t) => ({
+            items: tasks.value.slice(0, 5).map((t) => ({
               id: t.id,
               title: t.title,
               subtitle: t.status.replace("_", " "),
