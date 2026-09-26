@@ -9,6 +9,8 @@ import { ListSkeleton } from "../../components/ui/skeleton";
 import { EmptyState } from "../../components/ui/empty-state";
 import { PortalLayout, type NavItem } from "../../portals/PortalLayout";
 import { formatDate } from "../../lib/format";
+import { MiniSummary } from "../../components/charts/MiniSummary";
+import { C } from "../../components/charts/palette";
 import { CLAIM_STAGES, type Claim } from "../clients/types";
 
 export function ClaimsQueuePage({ navItems, basePath }: { navItems: NavItem[]; basePath: string }) {
@@ -46,10 +48,18 @@ export function ClaimsQueuePage({ navItems, basePath }: { navItems: NavItem[]; b
     void load();
   }
 
+  const stageParts = [
+    { label: "Notified", value: claims.filter((c) => c.stage === "notified").length, color: C.red },
+    { label: "Documentation", value: claims.filter((c) => c.stage === "documentation").length, color: C.navy },
+    { label: "Insurer liaison", value: claims.filter((c) => c.stage === "insurer_liaison").length, color: C.blue },
+    { label: "Settled", value: claims.filter((c) => c.stage === "settled").length, color: C.green },
+  ];
+
   const visible = filter === "active" ? claims.filter((c) => c.stage !== "settled") : claims;
 
   return (
     <PortalLayout title="Claim Desk" navItems={navItems}>
+      {!loading && claims.length > 0 && <MiniSummary title="Claims by stage" total={claims.length} parts={stageParts} className="mb-4" />}
       <div className="mb-4 flex gap-2">
         {(["active", "all"] as const).map((f) => (
           <button

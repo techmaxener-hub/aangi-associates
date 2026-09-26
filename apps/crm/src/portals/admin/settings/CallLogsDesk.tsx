@@ -29,6 +29,9 @@ interface CallRow {
   created_at: string;
 }
 
+import { MiniSummary } from "../../../components/charts/MiniSummary";
+import { C, tint } from "../../../components/charts/palette";
+
 const ADVISOR_PHONE = "919033132791";
 
 const INTENT_VARIANT: Record<string, BadgeVariant> = {
@@ -124,8 +127,27 @@ export function CallLogsDesk() {
     void load();
   }
 
+  const statusParts = [
+    { label: "Completed", value: calls.filter((c) => c.status === "completed").length, color: C.green },
+    { label: "Logged", value: calls.filter((c) => c.status === "logged").length, color: C.blue },
+    { label: "Missed", value: calls.filter((c) => c.status === "missed").length, color: C.red },
+    { label: "Voicemail", value: calls.filter((c) => c.status === "voicemail").length, color: tint(C.navy, 55) },
+  ];
+  const intentParts = [
+    { label: "High intent", value: calls.filter((c) => c.intent_score === "high").length, color: C.red },
+    { label: "Medium", value: calls.filter((c) => c.intent_score === "medium").length, color: C.blue },
+    { label: "Low", value: calls.filter((c) => c.intent_score === "low").length, color: tint(C.navy, 55) },
+    { label: "Not scored", value: calls.filter((c) => !c.intent_score).length, color: tint(C.navy, 25) },
+  ];
+
   return (
     <div className="space-y-4">
+      {!loading && calls.length > 0 && (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <MiniSummary title="Calls by outcome" total={calls.length} parts={statusParts} />
+          <MiniSummary title="Lead intent" total={calls.length} parts={intentParts} />
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="flex items-center gap-2 font-display text-base text-text">

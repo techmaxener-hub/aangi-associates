@@ -1,12 +1,11 @@
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, Moon, Sun, X, ChevronsLeft, ChevronsRight, LogOut, type LucideIcon } from "lucide-react";
+import { Menu, X, ChevronsLeft, ChevronsRight, LogOut, type LucideIcon } from "lucide-react";
 import { useAuth } from "../auth/useAuth";
 import { Button } from "../components/ui/button";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { GlobalSearch } from "./GlobalSearch";
-import { effectiveTheme, applyTheme } from "../lib/theme";
 
 const SIDEBAR_COLLAPSE_KEY = "aangi-sidebar-collapsed";
 
@@ -55,7 +54,6 @@ export function PortalLayout({
 }) {
   const { profile, signOut } = useAuth();
   const searchBasePath = profile ? SEARCHABLE_ROLES[profile.role] : undefined;
-  const [theme, setTheme] = useState(effectiveTheme);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => {
     try {
@@ -71,12 +69,6 @@ export function PortalLayout({
   useEffect(() => {
     setMobileNavOpen(false);
   }, [pathname]);
-
-  function toggleTheme() {
-    const next = theme === "dark" ? "light" : "dark";
-    applyTheme(next);
-    setTheme(next);
-  }
 
   // Icon-only compact mode — desktop only (the mobile drawer is a
   // temporary overlay, not persistent chrome, so it always shows full
@@ -244,14 +236,6 @@ export function PortalLayout({
                     <GlobalSearch basePath={searchBasePath} />
                   </div>
                 )}
-                <button
-                  type="button"
-                  onClick={toggleTheme}
-                  aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line-strong text-text-soft hover:bg-surface-2"
-                >
-                  {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                </button>
               </div>
             </div>
           </header>

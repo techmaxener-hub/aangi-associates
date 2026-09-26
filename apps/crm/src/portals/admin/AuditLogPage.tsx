@@ -6,6 +6,8 @@ import { Card } from "../../components/ui/card";
 import { ListSkeleton } from "../../components/ui/skeleton";
 import { EmptyState } from "../../components/ui/empty-state";
 import { PortalLayout } from "../PortalLayout";
+import { ChartCard, LegendDot, StackedBars, type BarDatum } from "../../components/charts/charts";
+import { C } from "../../components/charts/palette";
 import { formatDate } from "../../lib/format";
 import { adminNavItems } from "./nav";
 
@@ -84,12 +86,40 @@ export function AuditLogPage() {
   const visibleRows = tableFilter === "all" ? rows : rows.filter((r) => r.table_name === tableFilter);
   const tables = Array.from(new Set(rows.map((r) => r.table_name)));
 
+  // Changes per day for the last 14 days (local calendar days), split by action.
+  const activity: BarDatum[] = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (13 - i));
+    const key = d.toISOString().slice(0, 10);
+    const day = rows.filter((r) => r.changed_at.slice(0, 10) === key);
+    const count = (a: AuditAction) => day.filter((r) => r.action === a).length;
+    return {
+      label: d.toLocaleDateString("en-IN", { day: "numeric", month: "short" }),
+      parts: [
+        { key: "insert", label: "Created", value: count("insert"), color: C.green },
+        { key: "update", label: "Updated", value: count("update"), color: C.blue },
+        { key: "delete", label: "Deleted", value: count("delete"), color: C.red },
+      ],
+    };
+  });
+
   return (
     <PortalLayout title="Audit Log" navItems={adminNavItems}>
       <p className="mb-4 max-w-2xl text-sm text-text-soft">
         Every insert, update, and delete on team member profiles, client policies, pipeline opportunities, and claims —
         logged automatically by a database trigger, not by the app, so it can't be silently skipped.
       </p>
+
+      {!loading && rows.length > 0 && (
+        <ChartCard
+          className="mb-4"
+          title="Activity — last 14 days"
+          subtitle="Recorded changes per day"
+          legend={<><LegendDot color={C.green} label="Created" /><LegendDot color={C.blue} label="Updated" /><LegendDot color={C.red} label="Deleted" /></>}
+        >
+          <StackedBars data={activity} height={190} ariaLabel="Audit log changes per day over the last 14 days" />
+        </ChartCard>
+      )}
 
       {tables.length > 0 && (
         <div className="mb-4 flex flex-wrap gap-2">

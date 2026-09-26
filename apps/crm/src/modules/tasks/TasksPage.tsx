@@ -14,7 +14,9 @@ import { BoardSkeleton } from "../../components/ui/skeleton";
 import { EmptyState } from "../../components/ui/empty-state";
 import { PortalLayout, type NavItem } from "../../portals/PortalLayout";
 import { downloadCsv } from "../../lib/csv";
-import { formatDate } from "../../lib/format";
+import { formatDate, localDateISO } from "../../lib/format";
+import { MiniSummary } from "../../components/charts/MiniSummary";
+import { C, tint } from "../../components/charts/palette";
 import { TASK_STATUSES, type Task, type TaskAssignee, type TaskStatus } from "./types";
 
 interface LinkOption {
@@ -116,8 +118,25 @@ export function TasksPage({ navItems, basePath }: { navItems: NavItem[]; basePat
     void load();
   }
 
+  const todayISO = localDateISO(new Date());
+  const overdueCount = tasks.filter((t) => t.status !== "done" && t.due_date && t.due_date < todayISO).length;
+  const taskParts = [
+    { label: "To do", value: tasks.filter((t) => t.status === "todo").length, color: tint(C.navy, 55) },
+    { label: "In progress", value: tasks.filter((t) => t.status === "in_progress").length, color: C.blue },
+    { label: "Done", value: tasks.filter((t) => t.status === "done").length, color: C.green },
+  ];
+
   return (
     <PortalLayout title="Tasks" navItems={navItems}>
+      {!loading && tasks.length > 0 && (
+        <MiniSummary
+          title="Task status"
+          total={tasks.length}
+          parts={taskParts}
+          aside={overdueCount > 0 ? <span className="rounded-full px-2 py-0.5 text-xs font-semibold" style={{ color: C.red, backgroundColor: tint(C.red, 12) }}>{overdueCount} overdue</span> : undefined}
+          className="mb-4"
+        />
+      )}
       <div className="mb-4 flex flex-wrap gap-2">
         {canAssign && (
           <Button size="sm" onClick={() => setShowForm((v) => !v)}>

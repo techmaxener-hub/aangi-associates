@@ -14,6 +14,8 @@ import { PortalLayout, type NavItem } from "../../portals/PortalLayout";
 import { downloadCsv } from "../../lib/csv";
 import { formatDate } from "../../lib/format";
 import { LEAD_PIPELINE, LEAD_STATUS_LABEL, type Lead, type LeadAssignee, type LeadStatus } from "./types";
+import { MiniSummary } from "../../components/charts/MiniSummary";
+import { C, tint } from "../../components/charts/palette";
 
 const COLUMN_ACCENT: Record<LeadStatus, string> = {
   new: "bg-line-strong",
@@ -192,10 +194,27 @@ export function LeadsDeskPage({ navItems, basePath }: { navItems: NavItem[]; bas
     void load();
   }
 
+  const statusParts = [
+    { label: "New", value: byStatus.new.length, color: tint(C.navy, 55) },
+    { label: "Contacted", value: byStatus.contacted.length, color: tint(C.blue, 60) },
+    { label: "Qualified", value: byStatus.qualified.length, color: C.blue },
+    { label: "Converted", value: byStatus.converted.length, color: C.green },
+    { label: "Dropped", value: byStatus.dropped.length, color: C.red },
+  ];
+
   const visiblePipeline = showDropped ? [...LEAD_PIPELINE, "dropped" as LeadStatus] : LEAD_PIPELINE;
 
   return (
     <PortalLayout title="Leads Desk" navItems={navItems}>
+      {leads.length > 0 && (
+        <MiniSummary
+          title="Pipeline"
+          total={leads.length}
+          parts={statusParts}
+          aside={<span className="text-xs text-text-soft">{Math.round((byStatus.converted.length / leads.length) * 100)}% converted</span>}
+          className="mb-5"
+        />
+      )}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <p className="max-w-2xl text-sm text-text-soft">
           Cards move themselves — advance a lead by logging the action that actually happened (a call, a qualification,

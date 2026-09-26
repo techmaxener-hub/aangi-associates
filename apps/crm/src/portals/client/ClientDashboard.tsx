@@ -11,6 +11,9 @@ import { ListSkeleton } from "../../components/ui/skeleton";
 import { EmptyState } from "../../components/ui/empty-state";
 import { formatINR, formatDate, daysUntil } from "../../lib/format";
 import { POLICY_STATUS_VARIANT, type ClientDocument } from "../../modules/clients/types";
+import { ChartCard, CountUp, DonutChart } from "../../components/charts/charts";
+import { C, RAMP, tint } from "../../components/charts/palette";
+import { formatINRCompact } from "../../lib/format";
 
 const ADVISOR_WHATSAPP =
   "https://wa.me/919033132791?text=Hi%20Aangi%20Associates%2C%20I%27d%20like%20to%20talk%20to%20my%20advisor.";
@@ -23,6 +26,18 @@ export function ClientDashboard() {
     if (!client) return;
     void api.get<ClientDocument[]>(`/documents.php?client_id=${client.id}`).then((rows) => setDocs(rows ?? []));
   }, [client]);
+
+  // Portfolio summary: active policies only. Mutual Fund amounts are monthly SIPs,
+  // so they are left out of the annual-premium figure rather than added to it.
+  const active = policies.filter((p) => p.status === "active");
+  const totalCover = active.reduce((a, p) => a + (p.sum_assured ?? 0), 0);
+  const annualPremium = active.filter((p) => p.product_type !== "Mutual Fund").reduce((a, p) => a + (p.premium ?? 0), 0);
+  const upcoming = active
+    .filter((p) => p.renewal_date && (daysUntil(p.renewal_date) ?? -1) >= 0)
+    .sort((a, b) => ((a.renewal_date ?? "") < (b.renewal_date ?? "") ? -1 : 1))[0];
+  const byProduct = Object.entries(active.reduce<Record<string, number>>((m, p) => ({ ...m, [p.product_type]: (m[p.product_type] ?? 0) + 1 }), {})).sort((a, b) => b[1] - a[1]);
+  const productSlices = byProduct.map(([label, value], i) => ({ label, value, color: RAMP[Math.min(i, RAMP.length - 1)] }));
+  const nextDays = upcoming ? daysUntil(upcoming.renewal_date) : null;
 
   return (
     <PortalLayout title="My Policies" navItems={clientNavItems}>
@@ -41,6 +56,44 @@ export function ClientDashboard() {
       ) : policies.length === 0 ? (
         <EmptyState message="No policies on file yet." icon={ShieldCheck} />
       ) : (
+        <>
+          <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <ChartCard title="My cover at a glance" subtitle={`${active.length} active ${active.length === 1 ? "policy" : "policies"}`} className="lg:col-span-2">
+              <div className="grid grid-cols-1 items-center gap-6 sm:grid-cols-2">
+                <DonutChart
+                  slices={productSlices}
+                  size={150}
+                  thickness={5}
+                  centerValue={String(active.length)}
+                  centerLabel="active"
+                  layout="stack"
+                  ariaLabel={`Active policies by type: ${productSlices.map((x) => `${x.label} ${x.value}`).join(", ")}`}
+                />
+                <dl className="space-y-3">
+                  <div className="rounded-lg p-3" style={{ backgroundColor: tint(C.blue, 10) }}>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-text-soft">Total sum assured</dt>
+                    <dd className="font-mono text-2xl font-semibold tabular-nums text-text"><CountUp value={totalCover} format={formatINRCompact} /></dd>
+                  </div>
+                  <div className="rounded-lg p-3" style={{ backgroundColor: tint(C.navy, 6) }}>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-text-soft">Annual insurance premium</dt>
+                    <dd className="font-mono text-2xl font-semibold tabular-nums text-text"><CountUp value={annualPremium} format={formatINRCompact} /></dd>
+                  </div>
+                </dl>
+              </div>
+            </ChartCard>
+            <ChartCard title="Next renewal" subtitle="Your soonest premium due date">
+              {upcoming && nextDays !== null ? (
+                <div className="text-center">
+                  <p className="font-mono text-5xl font-semibold tabular-nums" style={{ color: nextDays <= 30 ? C.red : C.blue }}>{nextDays}</p>
+                  <p className="text-sm text-text-soft">{nextDays === 1 ? "day" : "days"} to go</p>
+                  <p className="mt-3 font-medium text-text">{upcoming.product_type}</p>
+                  <p className="text-xs text-text-soft">{formatDate(upcoming.renewal_date)}</p>
+                </div>
+              ) : (
+                <EmptyState message="No upcoming renewals." icon={ShieldCheck} />
+              )}
+            </ChartCard>
+          </div>
         <div className="space-y-3">
           {policies.map((p) => {
             const dueIn = daysUntil(p.renewal_date);
@@ -69,6 +122,7 @@ export function ClientDashboard() {
             );
           })}
         </div>
+        </>
       )}
 
       {client && docs.length > 0 && (

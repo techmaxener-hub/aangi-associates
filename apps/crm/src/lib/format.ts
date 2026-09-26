@@ -26,3 +26,15 @@ export function daysUntil(dateStr: string | null | undefined): number | null {
   const diff = new Date(dateStr).getTime() - Date.now();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
+
+// Indian-style compact money for chart labels/KPI tiles: ₹3.92 Cr, ₹39.2 L,
+// ₹8.4 K. Full-precision formatINR is still used wherever exact rupees matter.
+export function formatINRCompact(amount: number | null | undefined): string {
+  if (amount === null || amount === undefined || !isFinite(amount)) return "—";
+  const abs = Math.abs(amount);
+  const sign = amount < 0 ? "-" : "";
+  if (abs >= 1e7) return `${sign}₹${(abs / 1e7).toFixed(abs >= 1e8 ? 1 : 2)} Cr`;
+  if (abs >= 1e5) return `${sign}₹${(abs / 1e5).toFixed(abs >= 1e6 ? 1 : 2)} L`;
+  if (abs >= 1e3) return `${sign}₹${(abs / 1e3).toFixed(1)} K`;
+  return `${sign}₹${Math.round(abs)}`;
+}

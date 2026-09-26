@@ -14,6 +14,8 @@ import { ListSkeleton } from "../../components/ui/skeleton";
 import { EmptyState } from "../../components/ui/empty-state";
 import { formatDate } from "../../lib/format";
 import { stagesFor, stageLabel, type Candidate, type CandidateTrack } from "./types";
+import { MiniSummary } from "../../components/charts/MiniSummary";
+import { C, tint } from "../../components/charts/palette";
 
 export function CandidatesPage() {
   const { showToast } = useToast();
@@ -82,9 +84,18 @@ export function CandidatesPage() {
   }
 
   const visible = candidates.filter((c) => trackFilter === "all" || c.track === trackFilter);
+  // Three phases so associate (9 stages) and staff (5 stages) tracks share one chart.
+  const EARLY = ["application", "documentation", "offer"];
+  const ACTIVE = ["active_associate", "active_staff"];
+  const phaseParts = [
+    { label: "Applying", value: visible.filter((c) => EARLY.includes(c.stage)).length, color: tint(C.navy, 55) },
+    { label: "Training / onboarding", value: visible.filter((c) => !EARLY.includes(c.stage) && !ACTIVE.includes(c.stage)).length, color: C.blue },
+    { label: "Active", value: visible.filter((c) => ACTIVE.includes(c.stage)).length, color: C.green },
+  ];
 
   return (
     <PortalLayout title="Associate & Staff Onboarding" navItems={adminNavItems}>
+      {!loading && visible.length > 0 && <MiniSummary title="Onboarding pipeline" total={visible.length} parts={phaseParts} className="mb-4" />}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex gap-2">
           {(["all", "associate", "staff"] as const).map((f) => (
