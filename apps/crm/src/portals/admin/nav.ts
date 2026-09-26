@@ -11,6 +11,7 @@ import {
   Settings,
   BarChart3,
   HeartPulse,
+  Trophy,
   type LucideIcon,
 } from "lucide-react";
 
@@ -24,6 +25,7 @@ export const adminNavItems: { label: string; href: string; group?: string; icon:
   { label: "Business Planning", href: "/admin/business-planning", group: "Work", icon: Target },
   { label: "Pivot Explorer", href: "/admin/analytics", group: "Work", icon: BarChart3 },
   { label: "Retention", href: "/admin/retention", group: "Work", icon: HeartPulse },
+  { label: "Scorecards", href: "/admin/scorecard", group: "Work", icon: Trophy },
   { label: "Telephony & AI Calling", href: "/admin/telephony", group: "System", icon: PhoneCall },
   { label: "Audit Log", href: "/admin/audit-log", group: "System", icon: History },
   { label: "Settings", href: "/admin/settings", group: "System", icon: Settings },

@@ -508,7 +508,7 @@ export function AdminDashboard() {
             )}
           </ChartCard>
 
-          <ChartCard title="Top associates" subtitle="By annual insurance premium in force from their clients" href="/admin/team" hrefLabel="Onboarding">
+          <ChartCard title="Top associates" subtitle="By annual insurance premium in force from their clients" href="/admin/scorecard" hrefLabel="Scorecards">
             {topAssoc.length === 0 ? <EmptyState message="No associates yet." icon={Trophy} /> : <HBars items={topAssoc} />}
           </ChartCard>
         </div>

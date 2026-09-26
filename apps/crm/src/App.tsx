@@ -28,6 +28,7 @@ const PivotExplorerPage = lazy(() =>
   import("./modules/analytics/PivotExplorerPage").then((m) => ({ default: m.PivotExplorerPage })),
 );
 const RetentionPage = lazy(() => import("./modules/retention/RetentionPage").then((m) => ({ default: m.RetentionPage })));
+const ScorecardPage = lazy(() => import("./modules/scorecard/ScorecardPage").then((m) => ({ default: m.ScorecardPage })));
 const AuditLogPage = lazy(() => import("./portals/admin/AuditLogPage").then((m) => ({ default: m.AuditLogPage })));
 const BusinessPlanningPage = lazy(() =>
   import("./modules/business-planning/BusinessPlanningPage").then((m) => ({ default: m.BusinessPlanningPage })),
@@ -186,6 +187,14 @@ export default function App() {
                 element={
                   <RequireRole role="admin">
                     <RetentionPage />
+                  </RequireRole>
+                }
+              />
+              <Route
+                path="/admin/scorecard"
+                element={
+                  <RequireRole role="admin">
+                    <ScorecardPage />
                   </RequireRole>
                 }
               />
