@@ -1,6 +1,6 @@
-# Aangi Associates CRM — Detailed Build & Demo Guide
+# Aangi Associates Platform — Detailed Build Report & Demo Guide
 
-*Written 26 September 2026. Source document for a NotebookLM audio/video overview. It explains every feature of the CRM: what it is, why it is useful, and exactly how to try it with the demo data.*
+*Written 26 September 2026. Source document for a NotebookLM audio/video overview. It explains every feature of the public website and the internal CRM: what it is, why it is useful, and exactly how to try it with the demo data. Section 18 states plainly what is live and what is not yet connected.*
 
 ---
 
@@ -270,13 +270,38 @@ A progress bar on each candidate shows how far they have come, and each candidat
 
 ---
 
-## 17. The public website (brief)
+## 17. The public website
 
-Seven main pages: Home, Solutions, Claim Assistance, Calculators, Become an Associate, Testimonials and Contact, plus an FAQ. The **About** section sits directly under the homepage hero and includes the founder's profile, credentials and the awards gallery.
-- **Calculators** use the admin-set defaults from section 7.5 and always show "Illustrative estimate, not financial advice."
-- **WhatsApp click-to-chat** fills a message and opens WhatsApp to the practice's number, which is the primary way visitors become leads.
-- The compliance footer carries a visible placeholder for the IRDAI registration number until a real one is supplied.
-- Testimonials are clearly marked placeholders until real quotes exist.
+**What it is.** The public face of the practice at `aa.tmarinternational.com`. It works on phones, tablets and desktops (checked at 360px, 390px and full desktop width; no page scrolls sideways). The header has a bold black **LOGIN** button (gold pill, capital letters) that leads to the CRM sign-in.
+
+**Pages and what each is for**
+- **Home.** A hero with the founder and the promise "Insurance & Financial Advisory Solutions", then an About section (founder story, credentials), then the **Proven Excellence. Independently Validated.** recognition area, then office photos, videos and calls to action.
+- **Solutions (Expertise).** Investments planning, income protection, retirement, financial planning, keyman insurance, critical illness, child education and NRI insurance.
+- **Claim Assistance.** "Claims shouldn't be a second crisis." Explains the practice's claim-support promise.
+- **Calculators.** "Know your number before you decide." Over a dozen tools, including SIP, Lumpsum, Cost of Delay, SIP Top-Up, Limited-Period SIP, Birthday SIP, EMI, Home Loan vs SIP, Human Life Value (how much cover a family needs), Education, Retirement, Car and a Protection Gap Score. Every result carries the line "Illustrative estimate, not financial advice."
+- **Become an Associate.** The recruiting page for new advisors, under Jainik Shah's mentorship.
+- **Testimonials.** Clearly marked placeholders until real client quotes exist. Nothing is invented.
+- **Contact** and **FAQ & Glossary** ("Questions, answered plainly").
+
+**The recognition area (built and refined on 26 September 2026)**
+- **MDRT certificate row.** Four official MDRT Qualifying Member certificates for Vaishali Jainikkumar Shah, a business partner in the practice: **2021, 2022, 2024 and 2025**. Each sits in a gold frame with a year badge and the name of that year's MDRT president as printed on the certificate. The four scans were cropped to the paper and colour-matched so they look like one set. Clicking any certificate opens it large in a viewer with previous/next arrows.
+- **Trophy rail.** A scrolling row of 26 trophies and conclave awards (TATA AIA recognition, MDRT Premier Training Conclaves in Sydney, Hong Kong-Macau, Baku, Dubai and other cities, and more). "View all 30 honors" opens the full gallery: 26 trophies plus the 4 certificates.
+- **Precise wording.** The site says "MDRT-Qualified Practice — 2021, 2022, 2024 & 2025". There is no 2023 certificate and the site never claims one. It also never claims a higher MDRT tier that no certificate supports.
+
+**How visitors become leads**
+- **WhatsApp click-to-chat.** Buttons throughout the site open WhatsApp to the practice's number with a pre-filled message. This is the main way a visitor becomes a lead.
+- **"What do you need?" finder.** Two taps (pick a goal, then how urgent it is) build a pre-filled WhatsApp message.
+- **Phone bar.** On phones a fixed bar offers Call, WhatsApp and Book a Call.
+- **Language switcher.** English, Hindi and Gujarati for the main headline and button text.
+- **Installable.** The site can be added to a phone's home screen.
+
+**Honest status.** WhatsApp leads reach the team's phone, not the CRM. There is no automatic feed from the website into the Leads Desk yet, so staff add those leads manually. The calculators currently use built-in default numbers: the CRM's Calculator Defaults setting is saved but the public calculators are not yet wired to read it (section 7.5). The compliance footer carries a visible placeholder for the IRDAI registration number until a real one is supplied.
+
+**Try it.**
+1. Open the homepage, scroll to "Proven Excellence", and click the 2022 certificate. Use the arrows to move through all 30 honors, then press Esc.
+2. Open the site on a phone (or narrow the browser window) and open the menu. LOGIN is the gold button at the bottom.
+3. On the Calculators page, run the SIP calculator and note the disclaimer under the result.
+4. Use the "What do you need?" finder and watch it prepare a WhatsApp message. Do not send it unless you intend to.
 
 ---
 
@@ -322,10 +347,47 @@ It also removes any portal accounts or one-time codes created for demo clients, 
 
 ---
 
-## 21. Suggested prompts for NotebookLM
+## 21. Glossary (plain-language terms used in this document)
 
-**Audio Overview (customise):** "Explain this CRM to a non-technical insurance-practice owner. For each feature, say what problem it solves, then give the click path to try it. Flag clearly which features are live and which are not yet connected."
+| Term | Meaning |
+|---|---|
+| **CBA (Chief Business Associate)** | A senior business-leader role with TATA AIA Life Insurance. Jainik Shah holds it. |
+| **Associate** | A field advisor who sells and services policies under the practice. In the CRM, a login role that sees only their own leads and clients. |
+| **MDRT (Million Dollar Round Table)** | An international association of top-performing financial professionals. Membership is earned each year by meeting production and ethics standards, and each year has its own certificate. |
+| **Qualifying Member** | The MDRT membership level shown on the four certificates. |
+| **TATA AIA Insignia / conclave** | TATA AIA's recognition programmes and training events for top advisors. |
+| **IRDAI** | India's insurance regulator. The site shows a placeholder for the practice's registration number until the real one is supplied. |
+| **Lead** | A person who might become a client. |
+| **Qualified lead** | A lead confirmed as genuinely interested and eligible. |
+| **Converted** | A lead that became a client. In this CRM it means a client record now exists. |
+| **Client / household** | A policyholder, and the family group they belong to. |
+| **Policy** | An insurance contract. Fields: insurer, product type, policy number, sum assured, premium, start date, renewal date, status. |
+| **Sum assured** | The amount an insurer pays out if the insured event happens. |
+| **Premium** | The regular payment a client makes to keep a policy running. |
+| **Renewal date** | When the next premium is due. Missing it can lapse the policy. |
+| **Active / lapsed / matured** | Active: in force. Lapsed: stopped because premiums were not paid. Matured: reached the end of its term. |
+| **Life, Health, General, Mutual Funds** | The four business lines. Life covers death and long-term savings or pensions. Health covers medical costs. General covers things like motor and property. Mutual Funds are investment products. |
+| **SIP** | Systematic Investment Plan: a fixed amount invested in a mutual fund every month. |
+| **Term plan** | Pure life cover with no maturity payout, usually the cheapest way to protect a family. |
+| **Mediclaim** | Health insurance that pays hospital and treatment costs. |
+| **Keyman insurance** | Cover a business takes on a person whose loss would hurt the company. |
+| **Critical illness cover** | A lump sum paid on diagnosis of a named serious illness. |
+| **Cross-sell** | Offering an existing client a product they do not yet hold. The client page flags these gaps. |
+| **Opportunity / pipeline** | A specific sale in progress, moving through Inquiry, Quote, Application, Underwriting and Bind/Issue. |
+| **Underwriting** | The insurer's risk assessment before it accepts a policy. |
+| **Claim stages** | Notified, Documentation, Insurer Liaison, Settled. |
+| **Onboarding stages** | The steps a new associate or staff member passes through, from application to fully active. |
+| **Business plan** | A target set for an associate over a period, per product line, with commission rules. Achievement is measured from real policies. |
+| **OTP** | One-time password: the 6-digit code clients use to sign in. |
+| **Audit log** | The record of who changed important data, and when. |
+| **Flush** | Removing the demo data after testing. |
 
-**Video Overview (customise):** "Walk through the 20-minute demo in section 19 as a step-by-step product tour with one scene per role: Admin, Staff, Associate and Client. Show what each role sees and why that matters."
+---
 
-**Follow-up questions to ask the notebook:** "What is the difference between Leads Desk and Clients?", "How is associate achievement calculated?", "Which features need external accounts before they work?", "What happens to a lead when it is converted?"
+## 22. Using this document with NotebookLM
+
+This file describes the whole platform (website and CRM). A companion file, **NOTEBOOKLM_PROMPTS.md**, holds ready-to-paste prompts for the Audio Overview, the Video Overview and follow-up questions. Upload both files as sources.
+
+Two cautions:
+- **Never upload the demo passwords.** Demo logins are individually generated and kept only in a private local file. This document deliberately lists email addresses only.
+- **Treat section 18 as the source of truth on what works.** Several integrations (AI calling, SMS codes, WhatsApp reminders, automatic lead feeds, calculator defaults on the public site) are built or stored but not yet connected, and any overview should say so.
