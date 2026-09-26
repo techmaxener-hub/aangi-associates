@@ -11,7 +11,18 @@ body {
   line-height: 1.55;
 }
 
-h1, h2, h3 { font-family: var(--font-display); color: var(--text); line-height: 1.15; margin: 0 0 0.75rem; }
+h1, h2, h3, h4 { font-family: var(--font-display); color: var(--text); line-height: 1.15; margin: 0 0 0.75rem; letter-spacing: -0.02em; }
+/* Real bug, found via mobile audit: this was a flat var(--text-3xl)
+   (60px) with zero responsive scaling, so any page-header h1 with a
+   long-ish sentence (e.g. solutions.html's "One advisory relationship.
+   Every stage of your life.") could be wider than a phone screen and
+   force real horizontal page-scroll. clamp() keeps the exact same 60px
+   on desktop/tablet (its max is the unchanged token) and only scales
+   down below ~750px viewports. */
+h1 { font-size: clamp(1.8rem, 8vw, var(--text-3xl)); font-weight: 800; }
+h2 { font-size: var(--text-2xl); font-weight: 800; }
+h3 { font-size: var(--text-xl); font-weight: 700; }
+h4 { font-size: var(--text-lg); font-weight: 700; }
 p { margin: 0 0 1rem; color: var(--text-soft); }
 a { color: inherit; }
 
@@ -39,8 +50,22 @@ a { color: inherit; }
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, filter 0.15s ease;
 }
-.btn-primary { background: var(--crimson); color: var(--on-navy); }
+.btn-primary { background: var(--crimson); color: var(--on-navy); position: relative; overflow: hidden; }
 .btn-primary:hover { filter: brightness(1.08); }
+/* A single diagonal light sweep on hover — subtle, fast, off by default
+   (the pseudo-element sits fully off-canvas until :hover triggers it). */
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.35) 50%, transparent 60%);
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+.btn-primary:hover::after { transform: translateX(120%); transition: transform 0.6s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary::after { display: none; }
+}
 .btn-secondary { background: transparent; border-color: var(--gold); color: var(--gold-text); }
 .btn-secondary:hover { background: var(--gold); color: var(--navy); }
 
@@ -91,11 +116,16 @@ a.card:hover, a.card:focus-visible {
 }
 
 /* Grid / split layout helpers */
+/* minmax(0, 1fr), not plain 1fr — real bug found at 1024px (tablet
+   landscape): a grid item's intrinsic min-content width (card padding +
+   non-wrapping text) can exceed its 1fr share and force the whole grid
+   wider than its container, causing real horizontal page-scroll. 1fr
+   alone doesn't clamp to the container; minmax(0, 1fr) does. */
 .grid { display: grid; gap: 1.5rem; }
-.grid-2 { grid-template-columns: repeat(2, 1fr); }
-.grid-3 { grid-template-columns: repeat(3, 1fr); }
-.grid-4 { grid-template-columns: repeat(4, 1fr); }
-.grid-5 { grid-template-columns: repeat(5, 1fr); }
+.grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.grid-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .split { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center; }
 
 .photo {
@@ -123,20 +153,42 @@ a.card:hover, a.card:focus-visible {
   font-size: 0.85rem;
 }
 
-/* Site header / nav */
+/* Scroll progress — informational, not decorative, so it stays instant
+   (no transition) under prefers-reduced-motion rather than being removed
+   entirely (see assets/js/ui.js's wireScrollProgress). */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 60;
+  background: transparent;
+  pointer-events: none;
+}
+.scroll-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--gold);
+  transition: width 0.1s linear;
+}
+
+/* Site header / nav — a fixed brand blue (#003399), deliberately not the
+   --navy token: the user wants this exact scrolled-header blue regardless
+   of how --navy is tuned elsewhere on the page. */
 .site-header {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: var(--surface);
-  border-bottom: 1px solid var(--line);
+  background: #003399;
+  border-bottom: 1px solid color-mix(in srgb, var(--on-navy) 15%, transparent);
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 .site-header.is-scrolled {
-  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  background: color-mix(in srgb, #003399 94%, transparent);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 8px 24px -16px rgba(15, 42, 74, 0.35);
+  box-shadow: 0 8px 24px -16px rgba(0, 0, 0, 0.45);
 }
 .header-inner {
   display: flex;
@@ -150,9 +202,9 @@ a.card:hover, a.card:focus-visible {
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
-  color: var(--navy);
+  color: var(--on-navy);
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 1.25rem;
 }
 .brand-mark {
@@ -167,34 +219,145 @@ a.card:hover, a.card:focus-visible {
   font-family: var(--font-mono);
   font-size: 0.85rem;
 }
-.brand-mark-img { height: 2.25rem; width: auto; display: block; }
+.brand-mark-img { height: 4.8rem; width: auto; display: block; }
+/* A small, always-visible trust signal next to the logo — persistent
+   (sticky header, every page) rather than a one-time mention buried in
+   hero body copy. Hidden below the width where the nav is already tight
+   (documented header-crowding fixes elsewhere in this file). */
+.header-trust-badge {
+  display: none;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  /* The header background is dark navy on every page (not just the
+     homepage-over-hero state), so this needs the dark-background-tuned
+     gold tint (--gold-on-navy), not the light-background --gold used
+     elsewhere on the page body. */
+  border: 1px solid color-mix(in srgb, var(--gold-on-navy) 45%, transparent);
+  color: var(--gold-on-navy);
+  background: color-mix(in srgb, var(--gold-on-navy) 12%, transparent);
+}
+@media (min-width: 1180px) {
+  .header-trust-badge { display: inline-block; }
+}
 .main-nav ul { display: flex; gap: 1.5rem; list-style: none; margin: 0; padding: 0; }
-.main-nav a { text-decoration: none; color: var(--text); font-weight: 500; }
-.main-nav a[aria-current="page"] { color: var(--crimson); }
+/* The header itself (and everything in it) is explicitly exempt from the
+   site-wide 4-color palette lock (2026-09-12) — pinned to its own
+   pre-lock literal colors rather than the shared --on-navy/--gold-on-navy
+   tokens, which were repointed to the locked palette for every other
+   section. */
+.main-nav a { text-decoration: none; color: #f6f3ea; font-weight: 600; white-space: nowrap; }
+.main-nav a[aria-current="page"] { color: #d9b96a; }
 .has-dropdown { position: relative; }
+/* Dropdown panel — redesigned 2026-09-20. The old panel was white
+   (--surface) but its links inherited the header's cream nav text
+   (#f6f3ea), so items were near-invisible on every page except the hero's
+   dark top state. Now it's an explicit light card with dark-navy text
+   (~14:1 contrast), a gold top accent, a caret pointing at its trigger,
+   and hover states in the brand blue. Colors are pinned here (not the
+   shared tokens) for the same reason the header's are: the header is
+   exempt from the site palette lock. */
 .dropdown {
+  --dd-text: #16233f;
+  --dd-muted: #5b6272;
+  --dd-hover-bg: #eaf1ff;
+  --dd-hover-text: #003399;
+  --dd-accent: #d9b96a;
   /* display stays flex always so opacity/transform can transition —
      display:none/flex can't be animated, so visibility carries the
      "actually hidden" state (and removes it from tab order) instead. */
   display: flex;
   position: absolute;
   top: 100%;
-  left: 0;
+  left: -0.75rem;
   flex-direction: column;
-  gap: 0.25rem;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  padding: 0.5rem;
-  min-width: 240px;
+  gap: 2px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 51, 153, 0.14);
+  border-top: 3px solid var(--dd-accent);
+  border-radius: 14px;
+  padding: 0.6rem;
+  min-width: 260px;
   list-style: none;
-  margin: 0.25rem 0 0;
-  box-shadow: var(--shadow-raised);
+  margin: 0.6rem 0 0;
+  box-shadow: 0 24px 48px -12px rgba(2, 11, 22, 0.35), 0 8px 16px -8px rgba(2, 11, 22, 0.2);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-4px);
-  transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s;
+  transform: translateY(-6px);
+  transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
 }
+/* Invisible bridge across the gap between trigger and panel — without it
+   the pointer leaves .has-dropdown while crossing the margin and the menu
+   closes before it can be reached. */
+.dropdown::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -0.8rem;
+  height: 0.8rem;
+}
+/* Caret pointing up at the trigger. */
+.dropdown::after {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 1.6rem;
+  width: 13px;
+  height: 13px;
+  background: #ffffff;
+  border-top: 3px solid var(--dd-accent);
+  border-left: 1px solid rgba(0, 51, 153, 0.14);
+  transform: rotate(45deg);
+  border-top-left-radius: 3px;
+}
+/* `.main-nav ul { gap: 1.5rem }` (and the homepage's .9rem variant) also
+   match this nested <ul>, so the dropdown's own row gap has to out-rank
+   both or every item floats ~1.5rem apart. */
+.site-header .main-nav ul.dropdown { gap: 2px; }
+/* Long lists (Calculators, 16 items) run in two columns. */
+.dropdown.dropdown-cols-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 560px;
+}
+.site-header .main-nav ul.dropdown.dropdown-cols-2 { gap: 2px 8px; }
+.main-nav .dropdown a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem 0.6rem 0.75rem;
+  border-left: 3px solid transparent;
+  border-radius: 9px;
+  color: var(--dd-text);
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: normal;
+  transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+}
+.main-nav .dropdown a::after {
+  content: "\2192";
+  margin-left: auto;
+  opacity: 0;
+  transform: translateX(-4px);
+  color: var(--dd-hover-text);
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+.main-nav .dropdown a:hover,
+.main-nav .dropdown a:focus-visible {
+  background: var(--dd-hover-bg);
+  color: var(--dd-hover-text);
+  border-left-color: var(--dd-accent);
+  outline: none;
+}
+.main-nav .dropdown a:hover::after,
+.main-nav .dropdown a:focus-visible::after { opacity: 1; transform: translateX(0); }
+.main-nav .dropdown a:focus-visible { box-shadow: 0 0 0 2px #003399 inset; }
+.main-nav .dropdown a[aria-current="page"] { color: var(--dd-hover-text); font-weight: 700; }
 .has-dropdown:hover .dropdown,
 .has-dropdown:focus-within .dropdown {
   opacity: 1;
@@ -202,103 +365,324 @@ a.card:hover, a.card:focus-visible {
   transform: translateY(0);
 }
 @media (prefers-reduced-motion: reduce) {
-  .dropdown { transition: none; }
+  .dropdown, .main-nav .dropdown a, .main-nav .dropdown a::after { transition: none; }
 }
+/* The header's own background is always --navy now (see .site-header
+   above), so its "Become an Associate" CTA needs the on-navy gold variant
+   everywhere the header appears — not the light-background --gold-text
+   .btn-secondary uses by default elsewhere on the page. */
+.site-header .btn-secondary { border-color: #d9b96a; color: #d9b96a; }
+.site-header .btn-secondary:hover { background: #d9b96a; color: #0f2a4a; }
 .header-ctas { display: flex; align-items: center; gap: 1.25rem; }
-/* Utilities (language, theme) and actions (the two CTAs) are different
-   kinds of control at the same visual weight before this — group each
-   kind together and separate the groups with a real divider, not just
-   a shared gap value. */
-.header-utils {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding-right: 1.25rem;
-  border-right: 1px solid var(--line);
-}
 .header-actions { display: flex; align-items: center; gap: 0.75rem; }
-.theme-toggle {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 2.25rem; height: 2.25rem; border-radius: var(--radius-pill);
-  border: 1px solid var(--line-strong); background: var(--surface);
-  font-size: 1rem; line-height: 1; cursor: pointer; color: var(--text);
-}
-.theme-toggle:hover { background: var(--surface-2); }
-
-.lang-switcher {
-  display: flex; border: 1px solid var(--line-strong); border-radius: var(--radius-pill); overflow: hidden;
-}
-.lang-switcher button {
-  border: none; background: var(--surface); color: var(--text-soft); font-family: var(--font-mono);
-  font-size: 0.75rem; padding: 0.4rem 0.65rem; cursor: pointer;
-}
-.lang-switcher button + button { border-left: 1px solid var(--line-strong); }
-.lang-switcher button[aria-pressed="true"] { background: var(--navy); color: var(--on-navy); }
 .nav-toggle {
   display: none;
   background: none;
-  border: 1px solid var(--line-strong);
+  border: 1px solid color-mix(in srgb, var(--on-navy) 35%, transparent);
   border-radius: var(--radius-sm);
   padding: 0.4rem 0.6rem;
   font-size: 1.1rem;
   cursor: pointer;
-  color: var(--text);
+  color: var(--on-navy);
 }
 
+/* Desktop: the phone-only rows inside the nav list stay hidden. */
+.nav-cta-mobile,
+.dropdown-all { display: none; }
+
+/* Phone menu — rebuilt 2026-09-21. It used to be two separate absolute
+   panels (the nav list and the "Become an Associate" button) both pinned to
+   top:100%, so the button sat on top of Home/About/Expertise, and with both
+   dropdowns permanently expanded the list was ~1,100px tall on a fixed
+   header — Login landed at ~1,200px, off-screen and unreachable. Now: ONE
+   panel that scrolls within the viewport, Expertise/Calculators collapsed
+   into accordions (include.js toggles .is-open), and Login + Become an
+   Associate as full-width buttons at the bottom of the same list. */
 @media (max-width: 860px) {
   .main-nav { display: none; }
   .header-ctas { display: none; }
-  .nav-toggle { display: inline-flex; }
+  .nav-toggle { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+  .header-inner { position: relative; }
 
-  body.nav-open .main-nav,
-  body.nav-open .header-ctas {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
+  body.nav-open .main-nav {
+    display: block;
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
-    background: var(--surface);
+    /* header (110px) + the fixed Call/WhatsApp bar (~56px) stay clear */
+    max-height: calc(100vh - 170px);
+    max-height: calc(100dvh - 170px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    background: #ffffff;
+    border-top: 3px solid #d9b96a;
     border-bottom: 1px solid var(--line);
-    padding: 1rem 1.5rem;
-    gap: 1rem;
+    box-shadow: 0 24px 40px -16px rgba(2, 11, 22, 0.45);
+    padding: 0.25rem 1rem 1.1rem;
   }
-  body.nav-open .main-nav ul { flex-direction: column; gap: 0.75rem; }
-  body.nav-open .dropdown {
+  body.nav-open .main-nav > ul { flex-direction: column; gap: 0; }
+
+  body.nav-open .site-header .main-nav > ul > li > a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 52px;
+    padding: 0.7rem 0.5rem;
+    border-bottom: 1px solid #e3e8f2;
+    color: #16233f;
+    font-size: 1.02rem;
+    font-weight: 600;
+  }
+  body.nav-open .site-header .main-nav > ul > li > a[aria-current="page"] { color: #003399; }
+  body.nav-open .main-nav .caret { display: inline-block; transition: transform 0.2s ease; color: #003399; }
+  body.nav-open .main-nav .has-dropdown.is-open > a { color: #003399; }
+  body.nav-open .main-nav .has-dropdown.is-open > a .caret { transform: rotate(180deg); }
+
+  /* Accordion panels */
+  body.nav-open .main-nav .dropdown,
+  body.nav-open .main-nav .dropdown.dropdown-cols-2 {
     position: static;
+    display: none;
+    grid-template-columns: none;
+    flex-direction: column;
     opacity: 1;
     visibility: visible;
     transform: none;
+    min-width: 0;
+    margin: 0.35rem 0 0.6rem;
+    padding: 0.35rem;
+    background: #f3f6fc;
     border: none;
-    padding-left: 1rem;
+    border-left: 3px solid #d9b96a;
+    border-radius: 10px;
+    box-shadow: none;
   }
-  body.nav-open .header-ctas { align-items: stretch; }
-  body.nav-open .header-utils {
-    padding-right: 0;
-    padding-bottom: 0.75rem;
-    border-right: none;
-    border-bottom: 1px solid var(--line);
+  body.nav-open .main-nav .has-dropdown.is-open > .dropdown { display: flex; }
+  body.nav-open .site-header .main-nav ul.dropdown { gap: 1px; }
+  body.nav-open .dropdown::before,
+  body.nav-open .dropdown::after { display: none; }
+  body.nav-open .main-nav .dropdown a { min-height: 44px; padding: 0.55rem 0.75rem; font-size: 0.95rem; }
+  body.nav-open .main-nav .dropdown a::after { display: none; }
+  body.nav-open .main-nav .dropdown-all { display: block; }
+  body.nav-open .main-nav .dropdown-all a { color: #003399; font-weight: 700; }
+
+  /* Login + Become an Associate: full-width buttons at the bottom */
+  body.nav-open .main-nav .nav-login,
+  body.nav-open .main-nav .nav-cta-mobile { display: block; }
+  body.nav-open .site-header .main-nav li.nav-login > a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+    margin-top: 1rem;
+    border: none;
+    border-radius: 12px;
+    background: #003399;
+    color: #ffffff;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
   }
-  body.nav-open .header-actions { flex-direction: column; align-items: stretch; }
-  .header-inner { position: relative; }
+  body.nav-open .site-header .main-nav li.nav-cta-mobile > a.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+    margin-top: 0.6rem;
+    border: 2px solid #003399;
+    border-radius: 12px;
+    background: transparent;
+    color: #003399;
+    font-size: 1.02rem;
+    font-weight: 700;
+  }
 }
 
-/* Site footer */
-.site-footer { background: var(--navy); color: var(--on-navy); margin-top: var(--space-2xl); }
+/* Site footer — restructured 2026-09-14 to match a reference layout the
+   user supplied: a centered brand lockup above the columns, four even
+   columns (Explore / Contact / Follow Us / Location with a real map
+   embed), and a scroll-to-top affordance. Replaces the old 5-column
+   layout (brand-as-a-column + a separate "Talk to Us" CTA card) — the CTA
+   card is redundant now that the floating chat launcher exists site-wide. */
+.site-footer { position: relative; overflow: hidden; background: var(--navy); color: var(--on-navy); margin-top: var(--space-2xl); }
 .site-footer p, .site-footer address { color: inherit; }
-.footer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; padding-block: var(--space-xl); }
+/* A faint dotted texture low in the footer, behind everything — purely
+   decorative (the reference's wave-of-dots), never so strong it competes
+   with the actual columns of content sitting on top of it. */
+.footer-pattern {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 55%;
+  background-image: radial-gradient(color-mix(in srgb, var(--on-navy) 30%, transparent) 1px, transparent 1.5px);
+  background-size: 18px 18px;
+  -webkit-mask-image: linear-gradient(to top, black, transparent);
+  mask-image: linear-gradient(to top, black, transparent);
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 0;
+}
+.footer-brand-row, .footer-grid, .footer-compliance, .footer-bottom { position: relative; z-index: 1; }
+.footer-brand-row { text-align: center; padding-top: var(--space-xl); }
+.footer-brand-row .tagline { margin-top: 0.6rem; }
+/* Footer logo frame — the hero's rounded, glossy tabletop-frame look (see
+   .hero-identity-frame in main.css), reused here at ~50% of the hero's
+   own scale (560px -> 280px, 22px padding -> 11px, 28px radius -> 14px).
+   Static/inline here rather than absolutely positioned over a photo,
+   since there's no hero image behind it in the footer. Screws included
+   (scaled down below) to match the hero per explicit request. */
+.footer-brand-frame {
+  position: relative;
+  display: inline-block;
+  width: 280px;
+  max-width: 80%;
+  padding: 11px;
+  border-radius: 14px;
+  background:
+    linear-gradient(125deg, transparent 26%, rgba(255, 255, 255, 0.26) 42%, transparent 56%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, transparent 28%),
+    var(--wood-grain),
+    radial-gradient(130% 150% at 26% 18%, #e0a868 0%, #c98a4b 30%, #a86a35 58%, #7a4a22 84%, #5f3517 100%);
+  box-shadow: var(--shadow-raised), inset 0 2px 3px rgba(255, 255, 255, 0.45), inset 0 -5px 8px rgba(0, 0, 0, 0.4);
+}
+.footer-brand-frame::before,
+.footer-brand-frame::after {
+  content: "";
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  height: 5px;
+  background-image: var(--wood-carve-line);
+  background-repeat: repeat-x;
+  background-size: 30px 5px;
+  background-position: center;
+  opacity: 0.85;
+  pointer-events: none;
+}
+.footer-brand-frame::before { top: 3px; }
+.footer-brand-frame::after { bottom: 3px; }
+.footer-brand-frame .frame-screw { width: 7px; height: 7px; }
+.footer-brand-frame .frame-screw::after { width: 4px; height: 1px; }
+.footer-brand-frame .frame-screw.tl { top: 5px; left: 5px; }
+.footer-brand-frame .frame-screw.tr { top: 5px; right: 5px; }
+.footer-brand-frame .frame-screw.bl { bottom: 5px; left: 5px; }
+.footer-brand-frame .frame-screw.br { bottom: 5px; right: 5px; }
+.footer-brand-frame-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #faf7f0;
+  border-radius: 8px;
+  padding: 0.15rem 0.7rem;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.28);
+}
+.footer-brand-logo { display: block; width: 100%; max-width: 240px; height: auto; }
+/* Location column carries a real Google Maps embed, so give it more of
+   the row than the other three equal columns (explicit request: +30%
+   width on the map's own column, +70% on the embed's height). */
+.footer-grid { display: grid; grid-template-columns: repeat(3, 1fr) 1.3fr; gap: 2rem; padding-block: var(--space-xl); }
 .footer-col h4 { font-family: var(--font-display); margin-bottom: 0.75rem; color: inherit; }
 .footer-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
 .footer-col a { color: var(--on-navy); opacity: 0.85; text-decoration: none; }
 .footer-col a:hover { opacity: 1; }
+.footer-vcard-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--gold-on-navy) 45%, transparent);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.footer-vcard-link:hover { background: color-mix(in srgb, var(--gold-on-navy) 12%, transparent); }
+.footer-col address p { display: flex; align-items: flex-start; gap: 0.5rem; margin: 0 0 0.6rem; font-style: normal; }
+.footer-contact-icon { width: 18px; height: 18px; flex-shrink: 0; margin-top: 0.15em; opacity: 0.75; }
+.footer-social { display: flex; gap: 0.6rem; }
+.footer-social-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--on-navy) 10%, transparent);
+  opacity: 1;
+}
+.footer-social-icon svg { width: 22px; height: 22px; }
+.footer-social-icon:hover { background: var(--crimson); }
+.footer-map { position: relative; border-radius: var(--radius-md); overflow: hidden; }
+.footer-map iframe { display: block; width: 100%; height: 272px; border: 0; }
+.footer-map-link {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 1;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-sm);
+  background: var(--brand-white, #fff);
+  color: var(--brand-dark-navy, #020b16) !important;
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 1 !important;
+}
 .tagline { opacity: 0.75; font-size: 0.9rem; }
-.gstin { font-family: var(--font-mono); font-size: 0.8rem; opacity: 0.75; }
+.gstin { font-family: var(--font-mono); font-size: 0.8rem; opacity: 0.75; margin-top: 0.75rem; }
 .footer-compliance { border-top: 1px solid rgba(255, 255, 255, 0.15); padding-block: var(--space-md); font-size: 0.75rem; opacity: 0.7; }
-.footer-bottom { padding-block: var(--space-sm); font-size: 0.75rem; opacity: 0.6; }
+.footer-bottom {
+  padding-block: var(--space-sm);
+  text-align: center;
+  font-size: 0.7875rem; /* 0.75rem +5% */
+  color: var(--brand-white, #fff);
+  opacity: 1;
+}
+.footer-bottom p { margin: 0 0 0.35rem; }
+.footer-bottom p:last-child { margin-bottom: 0; }
+.footer-bottom a { color: inherit; opacity: 0.9; }
+.footer-bottom a:hover { opacity: 1; }
+
+/* Scroll-to-top — bottom-left (the chat launcher + its idle-nudge tooltip
+   already own the bottom-right corner). JS (wireScrollTop in include.js)
+   toggles [hidden] once the visitor has actually scrolled down, and fades
+   it in rather than popping. */
+.footer-scroll-top {
+  position: fixed;
+  left: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 45;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: none;
+  background: var(--crimson);
+  color: var(--on-navy);
+  cursor: pointer;
+  box-shadow: var(--shadow-raised);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease, background 0.2s ease;
+}
+.footer-scroll-top.is-visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.footer-scroll-top:hover { background: color-mix(in srgb, var(--crimson) 85%, black); }
+.footer-scroll-top svg { width: 20px; height: 20px; }
+@media (max-width: 860px) {
+  .footer-scroll-top { display: none; }
+}
 
 @media (max-width: 860px) {
   .footer-grid { grid-template-columns: repeat(2, 1fr); }
+}
+/* Real bug, found via mobile audit: at 2 columns, phone widths (~320-
+   414px) still force enough content into each track that the wider
+   column's own min-content pushes past the viewport, causing real
+   horizontal page-scroll (not just a cramped layout). Single column
+   below 640px removes the constraint entirely. */
+@media (max-width: 640px) {
+  .footer-grid { grid-template-columns: 1fr; }
 }
 
 /* Mobile sticky quick-action bar — replaces the header CTAs that hide
@@ -336,6 +720,129 @@ a.card:hover, a.card:focus-visible {
   .mobile-cta-bar { display: flex; }
   /* Keeps the bar from covering footer content/links on short pages. */
   .site-footer { margin-bottom: 48px; padding-bottom: env(safe-area-inset-bottom, 0); }
+}
+
+/* Site-wide floating chat launcher — bottom-right, every page (injected
+   via the shared footer partial). Desktop/tablet only: the mobile-cta-bar
+   above already gives phones a bottom quick-action bar, so this hides
+   there instead of stacking two competing bottom bars. */
+.floating-chat-btn {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 1.35rem 0.5rem 0.5rem;
+  border-radius: 999px;
+  background: var(--crimson);
+  color: var(--on-navy);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: var(--shadow-raised);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+.floating-chat-btn:hover { transform: translateY(-2px); filter: brightness(1.06); }
+.floating-chat-btn-avatar { position: relative; flex-shrink: 0; line-height: 0; }
+.floating-chat-btn-photo {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--on-navy);
+  display: block;
+}
+/* Online-now indicator — top-right of the avatar. A static dot (not
+   animated/blinking) since it's asserting a status, not drawing attention
+   the way the launcher's own pulse below already does. */
+.floating-chat-btn-online {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #2ecc71;
+  border: 2px solid var(--on-navy);
+}
+/* WhatsApp platform badge — bottom-right of the avatar, opposite corner
+   from the online dot so the two don't collide on a 42px circle. */
+.floating-chat-btn-wa-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--on-navy);
+}
+/* A brief attention pulse — a couple of soft rings expanding from the
+   button, once, a beat after load (not immediately, and not looping
+   forever like a notification badge would). Falls back to the button's
+   normal static shadow once the animation's iteration count is spent,
+   since animation-fill-mode is left at its default (none). */
+@keyframes floatingChatPulse {
+  0% { box-shadow: var(--shadow-raised), 0 0 0 0 color-mix(in srgb, var(--crimson) 55%, transparent); }
+  70% { box-shadow: var(--shadow-raised), 0 0 0 16px color-mix(in srgb, var(--crimson) 0%, transparent); }
+  100% { box-shadow: var(--shadow-raised), 0 0 0 0 color-mix(in srgb, var(--crimson) 0%, transparent); }
+}
+.floating-chat-btn { animation: floatingChatPulse 1.8s ease-out 2 1.2s; }
+@media (prefers-reduced-motion: reduce) {
+  .floating-chat-btn { animation: none; }
+}
+@media (max-width: 860px) {
+  .floating-chat-btn { display: none; }
+}
+
+/* Idle-nudge tooltip — a small speech bubble above the floating launcher,
+   shown once per session by wireFloatingChatNudge (ui.js). Fixed
+   positioning (not attached to the button's own box) since the button
+   itself is position:fixed too. */
+.floating-chat-tooltip {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 5.5rem;
+  z-index: 45;
+  max-width: 200px;
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--brand-white, #fff);
+  color: var(--brand-dark-navy, #020b16);
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-raised);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+.floating-chat-tooltip.is-visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.floating-chat-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 1.4rem;
+  border: 7px solid transparent;
+  border-top-color: var(--brand-white, #fff);
+}
+.floating-chat-tooltip-close {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: none;
+  background: var(--brand-dark-navy, #020b16);
+  color: #fff;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+@media (max-width: 860px) {
+  .floating-chat-tooltip { display: none; }
 }
 
 /* Tabs (filter tabs, calculator tool tabs) */
@@ -382,8 +889,22 @@ a.card:hover, a.card:focus-visible {
 [data-filter-item] { transition: opacity 0.15s ease; }
 [data-filter-item][hidden] { display: none; }
 
-/* Stepper (Claim Assistance 4-step system) */
-.stepper { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+/* Stepper (Claim Assistance 4-step system) — reads as one connected
+   process (a claims *timeline*, not four independent feature cards): a
+   horizontal line runs behind the step numbers with a chevron between
+   each pair, and a day-range badge under the number gives the concrete
+   timing transparency that matters most for insurance trust signals. */
+.stepper { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+.stepper::before {
+  content: "";
+  position: absolute;
+  top: calc(1.5rem + 0.75rem);
+  left: calc(12.5% + 1.5rem);
+  right: calc(12.5% + 1.5rem);
+  height: 2px;
+  background: var(--line-strong);
+  z-index: 0;
+}
 .step {
   position: relative;
   padding: 1.5rem;
@@ -392,10 +913,40 @@ a.card:hover, a.card:focus-visible {
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
 }
-.step-number { font-family: var(--font-mono); color: var(--gold); font-size: 1.5rem; display: block; margin-bottom: 0.5rem; }
+.step:not(:last-child)::after {
+  content: "\203A";
+  position: absolute;
+  top: 1.5rem;
+  right: -1.35rem;
+  z-index: 1;
+  width: 1.6rem;
+  height: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--brand-white, #fff);
+  font-size: 1rem;
+  font-weight: 700;
+}
+.step-number { font-family: var(--font-mono); color: var(--gold); font-size: 1.5rem; display: inline-block; margin-bottom: 0.5rem; }
+.step-day {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-soft);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  vertical-align: middle;
+}
 
 @media (max-width: 860px) {
   .stepper { grid-template-columns: 1fr; }
+  .stepper::before { display: none; }
+  .step:not(:last-child)::after { content: "\2304"; top: auto; right: 50%; bottom: -1.35rem; transform: translateX(50%); }
 }
 
 /* Timeline (Associate path timeline) */
@@ -443,6 +994,20 @@ a.card:hover, a.card:focus-visible {
   padding: 2rem;
   box-shadow: var(--shadow-card);
 }
+.result-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.5rem; }
+/* Plays once, the moment a result-panel goes from [hidden] to visible —
+   a designed reveal rather than an instant pop-in, since the calculation
+   itself is instant (client-side JS) and has no real loading delay to
+   mask. Reuses the same easing/duration as .reveal (scroll-triggered
+   elsewhere in this codebase) for one consistent motion language. */
+@keyframes result-panel-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.result-panel.is-entering { animation: result-panel-in 0.4s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .result-panel.is-entering { animation: none; }
+}
 
 /* Forms */
 .field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
@@ -455,6 +1020,18 @@ a.card:hover, a.card:focus-visible {
   color: var(--text);
   font-family: var(--font-body);
   font-size: 0.95rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+/* A soft gold glow alongside the accessible crimson focus-visible outline
+   already set globally below — this doesn't replace that outline (removing
+   it would be a real accessibility regression), just adds a warmer,
+   more premium fill-in moment on top of it. */
+.field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 25%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .field input, .field select, .field textarea { transition: none; }
 }
 
 /* Modal (lead capture / associate application) */
@@ -474,6 +1051,19 @@ a.card:hover, a.card:focus-visible {
 .form-status { font-size: 0.85rem; margin-top: 0.75rem; min-height: 1.2em; }
 .form-status.is-error { color: var(--crimson); }
 .form-status.is-success { color: var(--gold-text); }
+
+/* Pull-quote — a genuinely quotable line of existing page copy set apart
+   visually, not new invented content. */
+.pull-quote {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  line-height: 1.35;
+  color: var(--text);
+  border-left: 3px solid var(--gold);
+  padding: 0.25rem 0 0.25rem 1.5rem;
+  margin: var(--space-lg) 0;
+  font-style: italic;
+}
 
 /* Glass surfaces (hero panels, floating cards) */
 .glass-panel {
@@ -522,4 +1112,41 @@ textarea:focus-visible,
 [tabindex]:focus-visible {
   outline: 2px solid var(--crimson);
   outline-offset: 2px;
+}
+
+/* Login — 2026-09-26: pure black, bold, all-caps, per explicit request.
+   Black text is unreadable on this header's brand-blue (#003399) fill, and
+   on the transparent header sitting over the dark homepage hero, so Login
+   is a gold pill (the same #d9b96a as the header's other accents) and only
+   the type is black. `color` carries !important because several
+   page-scoped nav-link colour rules (home hero state, open mobile menu)
+   would otherwise win on specificity. */
+.site-header .main-nav li.nav-login > a,
+body.nav-open .site-header .main-nav li.nav-login > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 1.15rem;
+  border-radius: 999px;
+  background: #d9b96a;
+  color: #000000 !important;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+.site-header .main-nav li.nav-login > a:hover,
+.site-header .main-nav li.nav-login > a:focus-visible {
+  background: #ecd28b;
+  box-shadow: 0 0 0 3px rgba(217, 185, 106, 0.4);
+}
+@media (max-width: 860px) {
+  body.nav-open .site-header .main-nav li.nav-login > a {
+    display: flex;
+    min-height: 52px;
+    margin-top: 1rem;
+    padding: 0.7rem 1rem;
+    border-radius: 12px;
+    font-size: 1.05rem;
+  }
 }

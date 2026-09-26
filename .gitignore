@@ -5,3 +5,4 @@ dist/
 apps/crm-api/env.php
 .DS_Store
 Thumbs.db
+apps/crm-api/demo/DEMO_CREDENTIALS.csv

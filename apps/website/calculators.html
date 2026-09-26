@@ -17,11 +17,11 @@
 <meta name="twitter:description" content="15 calculators across protection planning, goal planning, SIP investing, and loans — turn a plan into a number you can act on.">
 <meta name="twitter:image" content="https://aa.tmarinternational.com/assets/img/founder-desk.jpg">
 <link rel="canonical" href="https://aa.tmarinternational.com/calculators.html">
-<link rel="stylesheet" href="assets/css/main.css">
+<link rel="stylesheet" href="assets/css/main.css?v=20260926a">
 <link rel="icon" type="image/png" href="assets/img/logo-mark.png">
 <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#0f2a4a">
+<meta name="theme-color" content="#020B16">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://vdiymedmnrqmosazaaro.supabase.co">
@@ -634,12 +634,15 @@
   <!-- Result Panel -->
   <section class="section" id="result">
     <div class="container">
-      <div class="result-panel" id="calc-result" hidden>
+      <div class="result-panel print-target" id="calc-result" hidden>
         <h3 data-result-headline>Result</h3>
         <p class="result-value" data-result-value>—</p>
         <div data-result-details></div>
         <p class="disclaimer">Illustrative estimate, not financial advice.</p>
-        <a class="btn btn-primary" data-result-whatsapp href="https://wa.me/919033132791" target="_blank" rel="noopener">Discuss this result on WhatsApp →</a>
+        <div class="result-actions">
+          <a class="btn btn-primary" data-result-whatsapp href="https://wa.me/919033132791" target="_blank" rel="noopener noreferrer">Discuss this result on WhatsApp →</a>
+          <button class="btn btn-secondary" type="button" id="result-print">Print Result</button>
+        </div>
       </div>
     </div>
   </section>
@@ -647,9 +650,9 @@
 </main>
 
 <div data-include="footer" data-include-base="packages/ui/partials"></div>
-<script src="packages/ui/include.js"></script>
-<script src="assets/js/ui.js"></script>
-<script src="assets/js/whatsapp-cta.js"></script>
-<script src="assets/js/calculators.js"></script>
+<script src="packages/ui/include.js?v=20260921a"></script>
+<script src="assets/js/ui.js?v=20260921a"></script>
+<script src="assets/js/whatsapp-cta.js?v=20260921a"></script>
+<script src="assets/js/calculators.js?v=20260921a"></script>
 </body>
 </html>

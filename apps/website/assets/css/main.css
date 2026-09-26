@@ -3,9 +3,29 @@
    root (see .github/workflows/ci.yml's deploy job), not a sibling above
    it — that keeps the path math self-contained and correct regardless
    of where the FTP account's root actually sits on the server. */
-@import url("../../packages/ui/tokens.css");
-@import url("../../packages/ui/fonts.css");
-@import url("../../packages/ui/components.css");
+@import url("../../packages/ui/tokens.css?v=20260921a");
+@import url("../../packages/ui/fonts.css?v=20260921a");
+@import url("../../packages/ui/components.css?v=20260926a");
+
+/* Shared wood-carving motif: a repeating engraved S-scroll line (two
+   overlapping curved strokes, a dark "shadow" pass under a light
+   "highlight" pass offset by 1px) that reads as a groove cut into the
+   wood rather than a printed pattern. Used on every wood element on the
+   site — the hero/footer frames, the section dividers, and the honors
+   photo frames — so they all read as the same carved, polished veneer
+   material instead of a flat gradient. Defined once here (rather than
+   duplicated per rule) so the motif can't drift between components. */
+:root {
+  --wood-carve-line: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='16' viewBox='0 0 48 16'%3E%3Cpath d='M0 8C6 2 18 2 24 8C30 14 42 14 48 8' fill='none' stroke='rgba(0,0,0,0.38)' stroke-width='1.6' stroke-linecap='round'/%3E%3Cpath d='M0 7C6 1 18 1 24 7C30 13 42 13 48 7' fill='none' stroke='rgba(255,255,255,0.42)' stroke-width='1.1' stroke-linecap='round'/%3E%3C/svg%3E");
+  /* Fine straight grain streaks (very low opacity), layered under the
+     carve line and gloss so the wood reads as real veneer grain rather
+     than a smooth plastic gradient. */
+  --wood-grain: repeating-linear-gradient(100deg, rgba(255, 255, 255, 0.05) 0px, rgba(255, 255, 255, 0.05) 1px, transparent 1px, transparent 3px, rgba(0, 0, 0, 0.05) 3px, rgba(0, 0, 0, 0.05) 4px, transparent 4px, transparent 7px);
+}
+
+/* "Home" is redundant in the nav while already on the home page — show it
+   on every other page, hide it only there. */
+body[data-page="home"] .nav-item-home { display: none; }
 
 /* Hero — a single unbroken dark field (not two visually separate panels):
    a bold oversized headline sits directly on a solid charcoal-navy
@@ -18,26 +38,119 @@
    Two-column CSS grid at the section level (not .container) so the photo
    can bleed to the actual viewport edge while the copy stays aligned to
    the site's normal container padding. */
+/* A true neutral dark gray, not navy — deliberately its own token, set
+   at the body level (not just on .hero-immersive) so the fixed header
+   sitting over the hero — a sibling, not a descendant — can share the
+   exact same tone. Keeps the site's brand --navy untouched everywhere
+   else (header-on-scroll, other components). */
+body[data-page="home"] {
+  --hero-bg: #121212;
+  --hero-on-bg: #f6f3ea;
+  /* The hero + its floating header are explicitly exempt from the
+     site-wide 4-color palette lock (2026-09-12). Site-wide tokens like
+     --on-navy/--gold-on-navy were repointed to the locked palette for
+     every other section, so the hero/header-over-hero rules below use
+     these hero-local tokens instead — pinned to their pre-lock values —
+     to stay visually unchanged rather than silently inheriting the new
+     locked colors. */
+  --hero-accent: #d9b96a;
+}
 .hero-immersive {
   position: relative;
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
-  min-height: calc(100svh - 4.5rem);
-  background: var(--navy);
+  min-height: 100svh;
+  background: var(--hero-bg);
 }
-.hero-immersive-copy-col { position: relative; display: flex; align-items: center; overflow: hidden; }
+
+/* Homepage-only: the header floats transparently over the dark hero
+   itself (matching the reference site's single unbroken dark canvas —
+   nav + headline on the same field, not a separate light bar above it)
+   until the page scrolls past the hero, at which point it reverts to the
+   normal light/blurred sticky header every other page already uses.
+   Scoped to body[data-page="home"] so claims/solutions/etc. — which have
+   a plain light hero — keep the standard header untouched. */
+body[data-page="home"] .site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+}
+body[data-page="home"] .site-header:not(.is-scrolled) {
+  background: transparent;
+  border-bottom-color: transparent;
+}
+body[data-page="home"] .site-header:not(.is-scrolled) .brand,
+body[data-page="home"] .site-header:not(.is-scrolled) .main-nav a,
+body[data-page="home"] .site-header:not(.is-scrolled) .nav-toggle {
+  color: var(--hero-on-bg);
+}
+body[data-page="home"] .site-header:not(.is-scrolled) .main-nav a[aria-current="page"] { color: var(--hero-accent); }
+body[data-page="home"] .site-header:not(.is-scrolled) .header-trust-badge {
+  color: var(--hero-accent);
+  border-color: color-mix(in srgb, var(--hero-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--hero-accent) 10%, transparent);
+}
+/* Fix 4: an outlined ghost button loses all contrast sitting over the
+   light part of the hero photo — give it a real translucent-dark fill so
+   it reads as a button in every position, not just against pure navy. */
+body[data-page="home"] .site-header:not(.is-scrolled) .header-ctas .btn-secondary {
+  color: var(--hero-on-bg);
+  background: color-mix(in srgb, var(--hero-bg) 75%, transparent);
+  border-color: color-mix(in srgb, var(--hero-on-bg) 55%, transparent);
+}
+body[data-page="home"] .site-header:not(.is-scrolled) .header-ctas .btn-secondary:hover { background: color-mix(in srgb, var(--hero-bg) 90%, transparent); }
+/* Fix 5: nav sat loose while utils+CTAs felt crowded together — pull the
+   utility cluster closer to the CTAs (they're one visual group) and let
+   the nav keep its own natural spacing, instead of one shared gap value
+   stretching unevenly across very different content widths. */
+body[data-page="home"] .header-inner { justify-content: space-between; gap: 1rem; }
+body[data-page="home"] .header-ctas { gap: 0.75rem; }
+/* Fixing the "Solutions ▾" wrap bug (nowrap on .main-nav a, above) made
+   the nav's real width visible for the first time — at ~1366px viewport
+   that pushed "Become an Associate" past the edge. Tighten the nav's own
+   gap to reclaim that space rather than let anything clip. */
+body[data-page="home"] .main-nav ul { gap: 0.9rem; }
+body[data-page="home"] .header-ctas .btn { padding-inline: 1rem; }
+/* The dropdown is the same light card in every header state (it used to
+   go dark-on-hero here, which is where the cream-on-white link bug hid
+   everywhere else). The higher-specificity color below just stops the
+   transparent-header nav-link rule above from recoloring its links. */
+body[data-page="home"] .site-header:not(.is-scrolled) .main-nav .dropdown a { color: var(--dd-text); }
+body[data-page="home"] .site-header:not(.is-scrolled) .main-nav .dropdown a:hover,
+body[data-page="home"] .site-header:not(.is-scrolled) .main-nav .dropdown a:focus-visible { color: var(--dd-hover-text); }
+/* The mobile flyout panel (body.nav-open .main-nav) is always a light
+   popover under the header, regardless of hero/scroll state — its own
+   text must stay dark even while the fixed header above it is reading
+   on-navy/transparent-over-hero. */
+@media (max-width: 860px) {
+  body[data-page="home"].nav-open .site-header .main-nav a { color: var(--text); }
+  body[data-page="home"].nav-open .site-header .main-nav a[aria-current="page"] { color: var(--crimson); }
+}
+/* The header is position:fixed on this page (floats over the hero, out of
+   normal flow) — without this, the hero copy starts at the same y:0 and
+   collides with the nav sitting on top of it. */
+body[data-page="home"] .hero-copy-card { padding-top: 6.5rem; }
+@media (max-width: 860px) {
+  body[data-page="home"] .hero-copy-card { padding-top: 5.5rem; }
+}
+.hero-immersive-copy-col { position: relative; z-index: 2; display: flex; align-items: center; overflow: visible; }
 .hero-immersive-backdrop {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 15% 15%, color-mix(in srgb, var(--gold) 14%, transparent), transparent 50%),
-    var(--navy);
+    radial-gradient(circle at 15% 15%, color-mix(in srgb, var(--hero-accent) 6%, transparent), transparent 50%),
+    var(--hero-bg);
   pointer-events: none;
 }
 .hero-copy-card {
   position: relative;
-  padding: var(--space-xl) var(--space-lg);
-  max-width: 36rem;
+  /* Vertical breathing room only — horizontal spacing comes entirely from
+     .container's own padding-inline, so the headline sits flush and
+     confident at the container edge rather than double-indented. */
+  padding-block: var(--space-xl);
+  max-width: 33rem;
   /* Overrides .glass-panel — text sits directly on the dark field, no
      card chrome, matching the reference's unboxed headline treatment. */
   background: none;
@@ -48,72 +161,164 @@
 }
 .hero-copy-card .badge {
   margin-bottom: var(--space-md);
-  background: color-mix(in srgb, var(--on-navy) 12%, transparent);
-  border-color: color-mix(in srgb, var(--on-navy) 25%, transparent);
-  color: var(--on-navy);
+  background: color-mix(in srgb, var(--hero-on-bg) 12%, transparent);
+  border-color: color-mix(in srgb, var(--hero-on-bg) 25%, transparent);
+  color: var(--hero-on-bg);
 }
 .hero-copy-card h1 {
-  color: var(--on-navy);
-  font-size: clamp(2.75rem, 6vw, 5rem);
+  color: var(--hero-on-bg);
+  font-size: clamp(2.599rem, 5.67vw, 4.725rem); /* -25% then +5% per explicit requests */
+  font-weight: 800;
   line-height: 0.98;
   letter-spacing: -0.01em;
   margin-bottom: var(--space-md);
 }
-.hero-subhead { font-weight: 600; color: var(--gold-on-navy); }
-.hero-copy-card .hero-body { color: color-mix(in srgb, var(--on-navy) 82%, transparent); }
+/* Manrope's own "&" reads heavy/geometric next to this headline's bold
+   weight — a smaller serif-italic ampersand is the standard typographic
+   fix, and reads as deliberate rather than a broken glyph. */
+.hero-copy-card h1 .amp {
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 0.75em;
+}
+.hero-subhead {
+  font-weight: 800;
+  /* Golden-shiny: kept inside a saturated gold-to-amber band (no near-
+     white or near-brown stops) so every word reads uniformly gold on the
+     dark hero, instead of some words looking pale/washed or dim where the
+     gradient's outer stops would otherwise land. */
+  background: linear-gradient(100deg, #f9d976 0%, #e8b923 25%, #fbe08a 50%, #d4a017 75%, #f9d976 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 1px 12px rgba(212, 175, 55, 0.35);
+}
+.hero-copy-card .hero-body { color: color-mix(in srgb, var(--hero-on-bg) 82%, transparent); }
 .hero-ctas { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: var(--space-lg); }
-.hero-copy-card .btn-secondary { color: var(--on-navy); border-color: color-mix(in srgb, var(--on-navy) 40%, transparent); }
-.hero-copy-card .btn-secondary:hover { background: color-mix(in srgb, var(--on-navy) 10%, transparent); }
+.hero-copy-card .btn-secondary { color: var(--hero-on-bg); border-color: color-mix(in srgb, var(--hero-on-bg) 40%, transparent); }
+.hero-copy-card .btn-secondary:hover { background: color-mix(in srgb, var(--hero-on-bg) 10%, transparent); }
 
-.hero-immersive-photo-col { position: relative; overflow: hidden; min-height: 60svh; background: var(--navy); }
+.hero-immersive-photo-col { position: relative; overflow: hidden; min-height: 60svh; background: var(--hero-bg); }
 .hero-immersive-photo {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 8%; display: block;
-  filter: grayscale(30%) saturate(1.05) contrast(1.08) brightness(0.94);
-  /* Dissolves the photo's left edge into the dark backdrop instead of a
-     hard rectangular cut — the "cutout floating on dark" look. */
-  mask-image: linear-gradient(to right, transparent 0%, black 16%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 16%);
+  filter: grayscale(55%) saturate(1.05) contrast(1.1) brightness(0.92);
+  /* No true cutout (the source photo's own wall isn't a flat/keyable
+     color — colorkey left holes and fringing when tried), so a radial
+     vignette does the same job honestly: the subject stays fully
+     visible while his real background dissolves toward every edge into
+     the page's own --hero-bg, reading as "floats on dark" without
+     cutout artifacts. Centered slightly right/high to match where he
+     actually stands in frame. */
+  mask-image: radial-gradient(ellipse 62% 68% at 58% 42%, black 60%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 62% 68% at 58% 42%, black 60%, transparent 100%);
 }
 .hero-photo-scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, color-mix(in srgb, var(--navy) 85%, transparent) 0%, transparent 40%);
+  background:
+    radial-gradient(ellipse 65% 70% at 58% 42%, transparent 45%, color-mix(in srgb, var(--hero-bg) 55%, transparent) 100%),
+    linear-gradient(to top, color-mix(in srgb, var(--hero-bg) 80%, transparent) 0%, transparent 42%);
   pointer-events: none;
 }
-.hero-identity-card {
+/* Hero identity — a real Aangi Associates logo, presented like a small
+   tabletop picture frame resting against the photo: thick, heavily
+   rounded wooden edges with a glossy amber gradient and a polished,
+   multi-band lacquer sheen (an S-curve-like sweep of highlights, not
+   just one flat corner glow) around a recessed white mat, with four
+   metal screw-heads pinning the corners (brought back per explicit
+   request — the tabletop-frame reference doesn't have them, but the
+   user wants them regardless). Shared gradient/shadow recipe with
+   .footer-brand-frame (scaled ~50%) and .hero-wood-divider, so all three
+   read as the same material. */
+.hero-identity-frame {
   position: absolute;
-  left: var(--space-md);
-  right: var(--space-md);
-  bottom: var(--space-md);
-  min-height: 20%;
+  left: var(--space-lg);
+  bottom: var(--space-lg);
+  width: min(560px, 90%); /* exactly 2x the original 280px frame width */
+  padding: 22px;
+  border-radius: 28px;
+  background:
+    linear-gradient(125deg, transparent 26%, rgba(255, 255, 255, 0.26) 42%, transparent 56%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, transparent 28%),
+    var(--wood-grain),
+    radial-gradient(130% 150% at 26% 18%, #e0a868 0%, #c98a4b 30%, #a86a35 58%, #7a4a22 84%, #5f3517 100%);
+  box-shadow: var(--shadow-raised), inset 0 3px 4px rgba(255, 255, 255, 0.45), inset 0 -8px 14px rgba(0, 0, 0, 0.4);
+}
+/* The carved S-scroll groove, run along the frame's top and bottom wood
+   bands — the two places wide enough on this landscape frame to read as
+   a molding line rather than clutter. */
+.hero-identity-frame::before,
+.hero-identity-frame::after {
+  content: "";
+  position: absolute;
+  left: 30px;
+  right: 30px;
+  height: 8px;
+  background-image: var(--wood-carve-line);
+  background-repeat: repeat-x;
+  background-size: 48px 8px;
+  background-position: center;
+  opacity: 0.85;
+  pointer-events: none;
+}
+.hero-identity-frame::before { top: 7px; }
+.hero-identity-frame::after { bottom: 7px; }
+.hero-identity-frame-inner {
+  background: #faf7f0;
+  border-radius: 16px;
+  padding: 0.25rem 1.25rem;
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: 0.2rem;
-  padding: var(--space-md) var(--space-lg);
-  background: color-mix(in srgb, var(--navy) 38%, transparent);
-  border-color: color-mix(in srgb, var(--gold) 45%, transparent);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.28);
 }
-.hero-identity-firm {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--gold-on-navy);
+.hero-identity-logo { display: block; width: 100%; max-width: 480px; height: auto; }
+.frame-screw {
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f2f2f2, #aeaeae 45%, #6b6b6b 75%, #333 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.65), inset 0 0 2px rgba(255, 255, 255, 0.5);
+  z-index: 1;
 }
-.hero-identity-name {
-  font-family: var(--font-display);
-  font-size: clamp(1.5rem, 2.2vw, 2rem);
-  font-weight: 600;
-  color: var(--on-navy);
-  line-height: 1.1;
+.frame-screw::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 1.5px;
+  background: rgba(0, 0, 0, 0.6);
+  transform: translate(-50%, -50%) rotate(35deg);
 }
-.hero-identity-role { font-size: 0.85rem; color: var(--on-navy); opacity: 0.9; }
+.frame-screw.tl { top: 9px; left: 9px; }
+.frame-screw.tr { top: 9px; right: 9px; }
+.frame-screw.bl { bottom: 9px; left: 9px; }
+.frame-screw.br { bottom: 9px; right: 9px; }
+@media (max-width: 480px) {
+  .hero-identity-frame { left: var(--space-sm); bottom: var(--space-sm); width: min(440px, 92%); padding: 16px; border-radius: 22px; }
+  .hero-identity-frame-inner { padding: 0.8rem 0.9rem; border-radius: 12px; }
+  .hero-identity-logo { max-width: 380px; }
+}
 
 @media (max-width: 860px) {
   .hero-immersive { grid-template-columns: 1fr; min-height: auto; }
   .hero-immersive-photo-col { order: -1; min-height: 68svh; }
   .hero-copy-card { max-width: none; margin-block: var(--space-lg); }
+  /* Real bug, found via mobile audit: .hero-immersive-copy-col is
+     overflow:visible on desktop so the headline can intentionally spill
+     onto the photo column (the "Insurance & Financial" overlap). That
+     column no longer exists once the grid stacks to one column here, and
+     the headline's own unbreakable "Insurance & Financial" chunk (joined
+     by &nbsp; on purpose, per a separate explicit request) is wider than
+     narrow phone screens — with overflow left visible, that excess was
+     bleeding past the section and forcing horizontal scroll on the
+     entire page. Re-clip here, where the overlap effect isn't active
+     anyway, without changing the headline text or its no-wrap behavior. */
+  .hero-immersive-copy-col { overflow: hidden; }
   /* The left-edge fade only reads as "dissolving in" next to the copy
      column it's blending with — full width on mobile, so blend from the
      top instead. */
@@ -123,59 +328,942 @@
   }
 }
 
-/* On a small phone the identity card's own padding plus a 3-4 line wrap
-   of the role text (long even before wrapping: "Chief Business Associate
-   Leader · TATA AIA Life Insurance") can grow tall enough, anchored to
-   the photo's bottom edge, to cover most of Jainik's face — tighten both
-   the copy card and identity card at the point that actually starts
-   happening rather than only at the 860px stack breakpoint. */
+/* On a small phone the copy card's own padding can crowd the viewport —
+   tighten it at the point that actually starts happening rather than only
+   at the 860px stack breakpoint. */
 @media (max-width: 480px) {
   .hero-copy-card { padding: var(--space-lg) var(--space-md); }
-  .hero-identity-card { padding: var(--space-sm) var(--space-md); left: var(--space-sm); right: var(--space-sm); bottom: var(--space-sm); }
-  .hero-identity-role { font-size: 0.78rem; }
 }
 
-/* Recognition & Achievements (about.html) */
-.recognition-card { padding: 0; overflow: hidden; }
-.recognition-card .photo { min-height: 220px; aspect-ratio: 4 / 5; border-radius: var(--radius-md) var(--radius-md) 0 0; border: none; border-bottom: 1px solid var(--line); }
-.recognition-card figcaption { display: flex; flex-direction: column; gap: 0.2rem; padding: 1rem 1.25rem 1.25rem; }
-.recognition-card strong { font-family: var(--font-display); font-size: 1rem; line-height: 1.3; }
-.recognition-card span { font-size: 0.85rem; color: var(--text-soft); }
+/* Real bug, found via mobile audit: "Insurance"+"&"+"Financial" is joined
+   with &nbsp; in the markup (an explicit prior request — keep it on one
+   line, never rewrap there) so it's a single unbreakable chunk. At the
+   desktop clamp() floor (2.599rem) that chunk needs ~417px, which only
+   fits once the viewport is >~513px wide — below that it can't wrap
+   (nbsp) and was forcing real horizontal page-scroll. Scoped strictly to
+   narrow phones: shrink just the headline here so that same unbreakable
+   phrase fits the available width instead, rather than clipping or
+   truncating it. Desktop/tablet sizing (and the nbsp itself) is
+   untouched. */
+@media (max-width: 600px) {
+  .hero-copy-card h1 { font-size: clamp(1.3rem, 7.6vw, 2.3rem); }
+}
 
-.conclave-strip {
+/* A wood-grain beam separating the hero from the rest of the page — same
+   material language as the identity frame above it, so the hero reads as
+   one designed moment rather than an unrelated dark section stopping
+   abruptly against the light body below. */
+.hero-wood-divider {
+  position: relative;
+  height: 14px;
+  background:
+    var(--wood-grain),
+    linear-gradient(180deg, #e0a868 0%, #c98a4b 25%, #a86a35 55%, #7a4a22 80%, #5f3517 100%);
+  box-shadow: inset 0 2px 3px rgba(255, 255, 255, 0.4), inset 0 -3px 6px rgba(0, 0, 0, 0.35), 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+.hero-wood-divider::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--wood-carve-line);
+  background-repeat: repeat-x;
+  background-size: 48px 14px;
+  background-position: center;
+  opacity: 0.8;
+}
+
+
+.about-preview-features { display: flex; align-items: center; gap: var(--space-lg); margin-block: var(--space-lg); }
+.about-preview-feature { display: flex; align-items: center; gap: 0.65rem; font-weight: 600; }
+.about-preview-feature-icon {
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0.4rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--crimson) 12%, transparent);
+  color: var(--crimson);
+}
+.about-preview-feature-divider { width: 1px; align-self: stretch; background: var(--line-strong); }
+@media (max-width: 480px) {
+  .about-preview-features { flex-direction: column; align-items: flex-start; gap: var(--space-md); }
+  .about-preview-feature-divider { display: none; }
+}
+
+/* ---- Merged About (index.html) -----------------------------------------
+   The former about.html now lives here immediately below the hero. The
+   intro/bio, credentials, and the 27-award "Recognised where it's earned"
+   rail are merged into ONE continuous dark band (.about-band-merged) with
+   no seam between them — three stacked .container blocks sharing a single
+   background, separated by margin rather than a color change. Office
+   photography stays a separate light band right after. Bands are
+   full-width by design; only their inner .container is constrained. */
+.about-band {
+  padding-block: var(--space-2xl);
+  /* The header is sticky/fixed, so an #about jump would otherwise land
+     with the band's first line hidden underneath it. */
+  scroll-margin-top: 7rem;
+}
+@media (min-width: 1200px) { .about-band { padding-block: var(--space-3xl); } }
+.about-band-light { background: var(--surface-2); }
+/* Switched from the dark navy band to a paper-white background per
+   explicit request — .about-band-dark keeps its name (renaming it would
+   touch every selector below and in index.html for no functional gain)
+   but every color it sets is now the light-background pairing: dark text
+   for body copy, and --gold (tuned for light backgrounds) instead of
+   --gold-on-navy for accents. The old top vignette (a dark fade easing
+   the hero's black footer into what used to be a dark top here) is
+   dropped — it would just read as a smudge over white. */
+.about-band-dark {
+  /* Light grey per explicit request 2026-09-20 (was near-white). */
+  background: #E7E7E7;
+  color: var(--text);
+}
+.about-band-dark h2,
+.about-band-dark h3,
+.about-band-dark p { color: var(--text); }
+.about-band-dark .section-header p { opacity: 0.82; }
+
+/* Intro: portrait beside the story. Redesigned 2026-09-14 from the
+   editorial mask-fade/overlap bleed (2026-09-12/13) to a plain full-bleed
+   hard-edge photo — the fade trick and the negative-margin text overlap
+   both got retuned repeatedly every time the photo's crop changed and
+   still didn't read well, so this drops both: the photo simply fills its
+   column edge-to-edge via object-fit, the copy column sits beside it with
+   a normal gap, no dissolve, no overlap. Far fewer moving parts, and a
+   re-crop later only ever means changing object-position, never the grid. */
+.about-intro { display: grid; grid-template-columns: 380px 1fr; gap: var(--space-2xl); align-items: start; }
+/* overflow: hidden clips the glow below (145% of this column's own width,
+   so its soft edge can fade out past the visible figure) so it can never
+   bleed past the viewport on narrow screens — it was causing real
+   horizontal scroll on mobile before this. */
+.about-intro-photo { position: relative; overflow: hidden; }
+/* Idea #5 — subtle parallax: nudged by ui.js on scroll via this custom
+   property (untouched = 0px, so nothing moves before JS runs or if
+   prefers-reduced-motion is set — see wireAboutParallax). Scoped to
+   .is-visible and given its own opacity-only transition (overriding the
+   transform half of .reveal's transition) so the one-time reveal settle
+   still fades in smoothly, but the per-scroll-frame parallax updates that
+   follow are instant rather than chasing a 0.5s ease every frame. */
+.about-intro-photo.is-visible {
+  transform: translateY(var(--about-parallax-y, 0px));
+  transition: opacity 0.5s ease;
+}
+/* The radial "lift" glow that used to sit behind the standee (built when
+   this band was dark navy, to lift a dark suit off a dark background) is
+   removed — per explicit request, the area behind the photo should just
+   be the section's own flat background now that the band is paper-white,
+   not a distinct glow shape. */
+.about-intro-photo .photo {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  object-fit: contain;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  /* No drop-shadow here (used to have one) — against this section's own
+     flat paper-white background, a drop-shadow reads as a visible dark
+     silhouette/lining behind the cutout rather than a lifted-photo effect.
+     The section background should be one uninterrupted flat surface. */
+  filter: saturate(1.05) contrast(1.03);
+}
+/* A big, prominent WhatsApp CTA sitting directly under the portrait — the
+   href is the same wa.me click-to-chat pattern used elsewhere on the site
+   (CLAUDE.md's locked "Lead capture v1"); swap it for a chatbot widget
+   trigger later without touching the layout around it. */
+.about-intro-photo-col { display: flex; flex-direction: column; gap: var(--space-md); }
+.about-intro-chat-btn {
+  width: 100%;
+  justify-content: center;
+  padding: 1.05rem 1.5rem;
+  font-size: 1.05rem;
+}
+.about-intro-chat-btn-icon {
+  flex-shrink: 0;
+}
+/* Secondary CTA — visitors who land here often want a number before a
+   conversation (see CTA-strategy discussion): this pairs the WhatsApp
+   button with a direct route to the calculators, ranked visually below it
+   via .btn-secondary's outline treatment rather than a second solid fill. */
+.about-intro-calc-btn {
+  width: 100%;
+  justify-content: center;
+  padding: 0.9rem 1.5rem;
+  font-size: 1rem;
+}
+.about-intro-calc-btn-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.about-intro-copy { position: relative; }
+/* The standee (native ~0.52 aspect, "kept big" per explicit request) runs
+   taller than the copy column's own text, leaving open dark space below
+   the trust-feature row roughly level with his legs/feet — this caption
+   fills that space with real content instead of leaving it empty. Pushed
+   down with margin-top rather than positioned, so it still reads correctly
+   in source/flow order and never overlaps the paragraphs above it even if
+   the photo is ever shorter than expected. */
+.about-photo-caption {
+  margin-top: var(--space-2xl);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  color: var(--gold);
+  opacity: 1;
+}
+@media (max-width: 860px) {
+  .about-intro { grid-template-columns: 1fr; }
+  .about-intro-photo-col { width: 100%; max-width: 320px; margin-inline: auto; }
+  .about-photo-caption { margin-top: var(--space-lg); }
+}
+.about-eyebrow {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: var(--space-sm);
+}
+.about-display {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.4rem;
+}
+.about-display-sm {
+  font-size: clamp(1.9rem, 3.4vw, 2.8rem);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+.about-band-dark .about-role {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  color: var(--gold);
+  margin-bottom: var(--space-md);
+}
+.about-quote {
+  margin: 0 0 var(--space-md);
+  font-size: 1.15rem;
+  font-style: italic;
+  line-height: 1.5;
+}
+.about-quote::before { content: "\201C"; }
+.about-quote::after { content: "\201D"; }
+.about-band-dark .about-preview-feature-icon {
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+  color: var(--gold);
+}
+.about-band-dark .about-preview-feature-divider { background: var(--line-strong); }
+
+/* Merged-band spacing: the three stacked .container blocks (intro,
+   credentials, recognition) share one background, so vertical rhythm
+   comes from margin on the later blocks rather than separate section
+   padding. */
+.about-band-merged .about-merged-credentials { margin-top: var(--space-2xl); }
+.about-band-merged .about-merged-recognition { margin-top: var(--space-2xl); }
+.about-band-merged .about-merged-videos { margin-top: var(--space-2xl); }
+@media (min-width: 1200px) {
+  .about-band-merged .about-merged-credentials,
+  .about-band-merged .about-merged-recognition,
+  .about-band-merged .about-merged-videos { margin-top: var(--space-3xl); }
+}
+
+/* Credentials as four crimson-capped stat cards. On the light band these
+   were plain white cards; inside the merged dark band they need their own
+   on-navy surface instead of --surface white. */
+.about-credentials { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-md); }
+.about-credential {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: var(--space-lg);
+  /* Borderless — a soft filled tile rather than an outlined card, so the
+     four stats read as part of the band instead of boxes sitting on it.
+     The crimson/gold accent now lives only in the key text color. */
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+.about-credential-key {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--crimson);
+}
+.about-credential-label { font-size: 0.9rem; line-height: 1.35; color: var(--text-soft); }
+.about-band-dark .about-credential {
+  background: var(--surface-2);
+}
+/* .about-credential-key/-label and .btn-secondary need no overrides here
+   any more — their site-wide defaults (--crimson, --text-soft, --gold)
+   are already tuned for light backgrounds, which this band now is. */
+
+/* Recognition header — centered, wider than the default .section-header,
+   with a two-tone headline (second line picks up the gold accent used
+   throughout the merged dark band) and a small tap-hint line set off with
+   flanking rules rather than plain body text. */
+.recognition-header {
+  max-width: 760px;
+  margin-inline: auto;
+  margin-bottom: var(--space-xl);
+  text-align: center;
+}
+.recognition-header .about-display-sm { line-height: 1.15; margin-bottom: var(--space-md); }
+.recognition-header-accent {
+  background: linear-gradient(100deg, #f9d976 0%, #e8b923 25%, #fbe08a 50%, #d4a017 75%, #f9d976 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+.recognition-header p:not(.recognition-header-hint) { font-size: 1.05rem; line-height: 1.65; }
+.about-band-dark .section-header .recognition-header-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: var(--space-lg);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 1;
+}
+.recognition-header-hint::before,
+.recognition-header-hint::after {
+  content: "";
+  width: 32px;
+  height: 1px;
+  background: color-mix(in srgb, var(--gold) 55%, transparent);
+}
+@media (max-width: 480px) {
+  .recognition-header-hint { gap: 0.5rem; font-size: 0.7rem; }
+  .recognition-header-hint::before,
+  .recognition-header-hint::after { width: 16px; }
+}
+
+/* Awards as a horizontal rail (all 27 present for the lightbox, but
+   scrolled rather than stacked, so the homepage stays readable). */
+.trophy-rail {
   display: flex;
   gap: var(--space-sm);
   overflow-x: auto;
   scroll-snap-type: x proximity;
-  padding-bottom: var(--space-xs);
+  padding-bottom: var(--space-sm);
   -webkit-overflow-scrolling: touch;
 }
-.conclave-item {
-  flex: 0 0 auto;
-  width: 9.5rem;
-  scroll-snap-align: start;
-  text-align: center;
+.trophy-rail .trophy-item { flex: 0 0 auto; width: 10.5rem; scroll-snap-align: start; }
+.about-band-dark .trophy-item {
+  background: var(--surface-2);
 }
-.conclave-item img {
+.trophy-rail-actions { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-md); flex-wrap: wrap; }
+.trophy-rail-hint { font-family: var(--font-mono); font-size: 0.75rem; opacity: 0.65; }
+
+/* Jainik's 9:16 video messages, each in a carved-wood frame — same
+   gradient/grain/carve-line/screw recipe as .hero-identity-frame and the
+   honors cards, so every framed thing on the page reads as one material. */
+.video-frames {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 300px));
+  justify-content: center;
+  gap: var(--space-xl);
+}
+.video-frame {
+  position: relative;
+  margin: 0;
+  padding: 20px;
+  border-radius: 24px;
+  background:
+    linear-gradient(125deg, transparent 26%, rgba(255, 255, 255, 0.26) 42%, transparent 56%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, transparent 28%),
+    var(--wood-grain),
+    radial-gradient(130% 150% at 26% 18%, #e0a868 0%, #c98a4b 30%, #a86a35 58%, #7a4a22 84%, #5f3517 100%);
+  box-shadow: var(--shadow-raised), inset 0 3px 4px rgba(255, 255, 255, 0.45), inset 0 -8px 14px rgba(0, 0, 0, 0.4);
+}
+.video-frame::before,
+.video-frame::after {
+  content: "";
+  position: absolute;
+  left: 30px;
+  right: 30px;
+  height: 8px;
+  background-image: var(--wood-carve-line);
+  background-repeat: repeat-x;
+  background-size: 48px 8px;
+  background-position: center;
+  opacity: 0.85;
+  pointer-events: none;
+}
+.video-frame::before { top: 6px; }
+.video-frame::after { bottom: 6px; }
+.video-frame-inner {
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #0b0f16;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+.video-frame-inner video {
+  display: block;
   width: 100%;
-  aspect-ratio: 3 / 4;
+  height: 100%;
   object-fit: cover;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow-card);
-  display: block;
+  background: #0b0f16;
 }
-.conclave-item span {
+.video-frame .frame-screw.tl { top: 8px; left: 8px; }
+.video-frame .frame-screw.tr { top: 8px; right: 8px; }
+.video-frame .frame-screw.bl { bottom: 8px; left: 8px; }
+.video-frame .frame-screw.br { bottom: 8px; right: 8px; }
+@media (max-width: 900px) {
+  /* Swipeable row instead of three long stacked 9:16 frames. */
+  .video-frames {
+    display: flex;
+    justify-content: flex-start;
+    gap: var(--space-md);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 4px 4px var(--space-md);
+    -webkit-overflow-scrolling: touch;
+  }
+  .video-frame { flex: 0 0 min(72vw, 280px); scroll-snap-align: center; padding: 16px; border-radius: 20px; }
+  .video-frame::before,
+  .video-frame::after { left: 24px; right: 24px; }
+  .video-frame .frame-screw.tl,
+  .video-frame .frame-screw.tr { top: 6px; }
+  .video-frame .frame-screw.bl,
+  .video-frame .frame-screw.br { bottom: 6px; }
+  .video-frame .frame-screw.tl,
+  .video-frame .frame-screw.bl { left: 6px; }
+  .video-frame .frame-screw.tr,
+  .video-frame .frame-screw.br { right: 6px; }
+}
+
+/* Personal CTA band — Primary Blue, sitting immediately below the About
+   band, with Jainik's framed Business Leader photo beside the copy. */
+.jainik-cta-band {
+  position: relative;
+  background: var(--brand-blue);
+  padding-block: var(--space-2xl);
+  margin-top: var(--space-2xl);
+}
+.jainik-cta-pattern {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  background-image: repeating-linear-gradient(
+    115deg,
+    color-mix(in srgb, var(--brand-white) 10%, transparent) 0px,
+    color-mix(in srgb, var(--brand-white) 10%, transparent) 2px,
+    transparent 2px,
+    transparent 46px
+  );
+}
+.jainik-cta-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 375px 1fr;
+  gap: var(--space-xl);
+  align-items: center;
+}
+/* Replaced 2026-09-21 (explicit request): the Business Leader "H2 Achievers
+   Leader Summit" photo is now a transparent-background cutout (white
+   surround removed) blended straight into the blue band — no frame, no
+   white box — and 25% larger than the framed version (300px -> 375px).
+   The column bleeds to the band's top and bottom edges (negative block
+   margins cancel the band's own padding) so he stands on the band's
+   bottom edge; the band is exactly as tall as the image. */
+.jainik-cta-photo-col {
+  position: relative;
+  align-self: end;
+  margin-block: calc(var(--space-2xl) * -1);
+}
+.jainik-cta-photo {
+  width: 375px;
+  max-width: 100%;
+}
+.jainik-cta-photo img {
   display: block;
-  margin-top: 0.5rem;
+  width: 100%;
+  height: auto;
+  /* Soft contact shadow only (no offset spill onto the divider below). */
+  filter: drop-shadow(0 4px 16px rgba(2, 11, 22, 0.4));
+}
+.jainik-cta-eyebrow {
+  display: inline-block;
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: var(--text-soft);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--brand-white) 80%, transparent);
+  margin-bottom: var(--space-sm);
+}
+.jainik-cta-headline {
+  color: var(--brand-white);
+  font-size: clamp(1.6rem, 2.7vw, 2.3rem);
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: var(--space-md);
+  max-width: 34rem;
+}
+.jainik-cta-body {
+  color: color-mix(in srgb, var(--brand-white) 88%, transparent);
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 36rem;
+  margin-bottom: var(--space-lg);
+}
+.jainik-cta-btn {
+  background: var(--brand-white);
+  color: var(--brand-blue);
+}
+.jainik-cta-btn:hover { filter: brightness(0.96); }
+@media (max-width: 860px) {
+  .jainik-cta-band { padding-top: var(--space-2xl); }
+  .jainik-cta-inner { grid-template-columns: 1fr; text-align: center; }
+  /* Stacked: image first, flush with the band's top edge (the band's
+     top padding cancelled), text below with normal spacing. 25% larger
+     than the previous 240px. */
+  .jainik-cta-photo-col { order: -1; align-self: center; margin-block: calc(var(--space-2xl) * -1) 0; }
+  .jainik-cta-photo { width: min(300px, 78vw); margin-inline: auto; }
+  .jainik-cta-headline,
+  .jainik-cta-body { max-width: none; margin-inline: auto; }
 }
 
 @media (max-width: 860px) {
-  .recognition-card .photo { aspect-ratio: 4 / 3; }
+  .about-intro { grid-template-columns: 1fr; gap: var(--space-xl); }
+  .about-credentials { grid-template-columns: repeat(2, 1fr); }
 }
+@media (max-width: 480px) {
+  .about-credentials { grid-template-columns: 1fr; }
+}
+
+/* Honeypot spam field — visually hidden off-screen (not display:none,
+   which many bots specifically check for and skip) but still reachable by
+   a careless bot's generic "fill every field" pass; real users never see
+   or reach it (also removed from tab order). See assets/js/whatsapp-cta.js. */
+.field-honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Solution-category accent system — the 5 categories (Protection/Wealth/
+   Retirement/Business/General) get one consistent small color accent
+   applied everywhere they're referenced (solutions.html's filter cards,
+   index.html's preview cards/badges, the header's Solutions dropdown),
+   derived from the existing brand tokens via color-mix() rather than new
+   raw colors. */
+:root {
+  --cat-protection: var(--crimson);
+  --cat-wealth: var(--gold);
+  --cat-retirement: var(--navy);
+  --cat-business: color-mix(in srgb, var(--crimson) 55%, var(--navy) 45%);
+  --cat-general: color-mix(in srgb, var(--gold) 45%, var(--navy) 55%);
+}
+[data-category="protection"] { border-left: 3px solid var(--cat-protection); }
+[data-category="wealth"] { border-left: 3px solid var(--cat-wealth); }
+[data-category="retirement"] { border-left: 3px solid var(--cat-retirement); }
+[data-category="business"] { border-left: 3px solid var(--cat-business); }
+[data-category="general"] { border-left: 3px solid var(--cat-general); }
+
+.badge[data-category="protection"] { border-color: var(--cat-protection); color: var(--cat-protection); }
+.badge[data-category="wealth"] { border-color: var(--cat-wealth); color: var(--gold-text); }
+.badge[data-category="retirement"] { border-color: var(--cat-retirement); color: var(--cat-retirement); }
+.badge[data-category="business"] { border-color: var(--cat-business); color: var(--cat-business); }
+.badge[data-category="general"] { border-color: var(--cat-general); color: var(--cat-general); }
+
+/* Dropdown links: the generic [data-category] rule above paints a colored
+   left border on any element carrying the attribute, so reset it to
+   transparent here (same 3px width as every other dropdown link, so text
+   stays aligned) and only reveal the category color on hover/focus. The
+   .main-nav prefix keeps these ahead of the dropdown's own gold hover. */
+.main-nav .dropdown a[data-category] { border-left: 3px solid transparent; }
+.main-nav .dropdown a[data-category="protection"]:hover,
+.main-nav .dropdown a[data-category="protection"]:focus-visible { border-left-color: var(--cat-protection); }
+.main-nav .dropdown a[data-category="wealth"]:hover,
+.main-nav .dropdown a[data-category="wealth"]:focus-visible { border-left-color: var(--cat-wealth); }
+.main-nav .dropdown a[data-category="retirement"]:hover,
+.main-nav .dropdown a[data-category="retirement"]:focus-visible { border-left-color: var(--cat-retirement); }
+.main-nav .dropdown a[data-category="business"]:hover,
+.main-nav .dropdown a[data-category="business"]:focus-visible { border-left-color: var(--cat-business); }
+.main-nav .dropdown a[data-category="general"]:hover,
+.main-nav .dropdown a[data-category="general"]:focus-visible { border-left-color: var(--cat-general); }
+
+/* Desktop breathing room — on wide viewports the site's --space-2xl
+   section rhythm (4rem/64px top+bottom) reads a little tight next to the
+   hero's much larger scale; widen it on real desktop widths only (never
+   on mobile/tablet, where --space-2xl is already the right amount of
+   scroll-per-content). */
+@media (min-width: 1200px) {
+  .section { padding-block: var(--space-3xl); }
+  .section-header { margin-bottom: var(--space-xl); }
+}
+
+/* Recognition & Achievements — a single clickable lightbox gallery of
+   every real trophy/certificate photo on file, rather than a small
+   curated grid plus a separate horizontal conclave strip. Lives in the
+   merged About section on index.html (see .trophy-rail below for the
+   horizontal variant actually used there). */
+.trophy-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: var(--space-sm);
+}
+.trophy-item {
+  padding: 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.trophy-item:hover, .trophy-item:focus-visible { transform: translateY(-3px); box-shadow: var(--shadow-raised); }
+.trophy-item img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  /* A light, consistent nudge — not the hero's heavy duotone — so real
+     trophy/award photography reads as one art direction instead of raw
+     unedited phone-camera JPGs sitting next to each other. Kept subtle
+     since these need to stay legible as documentary evidence, not styled
+     into abstraction. */
+  filter: saturate(1.05) contrast(1.04);
+}
+
+.trophy-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 12, 18, 0.92);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s;
+  padding: var(--space-lg);
+}
+.trophy-lightbox.is-open { opacity: 1; visibility: visible; }
+body.lightbox-open { overflow: hidden; }
+.trophy-lightbox-figure { max-width: min(92vw, 1100px); text-align: center; }
+.trophy-lightbox-figure img {
+  display: block;
+  max-width: 100%;
+  max-height: 72vh;
+  width: auto;
+  margin: 0 auto;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-modal);
+}
+.trophy-lightbox-figure figcaption { margin-top: var(--space-md); color: var(--on-navy); }
+.trophy-lightbox-figure strong { display: block; font-family: var(--font-display); font-size: 1.1rem; }
+.trophy-lightbox-figure span { display: block; margin-top: 0.2rem; opacity: 0.75; font-size: 0.9rem; }
+.trophy-lightbox-close,
+.trophy-lightbox-nav {
+  position: absolute;
+  background: color-mix(in srgb, var(--on-navy) 12%, transparent);
+  color: var(--on-navy);
+  border: none;
+  border-radius: 50%;
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.trophy-lightbox-close:hover,
+.trophy-lightbox-nav:hover { background: color-mix(in srgb, var(--on-navy) 22%, transparent); }
+.trophy-lightbox-close { top: var(--space-lg); right: var(--space-lg); }
+.trophy-lightbox-nav { top: 50%; transform: translateY(-50%); }
+.trophy-lightbox-prev { left: var(--space-lg); }
+.trophy-lightbox-next { right: var(--space-lg); }
+@media (max-width: 640px) {
+  .trophy-lightbox-close { top: var(--space-sm); right: var(--space-sm); width: 2.25rem; height: 2.25rem; }
+  .trophy-lightbox-nav { width: 2.25rem; height: 2.25rem; }
+  .trophy-lightbox-prev { left: var(--space-sm); }
+  .trophy-lightbox-next { right: var(--space-sm); }
+}
+
+/* Homepage sections on a light-blue background (#E2F3FF), per explicit
+   request 2026-09-20: "What do you need?", the solutions preview, the
+   claims teaser, the final "Know where you stand" CTA, and Honors &
+   Accolades. Scoped by id so other pages' .section blocks are untouched. */
+#need-finder,
+#solutions-preview,
+#claims-teaser,
+#final-cta,
+#honors {
+  background: #E2F3FF;
+}
+
+/* Honors & Accolades — event/delegation photo grid, placed directly
+   above the footer. Its own lightbox (.honors-lightbox) reuses the same
+   body.lightbox-open scroll-lock class as .trophy-lightbox above, but is
+   otherwise a separate component (extra fields: category/year/location/
+   caption that the trophy lightbox doesn't have). */
+.honors-header { max-width: 640px; margin-inline: auto; text-align: center; }
+.honors-tag {
+  display: inline-block;
+  margin-bottom: var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+  color: var(--gold);
+  border-color: color-mix(in srgb, var(--gold) 30%, transparent);
+}
+.honors-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-bottom: var(--space-lg);
+}
+.honors-tab {
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.honors-tab:hover { border-color: var(--gold); color: var(--text); }
+.honors-tab.is-active { background: var(--crimson); border-color: var(--crimson); color: var(--brand-white, #fff); }
+.honors-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+/* Every honors photo sits in the same carved-wood tabletop-frame material
+   as the hero/footer identity frames (see --wood-carve-line/--wood-grain
+   above) — a thin gilt-wood border with its own top/bottom carve line,
+   scaled down for a repeated grid tile rather than a one-off feature. */
+.honors-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  box-sizing: border-box;
+  padding: 7px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  background:
+    linear-gradient(125deg, transparent 26%, rgba(255, 255, 255, 0.24) 42%, transparent 56%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.26) 0%, transparent 28%),
+    var(--wood-grain),
+    radial-gradient(130% 150% at 26% 18%, #e0a868 0%, #c98a4b 30%, #a86a35 58%, #7a4a22 84%, #5f3517 100%);
+  box-shadow: var(--shadow-card), inset 0 2px 3px rgba(255, 255, 255, 0.4), inset 0 -3px 5px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.honors-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-raised), inset 0 2px 3px rgba(255, 255, 255, 0.4), inset 0 -3px 5px rgba(0, 0, 0, 0.35); }
+.honors-card::before,
+.honors-card::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  height: 4px;
+  background-image: var(--wood-carve-line);
+  background-repeat: repeat-x;
+  background-size: 24px 4px;
+  background-position: center;
+  opacity: 0.7;
+  pointer-events: none;
+}
+.honors-card::before { top: 2px; }
+.honors-card::after { bottom: 2px; }
+.honors-card-media {
+  /* It's a <span> (inside a <button>, so no <div>): without display:block
+     the width/height/overflow below are ignored, the caption overlay
+     collapses into a narrow column and spills out of the card — visible
+     on mobile, where the overlay is always shown instead of hover-only. */
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 6px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.35);
+  background: var(--surface-2);
+}
+.honors-card-media img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+.honors-card:hover .honors-card-media img { transform: scale(1.05); }
+.honors-card-overlay {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 0.9rem 1rem 0.75rem;
+  background: linear-gradient(to top, rgba(2, 11, 22, 0.85) 0%, transparent 100%);
+  color: var(--brand-white, #fff);
+  text-align: left;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.honors-card:hover .honors-card-overlay,
+.honors-card:focus-visible .honors-card-overlay { opacity: 1; transform: translateY(0); }
+.honors-card-overlay strong { display: block; font-size: 0.85rem; line-height: 1.3; }
+.honors-card-meta { display: block; margin-top: 0.2rem; font-size: 0.72rem; opacity: 0.8; }
+.honors-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: var(--space-xl);
+}
+.honors-count { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-soft); }
+@media (max-width: 1024px) {
+  .honors-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .honors-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+  .honors-card-overlay { opacity: 1; transform: none; padding: 0.9rem 0.55rem 0.4rem; }
+  /* Two ~155px-wide tiles per row: keep the always-visible caption to a
+     slim one-line strip so it never covers the photo (the full title is
+     in the lightbox on tap). */
+  .honors-card-overlay strong {
+    font-size: 0.75rem;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .honors-card-meta {
+    font-size: 0.68rem;
+    margin-top: 0.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* min-height 40px keeps the filter pills a comfortable thumb target. */
+  .honors-tab { padding: 0.55rem 0.95rem; min-height: 40px; font-size: 0.82rem; }
+}
+
+.honors-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 12, 18, 0.92);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s;
+  padding: var(--space-lg);
+}
+.honors-lightbox.is-open { opacity: 1; visibility: visible; }
+.honors-lightbox-figure { max-width: min(90vw, 720px); text-align: center; }
+.honors-lightbox-figure img {
+  display: block;
+  box-sizing: border-box;
+  max-width: 100%;
+  max-height: 68vh;
+  width: auto;
+  margin: 0 auto;
+  padding: 10px;
+  border-radius: 14px;
+  background:
+    linear-gradient(125deg, transparent 26%, rgba(255, 255, 255, 0.26) 42%, transparent 56%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, transparent 28%),
+    var(--wood-grain),
+    radial-gradient(130% 150% at 26% 18%, #e0a868 0%, #c98a4b 30%, #a86a35 58%, #7a4a22 84%, #5f3517 100%);
+  box-shadow: var(--shadow-modal), inset 0 3px 4px rgba(255, 255, 255, 0.4), inset 0 -6px 10px rgba(0, 0, 0, 0.4);
+}
+.honors-lightbox-figure figcaption { margin-top: var(--space-md); color: var(--on-navy); }
+.honors-lightbox-figure strong { display: block; font-family: var(--font-display); font-size: 1.1rem; }
+.honors-lightbox-figure span { display: block; margin-top: 0.2rem; opacity: 0.75; font-size: 0.9rem; }
+.honors-lightbox-figure p { margin-top: 0.5rem; opacity: 0.85; font-size: 0.9rem; }
+.honors-lightbox-close,
+.honors-lightbox-nav {
+  position: absolute;
+  background: color-mix(in srgb, var(--on-navy) 12%, transparent);
+  color: var(--on-navy);
+  border: none;
+  border-radius: 50%;
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.honors-lightbox-close:hover,
+.honors-lightbox-nav:hover { background: color-mix(in srgb, var(--on-navy) 22%, transparent); }
+.honors-lightbox-close { top: var(--space-lg); right: var(--space-lg); }
+.honors-lightbox-nav { top: 50%; transform: translateY(-50%); }
+.honors-lightbox-prev { left: var(--space-lg); }
+.honors-lightbox-next { right: var(--space-lg); }
+@media (max-width: 640px) {
+  .honors-lightbox-close { top: var(--space-sm); right: var(--space-sm); width: 2.25rem; height: 2.25rem; }
+  .honors-lightbox-nav { width: 2.25rem; height: 2.25rem; }
+  .honors-lightbox-prev { left: var(--space-sm); }
+  .honors-lightbox-next { right: var(--space-sm); }
+}
+
+/* "What do you need?" self-qualifier — a 2-step tap-through, not a real
+   form (no inputs, no validation), so it stays as simple as a card with
+   two rows of buttons that swap visibility. */
+.need-finder-card {
+  max-width: 640px;
+  margin-inline: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-xl) var(--space-lg);
+  text-align: center;
+}
+.need-finder-question { font-family: var(--font-display); font-size: 1.1rem; color: var(--text); margin-bottom: var(--space-md); }
+.need-finder-options { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; }
+.need-finder-opt {
+  padding: 0.7rem 1.3rem;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+.need-finder-opt:hover { border-color: var(--crimson); background: color-mix(in srgb, var(--crimson) 8%, var(--surface-2)); transform: translateY(-1px); }
+.need-finder-back {
+  display: inline-block;
+  margin-top: var(--space-lg);
+  background: none;
+  border: none;
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.need-finder-back:hover { color: var(--text); }
 
 /* Trust strip */
 .trust-strip { background: var(--surface-2); padding-block: var(--space-lg); }
@@ -213,6 +1301,16 @@
   .calc-form-grid { grid-template-columns: 1fr; }
 }
 
+/* Testimonial placeholder — a deliberate "coming soon" state (dashed
+   border, muted fill) rather than looking like unfinished content. Layers
+   on top of .card, doesn't replace it. */
+.testimonial-placeholder {
+  background: var(--surface-2);
+  border-style: dashed;
+  border-color: var(--line-strong);
+  box-shadow: none;
+}
+
 /* Sample testimonial marker */
 .sample-tag {
   display: inline-block;
@@ -222,7 +1320,7 @@
   color: var(--crimson);
   background: var(--surface-2);
   border: 1px solid var(--line);
-  border-radius: 0.25rem;
+  border-radius: var(--radius-sm);
   padding: 0.15rem 0.5rem;
   margin-bottom: 0.5rem;
 }
@@ -252,4 +1350,188 @@
   body.print-target-only .print-target {
     display: block !important; position: absolute; left: 0; top: 0; width: 100%; padding: 1.5rem;
   }
+  /* Letterhead — CSS-only (no logo image needed for a clean print), a
+     generated heading + gold rule ahead of whichever .print-target is
+     active (the claim checklist or a calculator result). */
+  body.print-target-only .print-target::before {
+    content: "Aangi Associates";
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 0.5rem;
+  }
+  body.print-target-only .print-target::after {
+    content: "615, Krupal Pathshala, Shivaranjani Cross Road, Ahmedabad · +91 90331 32791 · GSTIN 24ACBFA747OP1Z2";
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: #000;
+    margin-top: 2rem;
+    padding-top: 0.75rem;
+    border-top: 2px solid var(--gold);
+  }
+  body.print-target-only .print-target { border-top: 2px solid var(--gold); padding-top: 1rem; }
+  body.print-target-only .btn { display: none !important; }
+}
+
+/* Contact page: the same four channels as the footer (Instagram, LinkedIn,
+   WhatsApp, Email), as brand-blue round buttons on the light card. */
+.contact-social { display: flex; gap: 0.6rem; margin: var(--space-md) 0; }
+.contact-social-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #003399;
+  color: #ffffff;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.contact-social-icon svg { width: 22px; height: 22px; }
+.contact-social-icon:hover,
+.contact-social-icon:focus-visible { background: var(--crimson); transform: translateY(-2px); }
+
+/* MDRT certificate showcase — a dedicated row of the four Qualifying
+   Member certificates (2021/2022/2024/2025), above the trophy rail. Each
+   scan is pre-cropped to the paper and colour-matched to the 2025 scan, so
+   the only per-card styling here is the shared gold frame. The cards keep
+   .trophy-item so they still open in the same lightbox (ui.js), which is
+   why the overrides below reset the trophy-tile look (3:4 crop, clipped
+   corners, card shadow) instead of starting from a plain element. */
+.cert-showcase { margin-bottom: var(--space-2xl); }
+.cert-showcase-head { text-align: center; max-width: 640px; margin: 0 auto var(--space-xl); }
+.cert-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.cert-eyebrow::before,
+.cert-eyebrow::after {
+  content: "";
+  width: 32px;
+  height: 1px;
+  background: color-mix(in srgb, var(--gold) 55%, transparent);
+}
+.cert-showcase-head h3 {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 2.8vw, 2rem);
+  line-height: 1.15;
+  margin: 0.6rem 0 0.45rem;
+}
+.cert-showcase-head p { font-size: 1rem; opacity: 0.82; margin: 0; }
+.cert-rail-heading { text-align: center; margin-bottom: var(--space-md); }
+
+.cert-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xl) var(--space-md);
+  padding-top: 0.9rem; /* room for the year chip that overhangs each frame */
+}
+@media (min-width: 1024px) {
+  .cert-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-lg); }
+}
+@media (max-width: 419px) {
+  .cert-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+.trophy-item.cert-card,
+.trophy-item.cert-card:hover,
+.trophy-item.cert-card:focus-visible {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+  padding: 0;
+  border: 0;
+  overflow: visible;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: center;
+  color: inherit;
+  font: inherit;
+}
+.cert-frame {
+  position: relative;
+  display: block;
+  padding: 7px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f7de8f 0%, #c9971c 28%, #f4d977 52%, #b8860b 78%, #ebc95f 100%);
+  box-shadow:
+    0 22px 40px -18px rgba(70, 48, 0, 0.55),
+    0 2px 0 rgba(255, 255, 255, 0.55) inset;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.cert-card .cert-frame img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 5px;
+  filter: none; /* already colour-matched — don't re-grade the scans */
+  box-shadow: 0 0 0 1px rgba(40, 28, 0, 0.35);
+}
+/* Diagonal light sweep on hover/focus. */
+.cert-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 36%, rgba(255, 255, 255, 0.6) 50%, transparent 64%);
+  transform: translateX(-130%);
+  transition: transform 0.75s ease;
+  pointer-events: none;
+}
+.cert-card:hover .cert-frame,
+.cert-card:focus-visible .cert-frame {
+  transform: translateY(-5px);
+  box-shadow:
+    0 30px 50px -16px rgba(90, 60, 0, 0.6),
+    0 0 0 3px rgba(233, 199, 93, 0.6),
+    0 2px 0 rgba(255, 255, 255, 0.55) inset;
+}
+.cert-card:hover .cert-frame::after,
+.cert-card:focus-visible .cert-frame::after { transform: translateX(130%); }
+.cert-card:focus-visible { outline: none; }
+.cert-card:focus-visible .cert-frame { outline: 3px solid var(--crimson); outline-offset: 3px; }
+
+.cert-year {
+  position: absolute;
+  top: -0.95rem;
+  left: 50%;
+  z-index: 2;
+  transform: translateX(-50%);
+  padding: 0.28rem 1.05rem;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  color: #3a2a00;
+  background: linear-gradient(180deg, #fdedaa 0%, #e2ab1c 100%);
+  box-shadow: 0 8px 16px -6px rgba(90, 60, 0, 0.55), 0 0 0 2px #fff8dc inset;
+}
+.cert-caption { display: flex; flex-direction: column; gap: 0.15rem; }
+.cert-caption strong { font-family: var(--font-display); font-size: 1.05rem; color: var(--text); }
+.cert-caption small { font-size: 0.86rem; color: var(--text-soft); }
+.cert-caption em {
+  margin-top: 0.15rem;
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  color: var(--gold);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cert-frame, .cert-frame::after { transition: none; }
+  .cert-card:hover .cert-frame, .cert-card:focus-visible .cert-frame { transform: none; }
 }
