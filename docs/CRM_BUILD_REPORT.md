@@ -159,8 +159,8 @@ Every action stamps a dated note onto the lead.
 
 ### 7.5 Web forms & calculator defaults
 - **Web forms.** Provides copy-paste embed code (a plain HTML link and a script tag). Honest status: visitors are sent to the website calculators and use the WhatsApp button, and there is not yet a direct feed into the leads table.
-- **Calculator defaults.** Admin sets the assumptions behind the public calculators: expected inflation, returns, retirement age and so on. Saved values are read live by the public website, so one change updates the calculators everywhere.
-**Try it.** Change "SIP return %" and save, then open the public Calculators page and see the result move.
+- **Calculator defaults.** Admin sets the assumptions behind the calculators: expected inflation, returns, retirement age and so on. These values are saved in the database and a public read endpoint for them exists, **but the public website's calculators are not yet wired to it** (they still point at the retired Supabase service and fall back to their built-in defaults). Treat this as saved-but-not-yet-live.
+**Try it.** Change "SIP return %" and save; the value persists after a refresh. It will not change the public Calculators page until the site is re-pointed at the new endpoint (a small change, not yet made).
 
 ---
 
@@ -289,7 +289,8 @@ Seven main pages: Home, Solutions, Claim Assistance, Calculators, Become an Asso
 | Manual and bulk lead entry, de-duplication | **Working** |
 | Clients, policies, pipeline, claims, communications, documents | **Working** |
 | Tasks, onboarding, business planning and leaderboard, audit log | **Working** |
-| Admin calculators feeding the public site | **Working** |
+| Calculator defaults: saved in the CRM | **Working** |
+| Calculator defaults: applied to the public website calculators | **Not yet wired** (site still points at the retired Supabase service, so it uses built-in defaults) |
 | Client portal login | **Working**, but the SMS code is not delivered until a provider is added (section 4.2) |
 | WhatsApp renewal reminders | **Built**, waiting on WhatsApp credentials |
 | Business-plan email | **Built**, uses the server's own mail, deliverability not guaranteed until the domain's mail authentication is set up |
