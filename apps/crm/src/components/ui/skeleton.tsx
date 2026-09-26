@@ -1,7 +1,10 @@
 import { cn } from "../../lib/utils";
 
+// A subtle gold-tinted shimmer sweep instead of a flat gray pulse — small
+// difference, but it means even the "still loading" moment reads as this
+// app's brand rather than a generic template default.
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-md bg-surface-2", className)} />;
+  return <div className={cn("skeleton-shimmer relative overflow-hidden rounded-md bg-surface-2", className)} />;
 }
 
 // Mirrors the row/column shape of the striped tables used across list

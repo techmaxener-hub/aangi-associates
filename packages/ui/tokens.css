@@ -1,36 +1,96 @@
-/* Aangi Associates — shared design tokens (packages/ui) */
+/* Aangi Associates — shared design tokens (packages/ui)
+
+   LOCKED PALETTE (2026-09-12, explicit user instruction): every section on
+   the public website, every other page, and the CRM (including its login
+   pages) draws its color from exactly these four brand colors —
+
+     Primary Blue:            #005FA8
+     Vibrant Red:              #CC102F
+     Pure White:                #FFFFFF
+     Dark Navy / Background: #020B16
+
+   The hero section and the site header are explicitly EXEMPT from this
+   lock (their own separately-approved colors — #121212 hero background,
+   the #003399 scrolled-header blue, the gold-foil hero-subhead gradient —
+   are untouched and defined locally in apps/website/assets/css/main.css,
+   not here).
+
+   Two deliberate, flagged exceptions inside this file itself:
+   1. --success stays a semantic green. It's a CRM pipeline/status
+      indicator (e.g. "converted" leads, "won" deals), not a brand/section
+      color — collapsing it into blue or red would make status states
+      indistinguishable from the primary action color. Flag to the user if
+      a fully literal 4-color CRM is wanted instead.
+   2. Hand-crafted gradients/textures elsewhere in the codebase (the
+      hero's wood-grain divider and picture-frame, the About section's
+      crimson accent blob, shiny gold-foil headline text) are exempt by
+      explicit user choice — they're materials/finishes, not flat brand
+      colors, and are NOT defined in this file.
+
+   Previously this file branched on light/dark theme (a toggle that has
+   since been removed from the UI as dead code). Under the lock there is
+   only one palette, so the old @media(prefers-color-scheme) and
+   [data-theme="dark"] blocks below now just restate the same locked
+   values, rather than diverging — kept only so a stale localStorage
+   "aangi-theme" value from before the toggle was removed can't
+   accidentally reintroduce an old off-palette color. */
 
 :root {
-  --bg: #f7f4ee;
-  --surface: #ffffff;
-  --surface-2: #efe8d8;
-  --text: #1b2333;
-  --text-soft: #5b6272;
-  --line: #e1d9c3;
-  --line-strong: #cdc2a3;
-  --navy: #0f2a4a;
-  --on-navy: #f6f3ea;
-  --crimson: #9c1c30;
-  --gold: #8f6f26;
-  /* Accessible text variants of --gold: the brand gold itself is ~4.3:1
-     against --bg and ~3.1:1 against --navy — under the 4.5:1 WCAG AA
-     threshold for normal-size text in both cases. These are darker/
-     brighter derivatives for actual text use, kept separate from --gold
-     (a locked brand token) so borders/backgrounds/large text keep the
-     original brand color. --gold-text: 6.5:1 against --bg. --gold-on-navy
-     (constant across themes, since --navy is always dark): 7.6:1 against
-     --navy. */
-  --gold-text: #6b5518;
-  --gold-on-navy: #d9b96a;
+  /* ---- The four locked brand colors, exactly as specified ---- */
+  --brand-blue: #005fa8;
+  --brand-red: #cc102f;
+  --brand-white: #ffffff;
+  --brand-dark-navy: #020b16;
 
-  /* Semantic success color for pipeline/status states (e.g. converted
-     leads) — separate from the crimson/gold brand accents. #1f7a45 on
-     --bg (#f7f4ee) is ~5.4:1, comfortably AA for normal text. */
+  /* ---- Existing token names repointed to the locked palette ----
+     Kept under their original names so the ~30+ call sites across
+     apps/website and apps/crm (many via the CRM's Tailwind config, which
+     maps bg-navy/text-gold/etc. straight to these custom properties)
+     don't all need individual edits — the palette is enforced at this
+     single source of truth instead. */
+  --bg: var(--brand-white);
+  --surface: var(--brand-white);
+  /* Alternating-band surface: no true 5th color exists for this, so it's
+     a light tint OF the locked navy rather than a new hue — reads as
+     "white" at a glance while still separating stacked light sections. */
+  --surface-2: color-mix(in srgb, var(--brand-dark-navy) 4%, white);
+  --text: var(--brand-dark-navy);
+  --text-soft: color-mix(in srgb, var(--brand-dark-navy) 62%, white);
+  --line: color-mix(in srgb, var(--brand-dark-navy) 14%, white);
+  --line-strong: color-mix(in srgb, var(--brand-dark-navy) 26%, white);
+  --navy: var(--brand-dark-navy);
+  --on-navy: var(--brand-white);
+  --crimson: var(--brand-red);
+
+  /* --gold family previously carried the site's amber accent (active nav
+     state, credential-card borders, hint lines, badges). Amber isn't one
+     of the 4 locked colors, so it now resolves to Primary Blue instead —
+     same role (the site's "accent" color), new hue. --gold-on-navy is a
+     lighter tint of that same blue (not a literal blue-on-navy pairing)
+     because #005FA8 directly on #020B16 falls below AA contrast for
+     text; the tint keeps it recognizably blue while staying legible. */
+  --gold: var(--brand-blue);
+  --gold-text: var(--brand-blue);
+  --gold-on-navy: color-mix(in srgb, var(--brand-blue) 55%, white);
+
+  /* Flagged exception — see file header. Semantic, not a brand color. */
   --success: #1f7a45;
 
-  --font-display: "Fraunces", Georgia, serif;
-  --font-body: "Public Sans", -apple-system, Segoe UI, sans-serif;
+  --font-display: "Manrope", -apple-system, Segoe UI, sans-serif;
+  --font-body: "Manrope", -apple-system, Segoe UI, sans-serif;
   --font-mono: "IBM Plex Mono", "Courier New", monospace;
+
+  /* Type scale sized to match the reference site's own computed values
+     (extracted directly from its live DOM: h3 18px/700, h2 45px/800,
+     body/p 16px & 14px/500) — --text-3xl (h1) is deliberately not their
+     literal 117px, which is a one-off hero-only size on their end too;
+     this is the scale for ordinary page H1s site-wide. */
+  --text-sm: 0.875rem; /* 14px — matches their <p> */
+  --text-base: 1rem; /* 16px — matches their <body> */
+  --text-lg: 1.125rem; /* 18px — matches their <h3> */
+  --text-xl: 1.75rem; /* 28px */
+  --text-2xl: 2.8125rem; /* 45px — matches their <h2> */
+  --text-3xl: 3.75rem; /* 60px — page H1s; the hero keeps its own larger clamp() */
 
   /* Radius scale — named by role, not just a size, so new components pick
      the right one instead of guessing between a leftover set of literals:
@@ -53,56 +113,63 @@
   --space-lg: 2rem; /* 4x */
   --space-xl: 3rem; /* 6x */
   --space-2xl: 4rem; /* 8x */
+  --space-3xl: 6rem; /* 12x — desktop-only extra breathing room on section-header-led sections, see .section's ≥1200px override in apps/website/assets/css/main.css */
 
   /* Elevation scale — every card/panel/modal was a flat 1px border with
      no shadow at all. Named by the layer it puts content on, not just a
      size: resting content (card), content that floats above the page on
      interaction (dropdown/popover), and content that blocks the page
-     entirely (modal). Tinted navy rather than pure black so it reads as
-     part of this palette instead of a generic UI-kit shadow. */
-  --shadow-card: 0 1px 2px rgba(15, 42, 74, 0.06), 0 2px 8px -2px rgba(15, 42, 74, 0.08);
-  --shadow-raised: 0 12px 32px -12px rgba(15, 42, 74, 0.28);
-  --shadow-modal: 0 24px 64px -24px rgba(15, 42, 74, 0.45);
+     entirely (modal). Tinted with the locked navy rather than pure black
+     so it reads as part of this palette instead of a generic UI-kit
+     shadow. */
+  --shadow-card: 0 1px 2px rgba(2, 11, 22, 0.08), 0 2px 8px -2px rgba(2, 11, 22, 0.1);
+  --shadow-raised: 0 12px 32px -12px rgba(2, 11, 22, 0.32);
+  --shadow-modal: 0 24px 64px -24px rgba(2, 11, 22, 0.5);
 }
 
+/* One locked palette regardless of system/browser theme preference — see
+   file header. These blocks intentionally restate the :root values rather
+   than diverging, so a stale "aangi-theme" value saved in a visitor's
+   localStorage from before the theme toggle was removed can't silently
+   reintroduce the old off-palette dark scheme. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0b1526;
-    --surface: #10192c;
-    --surface-2: #172542;
-    --text: #ece8dc;
-    --text-soft: #a7aec2;
-    --line: #253355;
-    --line-strong: #34467a;
-    --navy: #14294a;
-    --on-navy: #f2eee0;
-    --crimson: #e2687a;
-    --gold: #d9b96a;
-    --gold-text: #d9b96a;
-    --success: #6fcf97;
-    /* Navy-on-navy shadows disappear on a dark surface — black reads as
-       depth here instead. */
-    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.24), 0 2px 8px -2px rgba(0, 0, 0, 0.3);
-    --shadow-raised: 0 12px 32px -12px rgba(0, 0, 0, 0.55);
-    --shadow-modal: 0 24px 64px -24px rgba(0, 0, 0, 0.7);
+    --bg: var(--brand-white);
+    --surface: var(--brand-white);
+    --surface-2: color-mix(in srgb, var(--brand-dark-navy) 4%, white);
+    --text: var(--brand-dark-navy);
+    --text-soft: color-mix(in srgb, var(--brand-dark-navy) 62%, white);
+    --line: color-mix(in srgb, var(--brand-dark-navy) 14%, white);
+    --line-strong: color-mix(in srgb, var(--brand-dark-navy) 26%, white);
+    --navy: var(--brand-dark-navy);
+    --on-navy: var(--brand-white);
+    --crimson: var(--brand-red);
+    --gold: var(--brand-blue);
+    --gold-text: var(--brand-blue);
+    --gold-on-navy: color-mix(in srgb, var(--brand-blue) 55%, white);
+    --success: #1f7a45;
+    --shadow-card: 0 1px 2px rgba(2, 11, 22, 0.08), 0 2px 8px -2px rgba(2, 11, 22, 0.1);
+    --shadow-raised: 0 12px 32px -12px rgba(2, 11, 22, 0.32);
+    --shadow-modal: 0 24px 64px -24px rgba(2, 11, 22, 0.5);
   }
 }
 
 :root[data-theme="dark"] {
-  --bg: #0b1526;
-  --surface: #10192c;
-  --surface-2: #172542;
-  --text: #ece8dc;
-  --text-soft: #a7aec2;
-  --line: #253355;
-  --line-strong: #34467a;
-  --navy: #14294a;
-  --on-navy: #f2eee0;
-  --crimson: #e2687a;
-  --gold: #d9b96a;
-  --gold-text: #d9b96a;
-  --success: #6fcf97;
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.24), 0 2px 8px -2px rgba(0, 0, 0, 0.3);
-  --shadow-raised: 0 12px 32px -12px rgba(0, 0, 0, 0.55);
-  --shadow-modal: 0 24px 64px -24px rgba(0, 0, 0, 0.7);
+  --bg: var(--brand-white);
+  --surface: var(--brand-white);
+  --surface-2: color-mix(in srgb, var(--brand-dark-navy) 4%, white);
+  --text: var(--brand-dark-navy);
+  --text-soft: color-mix(in srgb, var(--brand-dark-navy) 62%, white);
+  --line: color-mix(in srgb, var(--brand-dark-navy) 14%, white);
+  --line-strong: color-mix(in srgb, var(--brand-dark-navy) 26%, white);
+  --navy: var(--brand-dark-navy);
+  --on-navy: var(--brand-white);
+  --crimson: var(--brand-red);
+  --gold: var(--brand-blue);
+  --gold-text: var(--brand-blue);
+  --gold-on-navy: color-mix(in srgb, var(--brand-blue) 55%, white);
+  --success: #1f7a45;
+  --shadow-card: 0 1px 2px rgba(2, 11, 22, 0.08), 0 2px 8px -2px rgba(2, 11, 22, 0.1);
+  --shadow-raised: 0 12px 32px -12px rgba(2, 11, 22, 0.32);
+  --shadow-modal: 0 24px 64px -24px rgba(2, 11, 22, 0.5);
 }

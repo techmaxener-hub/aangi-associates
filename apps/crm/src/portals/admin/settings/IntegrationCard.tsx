@@ -184,8 +184,8 @@ export function IntegrationCard({ def, presets }: { def: IntegrationDef; presets
                   )}
                   {field.type === "copy" && (
                     <p className="text-[11px] text-text-soft">
-                      Points to where a PHP webhook receiver under apps/crm-api/ would live — not deployed yet, so
-                      this URL isn't live until that endpoint ships.
+                      Points to where a PHP webhook receiver under apps/crm-api/ would live — not deployed yet, so this
+                      URL isn't live until that endpoint ships.
                     </p>
                   )}
                 </>

@@ -24,3 +24,13 @@ define('WHATSAPP_PHONE_NUMBER_ID', '');
 define('SMS_PROVIDER', ''); // e.g. 'msg91', 'twilio' — checked by lib/sms.php
 define('SMS_API_KEY', '');
 define('SMS_SENDER_ID', '');
+
+// Outgoing "From" address for Business Planning's "Send Email" action
+// (lib/mailer.php). Unlike WhatsApp/SMS above, this doesn't need a third-
+// party account — PHP's mail() uses the host's own mail transport, which
+// Hostinger shared hosting provides out of the box for domains it hosts.
+// Deliverability without SPF/DKIM configured for this subdomain isn't
+// guaranteed; the From address below should be a real mailbox on the
+// domain if one exists.
+define('MAIL_FROM_ADDRESS', 'no-reply@tmarinternational.com');
+define('MAIL_FROM_NAME', 'Aangi Associates');

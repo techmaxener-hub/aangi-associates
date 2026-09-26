@@ -52,6 +52,19 @@ CREATE TABLE otp_codes (
 ) ENGINE=InnoDB;
 CREATE INDEX otp_codes_phone_idx ON otp_codes (phone);
 
+-- 2b. product_categories — admin-managed business-line taxonomy used by
+--     Business Planning (targets) and client_policies (actual business),
+--     so achievement can be computed by an exact id join instead of fuzzy
+--     matching against the free-text product_type. Seeded with the 4 lines
+--     asked for; admin can add more from the Business Planning page.
+CREATE TABLE product_categories (
+  id CHAR(36) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL UNIQUE,
+  sort_order INT NOT NULL DEFAULT 0,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
 -- 3. clients
 CREATE TABLE clients (
   id CHAR(36) PRIMARY KEY,
@@ -118,12 +131,15 @@ CREATE TABLE client_policies (
   start_date DATE,
   renewal_date DATE,
   status ENUM('active','lapsed','matured') NOT NULL DEFAULT 'active',
+  category_id CHAR(36), -- links real business to Business Planning targets; nullable (existing rows backfilled best-effort, new ones picked from a dropdown)
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
+  FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+  FOREIGN KEY (category_id) REFERENCES product_categories(id)
 ) ENGINE=InnoDB;
 CREATE INDEX client_policies_client_idx ON client_policies (client_id);
 CREATE INDEX client_policies_renewal_idx ON client_policies (renewal_date);
 CREATE INDEX client_policies_status_renewal_idx ON client_policies (status, renewal_date);
+CREATE INDEX client_policies_category_idx ON client_policies (category_id);
 
 -- 7. opportunities
 CREATE TABLE opportunities (
@@ -168,6 +184,27 @@ CREATE TABLE communications (
   FOREIGN KEY (logged_by) REFERENCES users(id)
 ) ENGINE=InnoDB;
 CREATE INDEX communications_client_idx ON communications (client_id);
+
+-- 9b. documents — client-facing document vault (policy PDFs, ID proof).
+--     Files themselves live on disk under apps/crm-api/uploads/documents/
+--     (blocked from direct web access by its own .htaccess); this table
+--     is just the metadata + access-control anchor. Uploaded by
+--     admin/staff/associate on behalf of a client, downloadable by that
+--     client too — same access shape as communications (owner_id-scoped
+--     for associate, portal_user_id-scoped for client).
+CREATE TABLE documents (
+  id CHAR(36) PRIMARY KEY,
+  client_id CHAR(36) NOT NULL,
+  original_name VARCHAR(255) NOT NULL,
+  stored_name VARCHAR(255) NOT NULL,
+  mime_type VARCHAR(100),
+  size_bytes INT,
+  uploaded_by CHAR(36),
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+  FOREIGN KEY (uploaded_by) REFERENCES users(id)
+) ENGINE=InnoDB;
+CREATE INDEX documents_client_idx ON documents (client_id);
 
 -- 10. candidates
 CREATE TABLE candidates (
@@ -302,5 +339,58 @@ CREATE TABLE renewal_reminders (
 ) ENGINE=InnoDB;
 CREATE INDEX renewal_reminders_status_idx ON renewal_reminders (status);
 CREATE INDEX renewal_reminders_client_idx ON renewal_reminders (client_id);
+
+-- 18. business_plans — one row per admin-set target period for one
+--     associate (day/range/month/quarter/year all normalize to a concrete
+--     start_date/end_date so achievement queries never need period-type
+--     branching). Achievement itself is never stored here — see
+--     business_plans.php, which computes it live from client_policies.
+CREATE TABLE business_plans (
+  id CHAR(36) PRIMARY KEY,
+  associate_id CHAR(36) NOT NULL,
+  period_type ENUM('day','range','month','quarter','year') NOT NULL,
+  period_label VARCHAR(255) NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  notes TEXT,
+  viewed_at DATETIME,
+  created_by CHAR(36),
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (associate_id) REFERENCES users(id),
+  FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB;
+CREATE INDEX business_plans_associate_idx ON business_plans (associate_id);
+CREATE INDEX business_plans_period_idx ON business_plans (start_date, end_date);
+
+-- 19. business_plan_targets — per-category line items within a plan.
+CREATE TABLE business_plan_targets (
+  id CHAR(36) PRIMARY KEY,
+  plan_id CHAR(36) NOT NULL,
+  category_id CHAR(36) NOT NULL,
+  expected_premium DECIMAL(14,2),
+  expected_policy_count INT,
+  commission_type ENUM('percent','flat_per_policy') NOT NULL DEFAULT 'percent',
+  commission_value DECIMAL(10,2) NOT NULL DEFAULT 0,
+  UNIQUE (plan_id, category_id),
+  FOREIGN KEY (plan_id) REFERENCES business_plans(id) ON DELETE CASCADE,
+  FOREIGN KEY (category_id) REFERENCES product_categories(id)
+) ENGINE=InnoDB;
+
+-- 20. business_plan_sends — audit log of "send plan by email" attempts.
+--     Same honest, real-outcome-only pattern as renewal_reminders/sms.php
+--     — never records a fake "sent" for a mail() call that failed.
+CREATE TABLE business_plan_sends (
+  id CHAR(36) PRIMARY KEY,
+  plan_id CHAR(36) NOT NULL,
+  sent_to VARCHAR(255) NOT NULL,
+  sent_by CHAR(36),
+  sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  status ENUM('sent','failed') NOT NULL,
+  error_detail TEXT,
+  FOREIGN KEY (plan_id) REFERENCES business_plans(id) ON DELETE CASCADE,
+  FOREIGN KEY (sent_by) REFERENCES users(id)
+) ENGINE=InnoDB;
+CREATE INDEX business_plan_sends_plan_idx ON business_plan_sends (plan_id);
 
 SET FOREIGN_KEY_CHECKS = 1;

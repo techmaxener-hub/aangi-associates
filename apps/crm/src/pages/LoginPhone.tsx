@@ -1,11 +1,13 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import { authApi, ApiError } from "../lib/api";
 import { useAuth } from "../auth/useAuth";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
+import { AuthLayout } from "./AuthLayout";
 
 export function LoginPhone() {
   const navigate = useNavigate();
@@ -13,11 +15,17 @@ export function LoginPhone() {
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [stage, setStage] = useState<"phone" | "otp">("phone");
+  const [phoneTouched, setPhoneTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const phoneInvalid = phoneTouched && !/^\+?[0-9]{10,15}$/.test(phone);
+
   async function requestOtp(event: FormEvent) {
     event.preventDefault();
+    setPhoneTouched(true);
+    if (!/^\+?[0-9]{10,15}$/.test(phone)) return;
+
     setLoading(true);
     setError(null);
     try {
@@ -52,28 +60,35 @@ export function LoginPhone() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-bg px-4">
-      <Card className="w-full max-w-sm">
+    <AuthLayout subtitle="Client portal sign in">
+      <Card>
         <h1 className="mb-1 font-display text-xl text-text">Aangi Associates</h1>
-        <p className="mb-6 text-sm text-text-soft">Client portal sign in</p>
+        <p className="mb-6 text-sm text-text-soft">
+          {stage === "phone" ? "Enter your mobile number to get a one-time code." : "Enter the code we sent you."}
+        </p>
 
         {stage === "phone" ? (
-          <form onSubmit={requestOtp} className="space-y-4">
+          <form onSubmit={requestOtp} noValidate className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="phone">Mobile number</Label>
               <Input
                 id="phone"
                 type="tel"
                 placeholder="+91XXXXXXXXXX"
-                pattern="\+?[0-9]{10,15}"
-                title="Enter your number with country code, e.g. +919876543210"
                 required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+                onBlur={() => setPhoneTouched(true)}
+                aria-invalid={phoneInvalid}
+                className={phoneInvalid ? "border-crimson focus-visible:ring-crimson" : undefined}
               />
+              {phoneInvalid && (
+                <p className="text-xs text-crimson">Enter your number with country code, e.g. +919876543210.</p>
+              )}
             </div>
             {error && <p className="text-sm text-crimson">{error}</p>}
             <Button type="submit" className="w-full" disabled={loading}>
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               {loading ? "Sending code…" : "Send OTP"}
             </Button>
           </form>
@@ -81,12 +96,31 @@ export function LoginPhone() {
           <form onSubmit={verifyOtp} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="otp">Enter the code sent to {phone}</Label>
-              <Input id="otp" inputMode="numeric" required value={otp} onChange={(e) => setOtp(e.target.value)} />
+              <Input
+                id="otp"
+                inputMode="numeric"
+                required
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                autoFocus
+              />
             </div>
             {error && <p className="text-sm text-crimson">{error}</p>}
             <Button type="submit" className="w-full" disabled={loading}>
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               {loading ? "Verifying…" : "Verify & sign in"}
             </Button>
+            <button
+              type="button"
+              onClick={() => {
+                setStage("phone");
+                setOtp("");
+                setError(null);
+              }}
+              className="w-full text-center text-xs text-text-soft underline"
+            >
+              &larr; Use a different number
+            </button>
           </form>
         )}
 
@@ -97,6 +131,6 @@ export function LoginPhone() {
           </Link>
         </p>
       </Card>
-    </div>
+    </AuthLayout>
   );
 }

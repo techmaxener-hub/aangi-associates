@@ -1,0 +1,4 @@
+# Deny all direct web access — files here are only ever served through
+# documents.php's authenticated download action (apache2.4 syntax; add
+# "Deny from all" alongside for older/mod_access setups if needed).
+Require all denied

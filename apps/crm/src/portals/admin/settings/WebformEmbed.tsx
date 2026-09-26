@@ -5,7 +5,7 @@ import { Button } from "../../../components/ui/button";
 const SITE_URL = "https://aa.tmarinternational.com";
 
 const linkSnippet = `<a href="${SITE_URL}/calculators.html" target="_blank" rel="noopener"
-  style="display:inline-block;padding:0.75rem 1.5rem;border-radius:0.375rem;background:#9c1c30;color:#f6f3ea;font-family:sans-serif;font-weight:600;text-decoration:none;">
+  style="display:inline-block;padding:0.75rem 1.5rem;border-radius:0.375rem;background:#CC102F;color:#FFFFFF;font-family:sans-serif;font-weight:600;text-decoration:none;">
   Calculate Your Term Insurance Need →
 </a>`;
 
@@ -16,7 +16,7 @@ const scriptSnippet = `<script>
     a.target = "_blank";
     a.rel = "noopener";
     a.textContent = "Calculate Your Term Insurance Need →";
-    a.style.cssText = "display:inline-block;padding:0.75rem 1.5rem;border-radius:0.375rem;background:#9c1c30;color:#f6f3ea;font-family:sans-serif;font-weight:600;text-decoration:none;";
+    a.style.cssText = "display:inline-block;padding:0.75rem 1.5rem;border-radius:0.375rem;background:#CC102F;color:#FFFFFF;font-family:sans-serif;font-weight:600;text-decoration:none;";
     document.currentScript.parentNode.insertBefore(a, document.currentScript);
   })();
 </script>`;

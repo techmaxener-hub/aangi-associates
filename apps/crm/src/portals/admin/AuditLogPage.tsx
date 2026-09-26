@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { History } from "lucide-react";
 import { api, ApiError } from "../../lib/api";
 import { useToast } from "../../components/ui/toast";
 import { Card } from "../../components/ui/card";
@@ -117,7 +118,7 @@ export function AuditLogPage() {
       {loading ? (
         <ListSkeleton />
       ) : visibleRows.length === 0 ? (
-        <EmptyState message="No audit history yet." />
+        <EmptyState message="No audit history yet." icon={History} />
       ) : (
         <div className="space-y-2">
           {visibleRows.map((row) => {

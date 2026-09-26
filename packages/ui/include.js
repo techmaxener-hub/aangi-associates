@@ -25,12 +25,45 @@
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
 
+    var mobileNav = window.matchMedia("(max-width: 860px)");
+    function closeNav() {
+      document.body.classList.remove("nav-open");
+      if (toggle) toggle.setAttribute("aria-expanded", "false");
+      document.querySelectorAll(".has-dropdown.is-open").forEach(function (li) { li.classList.remove("is-open"); });
+    }
+
     if (toggle) {
       toggle.addEventListener("click", function () {
         var isOpen = document.body.classList.toggle("nav-open");
         toggle.setAttribute("aria-expanded", String(isOpen));
       });
     }
+
+    // Phone menu: the Expertise / Calculators groups collapse into
+    // accordions (tap the row to expand) — expanded, the two lists were
+    // ~1,100px tall and pushed Login off the bottom of the screen. The
+    // parent page stays reachable through each group's first "All ..." row.
+    document.querySelectorAll(".has-dropdown > a").forEach(function (link) {
+      link.addEventListener("click", function (event) {
+        if (!mobileNav.matches || !document.body.classList.contains("nav-open")) return;
+        event.preventDefault();
+        var li = link.parentElement;
+        var open = !li.classList.contains("is-open");
+        document.querySelectorAll(".has-dropdown.is-open").forEach(function (other) {
+          if (other !== li) other.classList.remove("is-open");
+        });
+        li.classList.toggle("is-open", open);
+        link.setAttribute("aria-expanded", String(open));
+      });
+    });
+    // Following a link inside the open panel, or leaving phone width,
+    // resets the menu.
+    var navEl = document.querySelector(".main-nav");
+    if (navEl) navEl.addEventListener("click", function (event) {
+      var a = event.target.closest && event.target.closest("a");
+      if (a && !(a.parentElement.classList.contains("has-dropdown") && mobileNav.matches)) closeNav();
+    });
+    if (mobileNav.addEventListener) mobileNav.addEventListener("change", function (e) { if (!e.matches) closeNav(); });
 
     wireThemeToggle();
     wireLangSwitcher();
@@ -142,11 +175,81 @@
     });
   }
 
+  // Lives here for the same reason wireThemeToggle does above: the
+  // launcher + tooltip are inside footer.html, which loads asynchronously
+  // — a standalone DOMContentLoaded listener elsewhere would run before
+  // these elements exist and silently find nothing.
+  function wireFloatingChatNudge() {
+    var btn = document.getElementById("floating-chat-btn");
+    var tooltip = document.getElementById("floating-chat-tooltip");
+    if (!btn || !tooltip) return;
+    var sessionKey = "aangi-chat-nudge-shown";
+    var alreadyShown;
+    try {
+      alreadyShown = sessionStorage.getItem(sessionKey);
+    } catch (e) {}
+    if (alreadyShown) return;
+    if (window.matchMedia("(max-width: 860px)").matches) return;
+
+    var shown = false;
+    function show() {
+      if (shown) return;
+      shown = true;
+      try {
+        sessionStorage.setItem(sessionKey, "1");
+      } catch (e) {}
+      tooltip.hidden = false;
+      // Two ticks so the browser paints the hidden->block change first,
+      // otherwise the opacity/transform transition has nothing to animate
+      // from and the bubble just appears instantly.
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () { tooltip.classList.add("is-visible"); });
+      });
+      window.removeEventListener("scroll", onScroll);
+      clearTimeout(idleTimer);
+      setTimeout(dismiss, 6000);
+    }
+    function dismiss() {
+      tooltip.classList.remove("is-visible");
+      setTimeout(function () { tooltip.hidden = true; }, 300);
+    }
+    function onScroll() {
+      if (window.scrollY > window.innerHeight * 0.8) show();
+    }
+
+    var idleTimer = setTimeout(show, 8000);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    var closeBtn = tooltip.querySelector(".floating-chat-tooltip-close");
+    if (closeBtn) closeBtn.addEventListener("click", dismiss);
+  }
+
+  // Footer scroll-to-top — same async-load reasoning as the two functions
+  // above (button lives in footer.html).
+  function wireScrollTop() {
+    var btn = document.getElementById("footer-scroll-top");
+    if (!btn) return;
+
+    function onScroll() {
+      btn.classList.toggle("is-visible", window.scrollY > 400);
+    }
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    btn.addEventListener("click", function () {
+      var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+    });
+  }
+
   function loadPartial(host) {
     var name = host.getAttribute("data-include");
     var base = host.getAttribute("data-include-base") || ".";
 
-    fetch(base + "/" + name + ".html")
+    // Cache-bust: Hostinger's CDN caches per-edge independently of the
+    // browser, so a plain hard-refresh on the visitor's end doesn't
+    // guarantee a fresh fetch here — a version query string forces every
+    // cache layer (browser + every CDN edge) to treat this as a new URL.
+    fetch(base + "/" + name + ".html?v=20260921a")
       .then(function (res) {
         if (!res.ok) throw new Error("HTTP " + res.status);
         return res.text();
@@ -157,7 +260,11 @@
           setActiveNav();
           wireHeaderInteractions();
         }
-        if (name === "footer") setYear();
+        if (name === "footer") {
+          setYear();
+          wireFloatingChatNudge();
+          wireScrollTop();
+        }
       })
       .catch(function (err) {
         console.error("[include] failed to load partial:", name, err);

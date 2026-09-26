@@ -477,7 +477,15 @@
       link.href = window.AangiWhatsApp.buildWhatsAppLink(window.AangiWhatsApp.ADVISOR_PHONE, message);
     }
 
+    var wasHidden = panel.hidden;
     panel.hidden = false;
+    if (wasHidden) {
+      panel.classList.remove("is-entering");
+      // Force reflow so re-adding the class restarts the animation even
+      // when re-triggered before the previous run finished.
+      void panel.offsetWidth;
+      panel.classList.add("is-entering");
+    }
   }
 
   function runCalc(key) {
@@ -553,6 +561,17 @@
       tabGroup.addEventListener("tabchange", function (event) {
         runCalc(event.detail.key);
       });
+
+      var printBtn = document.querySelector("#result-print");
+      if (printBtn) {
+        printBtn.addEventListener("click", function () {
+          document.body.classList.add("print-target-only");
+          window.print();
+        });
+        window.addEventListener("afterprint", function () {
+          document.body.classList.remove("print-target-only");
+        });
+      }
 
       applyRemoteDefaults().then(function () {
         // Run the default (first) calculator once defaults are applied.

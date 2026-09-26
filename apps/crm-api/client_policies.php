@@ -58,12 +58,13 @@ if ($method === 'POST') {
         'premium' => $body['premium'] ?? null,
         'start_date' => $body['start_date'] ?? null,
         'renewal_date' => $body['renewal_date'] ?? null,
+        'category_id' => $body['category_id'] ?? null,
     ];
     $stmt = db()->prepare(
-        'INSERT INTO client_policies (id, client_id, policy_number, insurer, product_type, sum_assured, premium, start_date, renewal_date)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO client_policies (id, client_id, policy_number, insurer, product_type, sum_assured, premium, start_date, renewal_date, category_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
-    $stmt->execute([$newId, $data['client_id'], $data['policy_number'], $data['insurer'], $data['product_type'], $data['sum_assured'], $data['premium'], $data['start_date'], $data['renewal_date']]);
+    $stmt->execute([$newId, $data['client_id'], $data['policy_number'], $data['insurer'], $data['product_type'], $data['sum_assured'], $data['premium'], $data['start_date'], $data['renewal_date'], $data['category_id']]);
     log_audit('client_policies', $newId, 'insert', null, $data + ['id' => $newId]);
     json_out(['id' => $newId], 201);
 }
@@ -78,7 +79,7 @@ if ($method === 'PUT' && $id) {
     $body = json_input();
     $fields = [];
     $params = [];
-    foreach (['policy_number', 'insurer', 'product_type', 'sum_assured', 'premium', 'start_date', 'renewal_date', 'status'] as $col) {
+    foreach (['policy_number', 'insurer', 'product_type', 'sum_assured', 'premium', 'start_date', 'renewal_date', 'status', 'category_id'] as $col) {
         if (array_key_exists($col, $body)) {
             $fields[] = "$col = ?";
             $params[] = $body[$col];

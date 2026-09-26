@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { UserPlus, Download } from "lucide-react";
+import { UserPlus, Download, Users } from "lucide-react";
 import { api, ApiError } from "../../lib/api";
 import { useAuth } from "../../auth/useAuth";
 import { useToast } from "../../components/ui/toast";
@@ -8,22 +8,18 @@ import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { PortalLayout } from "../../portals/PortalLayout";
+import { PortalLayout, type NavItem } from "../../portals/PortalLayout";
 import { TableSkeleton } from "../../components/ui/skeleton";
 import { EmptyState } from "../../components/ui/empty-state";
 import { downloadCsv } from "../../lib/csv";
 import { formatDate } from "../../lib/format";
 import type { Client } from "./types";
 
-interface NavItem {
-  label: string;
-  href: string;
-}
-
 export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; basePath: string }) {
   const { profile } = useAuth();
   const { showToast } = useToast();
   const [clients, setClients] = useState<Client[]>([]);
+  const [lastContact, setLastContact] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ full_name: "", phone: "", email: "", city: "", household_name: "" });
@@ -34,7 +30,16 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
   async function load() {
     setLoading(true);
     try {
-      setClients((await api.get<Client[]>("/clients.php")) ?? []);
+      const [clientRows, lastContactRows] = await Promise.all([
+        api.get<Client[]>("/clients.php"),
+        api.get<{ client_id: string; last_contact: string }[]>("/communications.php?last_per_client=1"),
+      ]);
+      setClients(clientRows ?? []);
+      const map: Record<string, string> = {};
+      (lastContactRows ?? []).forEach((r) => {
+        map[r.client_id] = r.last_contact;
+      });
+      setLastContact(map);
     } catch (err) {
       showToast(`Failed to load clients: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
     }
@@ -151,7 +156,7 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
       {loading ? (
         <TableSkeleton cols={5} />
       ) : clients.length === 0 ? (
-        <EmptyState message="No clients yet." />
+        <EmptyState message="No clients yet." icon={Users} />
       ) : (
         <div className="overflow-hidden rounded-lg border border-line">
           <table className="w-full text-left text-sm">
@@ -161,16 +166,32 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
                 <th className="px-4 py-2.5">Phone</th>
                 <th className="px-4 py-2.5">City</th>
                 <th className="px-4 py-2.5">Household</th>
+                <th className="px-4 py-2.5">Last Contact</th>
                 <th className="px-4 py-2.5" />
               </tr>
             </thead>
             <tbody>
               {clients.map((c) => (
-                <tr key={c.id} className="border-t border-line">
+                <tr
+                  key={c.id}
+                  className="border-t border-line odd:bg-surface-2/40 hover:bg-surface-2 transition-colors"
+                >
                   <td className="px-4 py-2.5 font-medium text-text">{c.full_name}</td>
                   <td className="px-4 py-2.5 text-text-soft">{c.phone}</td>
                   <td className="px-4 py-2.5 text-text-soft">{c.city ?? "—"}</td>
                   <td className="px-4 py-2.5 text-text-soft">{c.household_name ?? "—"}</td>
+                  <td className="px-4 py-2.5">
+                    {(() => {
+                      const last = lastContact[c.id];
+                      if (!last) return <span className="text-text-soft">Never</span>;
+                      const days = Math.floor((Date.now() - new Date(last).getTime()) / (24 * 60 * 60 * 1000));
+                      return (
+                        <span className={days > 60 ? "text-crimson" : "text-text-soft"}>
+                          {days <= 0 ? "Today" : `${days}d ago`}
+                        </span>
+                      );
+                    })()}
+                  </td>
                   <td className="px-4 py-2.5 text-right">
                     <Link
                       to={`${basePath}/clients/${c.id}`}

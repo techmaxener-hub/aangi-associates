@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
+import { UserPlus } from "lucide-react";
 import { api, ApiError } from "../../lib/api";
 import { useToast } from "../../components/ui/toast";
 import { Button } from "../../components/ui/button";
@@ -159,7 +160,7 @@ export function CandidatesPage() {
       {loading ? (
         <ListSkeleton />
       ) : visible.length === 0 ? (
-        <EmptyState message="No candidates yet." />
+        <EmptyState message="No candidates yet." icon={UserPlus} />
       ) : (
         <div className="space-y-3">
           {visible.map((c) => (

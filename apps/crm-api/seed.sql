@@ -10,3 +10,13 @@ INSERT INTO dialer_rules (id, post_call_whatsapp_template) VALUES (
   1,
   'Hi {{name}}, thanks for speaking with Aangi Associates. We will follow up shortly with next steps.'
 );
+
+-- Business Planning's starting product-line taxonomy (admin can add more
+-- from the Business Planning page). UUID() here is MySQL's v1 UUID, not
+-- the app's hand-rolled v4 (lib/uuid.php) — fine for a seed row, nothing
+-- depends on the version bits.
+INSERT INTO product_categories (id, name, sort_order) VALUES
+  (UUID(), 'Life Insurance', 1),
+  (UUID(), 'General Insurance', 2),
+  (UUID(), 'Health Insurance', 3),
+  (UUID(), 'Mutual Funds', 4);

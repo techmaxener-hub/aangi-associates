@@ -25,6 +25,14 @@ const TelephonySettingsPage = lazy(() =>
   import("./portals/admin/settings/TelephonySettingsPage").then((m) => ({ default: m.TelephonySettingsPage })),
 );
 const AuditLogPage = lazy(() => import("./portals/admin/AuditLogPage").then((m) => ({ default: m.AuditLogPage })));
+const BusinessPlanningPage = lazy(() =>
+  import("./modules/business-planning/BusinessPlanningPage").then((m) => ({ default: m.BusinessPlanningPage })),
+);
+const AssociateBusinessPlanPage = lazy(() =>
+  import("./modules/business-planning/AssociateBusinessPlanPage").then((m) => ({
+    default: m.AssociateBusinessPlanPage,
+  })),
+);
 const StaffDashboard = lazy(() =>
   import("./portals/staff/StaffDashboard").then((m) => ({ default: m.StaffDashboard })),
 );
@@ -134,6 +142,14 @@ export default function App() {
                 element={
                   <RequireRole role="admin">
                     <TasksPage navItems={adminNavItems} basePath="/admin" />
+                  </RequireRole>
+                }
+              />
+              <Route
+                path="/admin/business-planning"
+                element={
+                  <RequireRole role="admin">
+                    <BusinessPlanningPage navItems={adminNavItems} />
                   </RequireRole>
                 }
               />
@@ -250,6 +266,14 @@ export default function App() {
                 element={
                   <RequireRole role="associate">
                     <TasksPage navItems={associateNavItems} basePath="/associate" />
+                  </RequireRole>
+                }
+              />
+              <Route
+                path="/associate/business-plan"
+                element={
+                  <RequireRole role="associate">
+                    <AssociateBusinessPlanPage />
                   </RequireRole>
                 }
               />

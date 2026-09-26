@@ -4,7 +4,7 @@
 // JS client + JWT used to do, no token plumbing needed on this side.
 import type { Role } from "../auth/types";
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api";
+export const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api";
 
 export class ApiError extends Error {
   status: number;
@@ -15,10 +15,14 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  // A FormData body must NOT get a Content-Type header set manually — the
+  // browser needs to add its own multipart boundary, which is why
+  // uploads (documents.php) skip the default JSON header entirely.
+  const isFormData = options.body instanceof FormData;
   const res = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
-    headers: { "Content-Type": "application/json", ...(options.headers ?? {}) },
     ...options,
+    headers: isFormData ? options.headers : { "Content-Type": "application/json", ...(options.headers ?? {}) },
   });
 
   const contentType = res.headers.get("content-type") ?? "";
@@ -37,6 +41,10 @@ export const api = {
   put: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: "PUT", body: body !== undefined ? JSON.stringify(body) : undefined }),
   del: <T>(path: string) => request<T>(path, { method: "DELETE" }),
+  // FormData uploads (documents.php) — no Content-Type header here so the
+  // browser sets the multipart boundary itself; JSON.stringify would
+  // mangle a File, which is why this can't just be api.post().
+  postForm: <T>(path: string, form: FormData) => request<T>(path, { method: "POST", body: form }),
 };
 
 // ---- Auth — mirrors apps/crm-api/auth.php's action-routed endpoints ----

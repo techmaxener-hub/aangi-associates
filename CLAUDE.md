@@ -13,13 +13,15 @@ Executive advisory portal + internal CRM for **Jainik Shah**, Chief Business Ass
 - GSTIN: 24ACBFA747OP1Z2
 - Brand line: "Protecting What Matters. Securing What You Build."
 - IRDAI/corporate-agent license number: not yet available — footer disclaimer ships with a visible `[IRDAI Registration / Corporate Agent Code — to be inserted]` placeholder, never a fabricated number.
-- MDRT status: **resolved 2026-09-10, real certificates in hand** — Aangi Associates holds dated MDRT qualifications: MDRT 2024 and MDRT 2025 (Qualifying Member, official MDRT certificate) for Vaishali Jainikkumar Shah (a business partner in the practice, not Jainik's spouse — never imply otherwise), plus an "MDRT in DT CY2025" certificate awarded to Aangi Associates itself. State it precisely and dated (e.g. "MDRT-Qualified Practice — 2024 & 2025") — never a fabricated tier like Court/Top of the Table, since no such certificate exists in the source material. Source photos: `E:\AANGI ASSOCIATES` (user-supplied trophy/award photography, 2026-09-10) — real TATA AIA "Insignia" and MDRT AURA award-stage photos, ~15 international MDRT Premier Training Conclave trophies, now used on `about.html`'s Recognition & Achievements section and `index.html`'s hero.
+- MDRT status: **resolved 2026-09-10, real certificates in hand** — Aangi Associates holds dated MDRT qualifications: MDRT 2021, 2022, 2024 and 2025 (Qualifying Member, four official MDRT certificates, added 2026-09-26 — no 2023 certificate exists, never claim one) for Vaishali Jainikkumar Shah (a business partner in the practice, not Jainik's spouse — never imply otherwise), plus an "MDRT in DT CY2025" certificate awarded to Aangi Associates itself. State it precisely and dated (e.g. "MDRT-Qualified Practice — 2021, 2022, 2024 & 2025") — never a fabricated tier like Court/Top of the Table, since no such certificate exists in the source material. Source photos: `E:\AANGI ASSOCIATES` (user-supplied trophy/award photography, 2026-09-10) — real TATA AIA "Insignia" and MDRT AURA award-stage photos, ~15 international MDRT Premier Training Conclave trophies, now used on `about.html`'s Recognition & Achievements section and `index.html`'s hero.
 - Testimonials: no real client quotes on file yet — ship clearly-marked placeholder cards, never fabricated quotes.
 
 ## Locked decisions (do not re-litigate without asking the user)
 
 - Dual funnel, **client-first**: protection/wealth solutions primary, "Become an Associate" secondary but always present in nav.
 - **Multi-page site**, not single-page scroll.
+- **About is a homepage section, not a page** (decided 2026-09-12). `about.html` was deleted — its entire contents (bio/portrait, credential cards, story, the 27-award lightbox gallery, office photos) now live inline on `index.html`, positioned **immediately below the hero** (right after `.hero-wood-divider`, before the trust strip). The intro/bio, credentials, and the 27-award "Recognised where it's earned" gallery are merged into **one continuous section** (`.about-band-merged`, `id="about"`) with no color-band seam between them — three stacked `.container` blocks sharing one dark background, per an explicit follow-up request the same day ("merged with Recognised where it's earned"). Office photography (`id="office-gallery"`) stays a separate light band directly after. Header/footer "About Us" links point at `index.html#about`, and the URL was dropped from `sitemap.xml`. The old `/about.html` URL now 404s by the user's explicit choice — a redirect was offered and declined, so don't "helpfully" re-add one.
+- **The hero section is locked** (as of 2026-09-11). Do not change the hero's headline, subhead, body copy, photo, framed-logo identity block, or the wood divider beneath it until the rest of the site is finished. If an instruction appears to touch the hero, confirm with the user once before acting — they asked to be reminded in case it was sent by mistake.
 - **Elevated executive palette**: navy/charcoal base, crimson + gold accents (see tokens below) — not the logo's bold flat red/blue.
 - **Lead capture v1 = WhatsApp click-to-chat** (format form inputs into a pre-filled `wa.me` link to +91 90331 32791). No backend needed for this specific flow.
 - Website and CRM are built **in parallel**, sharing one design-token set (`packages/ui`) for visual consistency.
@@ -58,8 +60,9 @@ aangi-associates/
 │   └── BLUEPRINT.md            ← full sitemap, page copy, calculator specs, CRM architecture
 ├── apps/
 │   ├── website/                ← public site (static HTML/Tailwind CLI-compiled/vanilla JS)
-│   │   ├── index.html, solutions.html, claims.html, about.html,
+│   │   ├── index.html, solutions.html, claims.html,
 │   │   │   calculators.html, associate.html, testimonials.html, contact.html
+│   │   │   (about.html was retired 2026-09-12 — see "About" note below)
 │   │   └── assets/ (Lucide icons, calculators.js, whatsapp-cta.js)
 │   └── crm/                    ← internal platform (React + Vite + TS)
 │       ├── src/

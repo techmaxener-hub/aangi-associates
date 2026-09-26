@@ -1,7 +1,19 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Printer } from "lucide-react";
-import { api, ApiError } from "../../lib/api";
+import {
+  Printer,
+  Phone,
+  MessageCircle,
+  Users,
+  Upload,
+  FileText,
+  Download,
+  Trash2,
+  ShieldCheck,
+  TrendingUp,
+  ShieldAlert,
+} from "lucide-react";
+import { api, API_BASE, ApiError } from "../../lib/api";
 import { useToast } from "../../components/ui/toast";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
@@ -12,7 +24,7 @@ import { Textarea } from "../../components/ui/textarea";
 import { Badge } from "../../components/ui/badge";
 import { DetailSkeleton } from "../../components/ui/skeleton";
 import { EmptyState } from "../../components/ui/empty-state";
-import { PortalLayout } from "../../portals/PortalLayout";
+import { PortalLayout, type NavItem } from "../../portals/PortalLayout";
 import { formatINR, formatDate, daysUntil } from "../../lib/format";
 import {
   OPPORTUNITY_STAGES,
@@ -24,11 +36,15 @@ import {
   type Opportunity,
   type Claim,
   type Communication,
+  type ClientDocument,
 } from "./types";
+import type { ProductCategory } from "../business-planning/types";
 
-interface NavItem {
-  label: string;
-  href: string;
+function formatFileSize(bytes: number | null): string {
+  if (!bytes) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 const CATEGORY_MAP: Record<string, string> = {
@@ -51,7 +67,7 @@ const ALL_CATEGORIES = [
   "General Insurance",
 ];
 
-type Tab = "overview" | "policies" | "pipeline" | "claims" | "communications";
+type Tab = "overview" | "policies" | "pipeline" | "claims" | "communications" | "documents";
 
 export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; basePath: string }) {
   const { id } = useParams<{ id: string }>();
@@ -61,6 +77,7 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [comms, setComms] = useState<Communication[]>([]);
+  const [docs, setDocs] = useState<ClientDocument[]>([]);
   const [tab, setTab] = useState<Tab>("overview");
   const [loading, setLoading] = useState(true);
 
@@ -68,18 +85,20 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
     if (!id) return;
     setLoading(true);
     try {
-      const [c, p, o, cl, co] = await Promise.all([
+      const [c, p, o, cl, co, dc] = await Promise.all([
         api.get<Client>(`/clients.php?id=${id}`),
         api.get<ClientPolicy[]>(`/client_policies.php?client_id=${id}`),
         api.get<Opportunity[]>(`/opportunities.php?client_id=${id}`),
         api.get<Claim[]>(`/claims.php?client_id=${id}`),
         api.get<Communication[]>(`/communications.php?client_id=${id}`),
+        api.get<ClientDocument[]>(`/documents.php?client_id=${id}`),
       ]);
       setClient(c ?? null);
       setPolicies(p ?? []);
       setOpportunities(o ?? []);
       setClaims(cl ?? []);
       setComms(co ?? []);
+      setDocs(dc ?? []);
     } catch (err) {
       showToast(`Failed to load client: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
       setClient(null);
@@ -91,6 +110,23 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
     void loadAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  const [loggingTouch, setLoggingTouch] = useState<string | null>(null);
+  // One-tap touchpoint logging — the full Communications tab still asks
+  // for a note, but most check-ins don't need one typed out on the spot;
+  // this just records the channel + timestamp instantly, same table.
+  async function logQuickTouch(channel: "call" | "whatsapp" | "other", label: string) {
+    if (!client) return;
+    setLoggingTouch(channel);
+    try {
+      await api.post("/communications.php", { client_id: client.id, channel, notes: label });
+      showToast(`Logged: ${label}.`);
+      void loadAll();
+    } catch (err) {
+      showToast(`Failed to log: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
+    }
+    setLoggingTouch(null);
+  }
 
   const coveredCategories = new Set(
     policies
@@ -130,7 +166,31 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
     >
       <PrintableClientSummary client={client} policies={policies} />
 
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex flex-wrap justify-end gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={loggingTouch !== null}
+          onClick={() => void logQuickTouch("call", "Called")}
+        >
+          <Phone className="h-3.5 w-3.5" /> Called
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={loggingTouch !== null}
+          onClick={() => void logQuickTouch("whatsapp", "WhatsApp'd")}
+        >
+          <MessageCircle className="h-3.5 w-3.5" /> WhatsApp'd
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={loggingTouch !== null}
+          onClick={() => void logQuickTouch("other", "Met")}
+        >
+          <Users className="h-3.5 w-3.5" /> Met
+        </Button>
         <Button variant="ghost" size="sm" onClick={() => window.print()}>
           <Printer className="h-3.5 w-3.5" /> Print Summary
         </Button>
@@ -151,7 +211,7 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
       )}
 
       <div className="mb-6 flex gap-2 border-b border-line">
-        {(["overview", "policies", "pipeline", "claims", "communications"] as Tab[]).map((t) => (
+        {(["overview", "policies", "pipeline", "claims", "communications", "documents"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -196,6 +256,7 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
       {tab === "pipeline" && <PipelineTab clientId={client.id} opportunities={opportunities} onChange={loadAll} />}
       {tab === "claims" && <ClaimsTab clientId={client.id} policies={policies} claims={claims} onChange={loadAll} />}
       {tab === "communications" && <CommunicationsTab clientId={client.id} comms={comms} onChange={loadAll} />}
+      {tab === "documents" && <DocumentsTab clientId={client.id} docs={docs} onChange={loadAll} />}
     </PortalLayout>
   );
 }
@@ -303,6 +364,7 @@ function PoliciesTab({
   const { showToast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [form, setForm] = useState({
     policy_number: "",
     insurer: "TATA AIA",
@@ -311,7 +373,18 @@ function PoliciesTab({
     premium: "",
     start_date: "",
     renewal_date: "",
+    category_id: "",
   });
+
+  // The category (Life/Health/General/Mutual Funds/…) that ties this
+  // policy's actual business to Business Planning targets — see
+  // client_policies.category_id and business_plans.php's achievement query.
+  useEffect(() => {
+    api
+      .get<ProductCategory[]>("/product_categories.php")
+      .then((rows) => setCategories(rows ?? []))
+      .catch(() => setCategories([]));
+  }, []);
 
   async function handleAdd(event: FormEvent) {
     event.preventDefault();
@@ -326,6 +399,7 @@ function PoliciesTab({
         premium: form.premium ? Number(form.premium) : null,
         start_date: form.start_date || null,
         renewal_date: form.renewal_date || null,
+        category_id: form.category_id || null,
       });
     } catch (err) {
       setSaving(false);
@@ -397,6 +471,17 @@ function PoliciesTab({
                 onChange={(e) => setForm({ ...form, renewal_date: e.target.value })}
               />
             </div>
+            <div className="space-y-1.5">
+              <Label>Business Planning Category</Label>
+              <Select value={form.category_id} onChange={(e) => setForm({ ...form, category_id: e.target.value })}>
+                <option value="">Uncategorized</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
             <div className="col-span-2 flex justify-end">
               <Button type="submit" disabled={saving}>
                 {saving ? "Saving…" : "Save Policy"}
@@ -407,7 +492,7 @@ function PoliciesTab({
       )}
 
       {policies.length === 0 ? (
-        <EmptyState message="No policies yet." />
+        <EmptyState message="No policies yet." icon={ShieldCheck} />
       ) : (
         <div className="overflow-hidden rounded-lg border border-line">
           <table className="w-full text-left text-sm">
@@ -429,7 +514,10 @@ function PoliciesTab({
                 const waPhone = digits.length === 10 ? `91${digits}` : digits;
                 const reminderMessage = `Hi ${clientName}, this is a reminder from Aangi Associates that your ${p.product_type} policy is due for renewal on ${formatDate(p.renewal_date)}. Let us know if you'd like to discuss it.`;
                 return (
-                  <tr key={p.id} className="border-t border-line">
+                  <tr
+                    key={p.id}
+                    className="border-t border-line odd:bg-surface-2/40 hover:bg-surface-2 transition-colors"
+                  >
                     <td className="px-4 py-2.5 text-text">{p.product_type}</td>
                     <td className="px-4 py-2.5 text-text-soft">{p.insurer}</td>
                     <td className="px-4 py-2.5 text-right font-mono tabular-nums text-text-soft">
@@ -521,7 +609,7 @@ function PipelineTab({
       </div>
 
       {opportunities.length === 0 ? (
-        <EmptyState message="No open opportunities." />
+        <EmptyState message="No open opportunities." icon={TrendingUp} />
       ) : (
         <div className="space-y-3">
           {opportunities.map((o) => (
@@ -627,7 +715,7 @@ function ClaimsTab({
       </Card>
 
       {claims.length === 0 ? (
-        <EmptyState message="No claims on file." />
+        <EmptyState message="No claims on file." icon={ShieldAlert} />
       ) : (
         <div className="space-y-3">
           {claims.map((c) => (
@@ -717,7 +805,7 @@ function CommunicationsTab({
       </Card>
 
       {comms.length === 0 ? (
-        <EmptyState message="No communications logged yet." />
+        <EmptyState message="No communications logged yet." icon={MessageCircle} />
       ) : (
         <ul className="space-y-2">
           {comms.map((c) => (
@@ -725,6 +813,110 @@ function CommunicationsTab({
               <span className="font-medium capitalize text-gold-text">{c.channel}</span>{" "}
               <span className="text-text-soft">· {formatDate(c.occurred_at)}</span>
               <p className="text-text">{c.notes}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function DocumentsTab({
+  clientId,
+  docs,
+  onChange,
+}: {
+  clientId: string;
+  docs: ClientDocument[];
+  onChange: () => void;
+}) {
+  const { showToast } = useToast();
+  const [uploading, setUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  async function handleUpload(event: FormEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = "";
+    if (!file) return;
+    setUploading(true);
+    try {
+      const form = new FormData();
+      form.append("client_id", clientId);
+      form.append("file", file);
+      await api.postForm("/documents.php", form);
+      showToast("Document uploaded.");
+      onChange();
+    } catch (err) {
+      showToast(`Failed to upload: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
+    }
+    setUploading(false);
+  }
+
+  async function handleDelete(id: string) {
+    setDeletingId(id);
+    try {
+      await api.del(`/documents.php?id=${id}`);
+      showToast("Document deleted.");
+      onChange();
+    } catch (err) {
+      showToast(`Failed to delete: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
+    }
+    setDeletingId(null);
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card className="max-w-xl p-4">
+        <Label htmlFor="doc-upload" className="mb-2 block">
+          Upload a document
+        </Label>
+        <div className="flex items-center gap-3">
+          <Button asChild variant="ghost" size="sm" disabled={uploading}>
+            <label htmlFor="doc-upload" className="cursor-pointer">
+              <Upload className="h-3.5 w-3.5" /> {uploading ? "Uploading…" : "Choose file"}
+            </label>
+          </Button>
+          <input
+            id="doc-upload"
+            type="file"
+            className="hidden"
+            disabled={uploading}
+            onChange={(e) => void handleUpload(e)}
+          />
+          <p className="text-xs text-text-soft">Policy PDFs, ID proof, etc. — 10MB max.</p>
+        </div>
+      </Card>
+
+      {docs.length === 0 ? (
+        <EmptyState message="No documents uploaded yet." icon={FileText} />
+      ) : (
+        <ul className="space-y-2">
+          {docs.map((d) => (
+            <li key={d.id} className="flex items-center gap-3 rounded-lg border border-line bg-surface p-3 text-sm">
+              <FileText className="h-4 w-4 shrink-0 text-gold-text" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-text">{d.original_name}</p>
+                <p className="text-xs text-text-soft">
+                  {formatFileSize(d.size_bytes)} · {formatDate(d.created_at)}
+                  {d.uploaded_by_name ? ` · ${d.uploaded_by_name}` : ""}
+                </p>
+              </div>
+              <a
+                href={`${API_BASE}/documents.php?download=${d.id}`}
+                className="shrink-0 rounded-md p-1.5 text-text-soft hover:bg-surface-2 hover:text-text"
+                title="Download"
+              >
+                <Download className="h-4 w-4" />
+              </a>
+              <button
+                type="button"
+                disabled={deletingId === d.id}
+                onClick={() => void handleDelete(d.id)}
+                className="shrink-0 rounded-md p-1.5 text-text-soft hover:bg-surface-2 hover:text-crimson"
+                title="Delete"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
             </li>
           ))}
         </ul>

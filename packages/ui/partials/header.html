@@ -1,42 +1,61 @@
+<div class="scroll-progress" aria-hidden="true"><div class="scroll-progress-fill" data-scroll-progress></div></div>
 <header class="site-header">
   <div class="container header-inner">
     <a href="index.html" class="brand">
-      <img src="assets/img/logo-mark.png" alt="Aangi Associates" class="brand-mark-img">
-      <span class="brand-name">Aangi Associates</span>
+      <img src="assets/img/logo-jainik-header-transparent.png" alt="Jainik Shah — Aangi Associates" class="brand-mark-img">
     </a>
+    <span class="header-trust-badge" aria-hidden="true">17+ Yrs · Ahmedabad</span>
 
     <nav class="main-nav" aria-label="Primary">
       <ul>
-        <li><a href="index.html" data-nav="home">Home</a></li>
+        <li class="nav-item-home"><a href="index.html" data-nav="home">Home</a></li>
+        <li><a href="index.html#about" data-nav="about">About Us</a></li>
         <li class="has-dropdown">
-          <a href="solutions.html" data-nav="solutions">Solutions ▾</a>
+          <a href="solutions.html" data-nav="solutions" aria-haspopup="true">Expertise <span class="caret" aria-hidden="true">▾</span></a>
           <ul class="dropdown">
-            <li><a href="solutions.html#protection">Life &amp; Risk Protection</a></li>
-            <li><a href="solutions.html#wealth">Wealth &amp; Guaranteed Solutions</a></li>
-            <li><a href="solutions.html#retirement">Retirement &amp; Estate Design</a></li>
-            <li><a href="solutions.html#business">Business &amp; Corporate Risk</a></li>
-            <li><a href="solutions.html#general">General Insurance</a></li>
+            <li class="dropdown-all"><a href="solutions.html">All Expertise</a></li>
+            <li><a href="solutions.html#wealth" data-category="wealth">Investments Planning</a></li>
+            <li><a href="solutions.html#protection" data-category="protection">Income Protection</a></li>
+            <li><a href="solutions.html#retirement" data-category="retirement">Retirement Plan</a></li>
+            <li><a href="solutions.html" data-category="general">Financial Planning</a></li>
+            <li><a href="solutions.html#business" data-category="business">Keyman Insurance</a></li>
+            <li><a href="solutions.html#protection" data-category="protection">Critical Illness Insurance</a></li>
+            <li><a href="solutions.html#wealth" data-category="wealth">Child Education Planning</a></li>
+            <li><a href="solutions.html" data-category="general">NRI Insurance</a></li>
+            <li><a href="claims.html" data-nav="claims">Claim Assistance</a></li>
+            <li><a href="faq.html" data-nav="faq">FAQ &amp; Glossary</a></li>
           </ul>
         </li>
-        <li><a href="claims.html" data-nav="claims">Claim Assistance</a></li>
-        <li><a href="about.html" data-nav="about">About Jainik</a></li>
-        <li><a href="calculators.html" data-nav="calculators">Calculators</a></li>
-        <li><a href="testimonials.html" data-nav="testimonials">Testimonials</a></li>
-        <li><a href="contact.html" data-nav="contact">Contact</a></li>
+        <li class="has-dropdown">
+          <a href="calculators.html" data-nav="calculators" aria-haspopup="true">Calculators <span class="caret" aria-hidden="true">▾</span></a>
+          <ul class="dropdown dropdown-cols-2">
+            <li class="dropdown-all"><a href="calculators.html">All Calculators</a></li>
+            <li><a href="calculators.html#hlv">Term Insurance Need</a></li>
+            <li><a href="calculators.html#education">Child Education</a></li>
+            <li><a href="calculators.html#wedding">Dream Wedding</a></li>
+            <li><a href="calculators.html#car">Dream Car / Bike / Property</a></li>
+            <li><a href="calculators.html#vacation">Dream Vacation</a></li>
+            <li><a href="calculators.html#retirement">Retirement Corpus</a></li>
+            <li><a href="calculators.html#sip-calc">SIP Calculator</a></li>
+            <li><a href="calculators.html#lumpsum">Lumpsum Calculator</a></li>
+            <li><a href="calculators.html#sip-delay">Cost of Delay</a></li>
+            <li><a href="calculators.html#sip-topup">SIP Top-Up</a></li>
+            <li><a href="calculators.html#limited-sip">Limited Period SIP</a></li>
+            <li><a href="calculators.html#birthday">Birthday SIP</a></li>
+            <li><a href="calculators.html#emi">EMI Calculator</a></li>
+            <li><a href="calculators.html#home-loan-sip">Home Loan vs SIP</a></li>
+            <li><a href="calculators.html#swp">SWP Calculator</a></li>
+            <li><a href="calculators.html#gap-score">Protection Gap Score</a></li>
+          </ul>
+        </li>
+        <li><a href="contact.html" data-nav="contact">Get In Touch</a></li>
+        <li class="nav-login"><a href="/app/" data-nav="login">Login</a></li>
+        <li class="nav-cta-mobile"><a class="btn btn-secondary" href="associate.html" data-i18n="cta_associate">Become an Associate</a></li>
       </ul>
     </nav>
 
     <div class="header-ctas">
-      <div class="header-utils">
-        <div class="lang-switcher" role="group" aria-label="Choose language">
-          <button type="button" data-lang="en" aria-pressed="true">EN</button>
-          <button type="button" data-lang="hi" aria-pressed="false">हि</button>
-          <button type="button" data-lang="gu" aria-pressed="false">ગુ</button>
-        </div>
-        <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle dark mode">🌙</button>
-      </div>
       <div class="header-actions">
-        <a class="btn btn-primary" href="https://wa.me/919033132791?text=Hi%20Aangi%20Associates%2C%20I'd%20like%20to%20talk%20to%20an%20advisor." target="_blank" rel="noopener" data-i18n="cta_talk_header">Talk to an Advisor</a>
         <a class="btn btn-secondary" href="associate.html" data-i18n="cta_associate">Become an Associate</a>
       </div>
     </div>

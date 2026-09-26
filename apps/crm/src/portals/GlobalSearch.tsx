@@ -21,6 +21,7 @@ export function GlobalSearch({ basePath }: { basePath: string }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     function onClickOutside(event: MouseEvent) {
@@ -30,6 +31,24 @@ export function GlobalSearch({ basePath }: { basePath: string }) {
     }
     document.addEventListener("mousedown", onClickOutside);
     return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
+
+  // Ctrl/Cmd+K jumps straight to search from anywhere in the portal — the
+  // same shortcut most people already know from other tools, so search
+  // becomes the fast way in rather than something tucked in the header.
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        inputRef.current?.focus();
+      }
+      if (event.key === "Escape") {
+        setOpen(false);
+        inputRef.current?.blur();
+      }
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
 
   useEffect(() => {
@@ -112,15 +131,19 @@ export function GlobalSearch({ basePath }: { basePath: string }) {
 
   return (
     <div ref={containerRef} className="relative">
-      <div className="flex items-center gap-2 rounded-md border border-line-strong bg-surface-2 px-3 py-2">
+      <div className="flex items-center gap-2 rounded-md border border-line-strong bg-surface-2 px-3 py-2.5 focus-within:border-crimson">
         <Search className="h-4 w-4 shrink-0 text-text-soft" />
         <input
+          ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setOpen(true)}
           placeholder="Search clients, leads, tasks…"
           className="w-full bg-transparent text-sm text-text placeholder:text-text-soft focus:outline-none"
         />
+        <kbd className="hidden shrink-0 rounded border border-line-strong px-1.5 py-0.5 font-mono text-[10px] text-text-soft sm:block">
+          Ctrl K
+        </kbd>
       </div>
 
       {open && query.trim().length >= 2 && (

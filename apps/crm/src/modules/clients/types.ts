@@ -29,6 +29,7 @@ export interface ClientPolicy {
   start_date: string | null;
   renewal_date: string | null;
   status: PolicyStatus;
+  category_id: string | null;
   created_at: string;
 }
 
@@ -68,6 +69,16 @@ export interface Communication {
   occurred_at: string;
   logged_by: string | null;
   created_at: string;
+}
+
+export interface ClientDocument {
+  id: string;
+  client_id: string;
+  original_name: string;
+  mime_type: string | null;
+  size_bytes: number | null;
+  created_at: string;
+  uploaded_by_name: string | null;
 }
 
 export const OPPORTUNITY_STAGES: OpportunityStage[] = ["inquiry", "quote", "application", "underwriting", "bind_issue"];

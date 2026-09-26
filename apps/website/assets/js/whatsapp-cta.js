@@ -17,6 +17,12 @@
   function wireForm(form, opts) {
     form.addEventListener("submit", function (event) {
       event.preventDefault();
+
+      // Honeypot: a real off-screen (not display:none, which bots detect)
+      // field bots fill in and humans never see. If it's filled, abort
+      // silently — no error shown, nothing to tip off the bot.
+      if (fieldValue(form, "website")) return;
+
       var status = form.querySelector("[data-form-status]");
       var submitBtn = form.querySelector('button[type="submit"]');
 

@@ -21,6 +21,27 @@ if ($method === 'GET' && $clientId) {
     json_out($stmt->fetchAll());
 }
 
+// Bulk "last contact per client" for ClientsListPage.tsx's "Days since
+// last contact" column — one aggregate query instead of an N+1 GET-per-
+// client, scoped the same way assert_can_access_client() scopes a single
+// client (associate: only their own; client role: none, same as above).
+if ($method === 'GET' && ($_GET['last_per_client'] ?? null)) {
+    if ($user['role'] === 'client') json_error('Forbidden', 403);
+    if ($user['role'] === 'associate') {
+        $ids = owned_client_ids($user['id']);
+        if (!$ids) json_out([]);
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = db()->prepare(
+            "SELECT client_id, MAX(occurred_at) AS last_contact FROM communications
+             WHERE client_id IN ($placeholders) GROUP BY client_id"
+        );
+        $stmt->execute($ids);
+    } else {
+        $stmt = db()->query('SELECT client_id, MAX(occurred_at) AS last_contact FROM communications GROUP BY client_id');
+    }
+    json_out($stmt->fetchAll());
+}
+
 if ($method === 'POST') {
     $body = json_input();
     if (empty($body['client_id']) || empty($body['channel'])) json_error('client_id and channel are required', 422);

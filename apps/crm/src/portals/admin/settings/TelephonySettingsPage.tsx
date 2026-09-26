@@ -23,9 +23,9 @@ export function TelephonySettingsPage() {
     <PortalLayout title="Telephony & AI Calling Agents" navItems={adminNavItems}>
       <div className="mb-6 rounded-lg border border-line bg-surface-2 p-3 text-xs text-text-soft">
         <span className="font-semibold text-gold-text">Honest status:</span> credential storage below is real (MySQL,
-        admin-only via apps/crm-api). Nothing here can actually place or answer a call yet — that needs a real Exotel/Sarvam/
-        TeleCRM/SquadStack account and a deployed webhook receiver, neither of which exist. "Test" buttons simulate a
-        result; the Call Logs Desk is a real table that fills automatically once that receiver ships.
+        admin-only via apps/crm-api). Nothing here can actually place or answer a call yet — that needs a real
+        Exotel/Sarvam/ TeleCRM/SquadStack account and a deployed webhook receiver, neither of which exist. "Test"
+        buttons simulate a result; the Call Logs Desk is a real table that fills automatically once that receiver ships.
       </div>
 
       <div className="grid grid-cols-[260px_1fr] gap-6">

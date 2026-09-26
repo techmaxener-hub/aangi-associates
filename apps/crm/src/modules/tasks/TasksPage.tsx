@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { Download } from "lucide-react";
+import { Download, ListChecks } from "lucide-react";
 import { api, ApiError } from "../../lib/api";
 import { useAuth } from "../../auth/useAuth";
 import { useToast } from "../../components/ui/toast";
@@ -12,15 +12,10 @@ import { Select } from "../../components/ui/select";
 import { Textarea } from "../../components/ui/textarea";
 import { BoardSkeleton } from "../../components/ui/skeleton";
 import { EmptyState } from "../../components/ui/empty-state";
-import { PortalLayout } from "../../portals/PortalLayout";
+import { PortalLayout, type NavItem } from "../../portals/PortalLayout";
 import { downloadCsv } from "../../lib/csv";
 import { formatDate } from "../../lib/format";
 import { TASK_STATUSES, type Task, type TaskAssignee, type TaskStatus } from "./types";
-
-interface NavItem {
-  label: string;
-  href: string;
-}
 
 interface LinkOption {
   id: string;
@@ -228,7 +223,7 @@ export function TasksPage({ navItems, basePath }: { navItems: NavItem[]; basePat
       {loading ? (
         <BoardSkeleton columns={3} />
       ) : tasks.length === 0 ? (
-        <EmptyState message="No tasks yet." />
+        <EmptyState message="No tasks yet." icon={ListChecks} />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {TASK_STATUSES.map((status) => (

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Download } from "lucide-react";
+import { Download, TrendingUp } from "lucide-react";
 import { api, ApiError } from "../../lib/api";
 import { useAuth } from "../../auth/useAuth";
 import { useToast } from "../../components/ui/toast";
@@ -10,15 +10,10 @@ import { Input } from "../../components/ui/input";
 import { Select } from "../../components/ui/select";
 import { BoardSkeleton } from "../../components/ui/skeleton";
 import { EmptyState } from "../../components/ui/empty-state";
-import { PortalLayout } from "../../portals/PortalLayout";
+import { PortalLayout, type NavItem } from "../../portals/PortalLayout";
 import { downloadCsv } from "../../lib/csv";
 import { formatDate } from "../../lib/format";
 import { LEAD_PIPELINE, LEAD_STATUS_LABEL, type Lead, type LeadAssignee, type LeadStatus } from "./types";
-
-interface NavItem {
-  label: string;
-  href: string;
-}
 
 const COLUMN_ACCENT: Record<LeadStatus, string> = {
   new: "bg-line-strong",
@@ -249,7 +244,7 @@ export function LeadsDeskPage({ navItems, basePath }: { navItems: NavItem[]; bas
       {loading ? (
         <BoardSkeleton columns={4} />
       ) : leads.length === 0 ? (
-        <EmptyState message="No leads yet." />
+        <EmptyState message="No leads yet." icon={TrendingUp} />
       ) : (
         <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${showDropped ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}>
           {visiblePipeline.map((status) => (

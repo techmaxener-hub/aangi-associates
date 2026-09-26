@@ -1,3 +1,4 @@
+import { CalendarClock } from "lucide-react";
 import { PortalLayout } from "../PortalLayout";
 import { clientNavItems } from "./nav";
 import { NotLinkedNotice } from "./ClientDashboard";
@@ -20,7 +21,7 @@ export function RenewalsPage() {
       ) : !client ? (
         <NotLinkedNotice />
       ) : withRenewal.length === 0 ? (
-        <EmptyState message="No upcoming renewal dates on file." />
+        <EmptyState message="No upcoming renewal dates on file." icon={CalendarClock} />
       ) : (
         <div className="space-y-3">
           {withRenewal.map((p) => {

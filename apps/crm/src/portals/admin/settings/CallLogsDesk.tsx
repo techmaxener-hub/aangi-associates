@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { PhoneOutgoing, Plus } from "lucide-react";
+import { PhoneOutgoing, Plus, Phone } from "lucide-react";
 import { api, ApiError } from "../../../lib/api";
 import { useToast } from "../../../components/ui/toast";
 import { Button } from "../../../components/ui/button";
@@ -216,7 +216,7 @@ export function CallLogsDesk() {
       {loading ? (
         <TableSkeleton cols={6} />
       ) : calls.length === 0 ? (
-        <EmptyState message="No calls yet." />
+        <EmptyState message="No calls yet." icon={Phone} />
       ) : (
         <div className="overflow-x-auto rounded-lg border border-line">
           <table className="w-full text-left text-sm">
@@ -233,7 +233,10 @@ export function CallLogsDesk() {
             </thead>
             <tbody>
               {calls.map((c) => (
-                <tr key={c.id} className="border-t border-line align-top">
+                <tr
+                  key={c.id}
+                  className="border-t border-line align-top odd:bg-surface-2/40 hover:bg-surface-2 transition-colors"
+                >
                   <td className="px-4 py-2.5">
                     <p className="font-medium text-text">{c.lead_name}</p>
                     <p className="text-xs text-text-soft">

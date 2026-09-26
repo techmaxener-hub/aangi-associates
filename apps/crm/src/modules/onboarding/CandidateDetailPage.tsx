@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { ListChecks } from "lucide-react";
 import { api, ApiError } from "../../lib/api";
 import { useToast } from "../../components/ui/toast";
 import { Button } from "../../components/ui/button";
@@ -143,7 +144,7 @@ export function CandidateDetailPage() {
       <div>
         <p className="mb-2 font-medium text-text">Linked tasks</p>
         {tasks.length === 0 ? (
-          <EmptyState message="No tasks linked to this candidate yet." />
+          <EmptyState message="No tasks linked to this candidate yet." icon={ListChecks} />
         ) : (
           <div className="space-y-2">
             {tasks.map((t) => (

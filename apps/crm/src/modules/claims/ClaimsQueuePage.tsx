@@ -1,19 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { ShieldAlert } from "lucide-react";
 import { api, ApiError } from "../../lib/api";
 import { useToast } from "../../components/ui/toast";
 import { Card } from "../../components/ui/card";
 import { Select } from "../../components/ui/select";
 import { ListSkeleton } from "../../components/ui/skeleton";
 import { EmptyState } from "../../components/ui/empty-state";
-import { PortalLayout } from "../../portals/PortalLayout";
+import { PortalLayout, type NavItem } from "../../portals/PortalLayout";
 import { formatDate } from "../../lib/format";
 import { CLAIM_STAGES, type Claim } from "../clients/types";
-
-interface NavItem {
-  label: string;
-  href: string;
-}
 
 export function ClaimsQueuePage({ navItems, basePath }: { navItems: NavItem[]; basePath: string }) {
   const { showToast } = useToast();
@@ -71,7 +67,7 @@ export function ClaimsQueuePage({ navItems, basePath }: { navItems: NavItem[]; b
       {loading ? (
         <ListSkeleton />
       ) : visible.length === 0 ? (
-        <EmptyState message="No claims to show." />
+        <EmptyState message="No claims to show." icon={ShieldAlert} />
       ) : (
         <div className="space-y-3">
           {visible.map((c) => (

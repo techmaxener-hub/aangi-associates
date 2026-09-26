@@ -1,3 +1,4 @@
+import { ShieldCheck } from "lucide-react";
 import { PortalLayout } from "../PortalLayout";
 import { clientNavItems } from "./nav";
 import { NotLinkedNotice } from "./ClientDashboard";
@@ -18,7 +19,7 @@ export function ClaimStatusPage() {
       ) : !client ? (
         <NotLinkedNotice />
       ) : claims.length === 0 ? (
-        <EmptyState message="No claims on file — hopefully it stays that way." />
+        <EmptyState message="No claims on file — hopefully it stays that way." icon={ShieldCheck} />
       ) : (
         <div className="space-y-3">
           {claims.map((c) => (

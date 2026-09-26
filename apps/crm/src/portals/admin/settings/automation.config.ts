@@ -6,7 +6,7 @@ export const EMAIL_AUTOMATION: IntegrationDef = {
   name: "Email Automation",
   category: "Renewal / Welcome / Onboarding",
   icon: Mail,
-  color: "#8f6f26",
+  color: "var(--gold)",
   fields: [
     { key: "provider", label: "Provider (SMTP / SendGrid / Postmark / Resend)", type: "text" },
     { key: "api_key", label: "API Key / SMTP Password", type: "password" },

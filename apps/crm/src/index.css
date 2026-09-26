@@ -5,10 +5,196 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Shared wood-carving motif, matching apps/website's hero/footer frames
+   and section dividers (see main.css) — reproduced here rather than
+   imported from components.css since this app doesn't pull that file in,
+   only tokens.css/fonts.css. Kept byte-for-byte identical so the two apps
+   read as the same material. */
+:root {
+  --wood-carve-line: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='16' viewBox='0 0 48 16'%3E%3Cpath d='M0 8C6 2 18 2 24 8C30 14 42 14 48 8' fill='none' stroke='rgba(0,0,0,0.38)' stroke-width='1.6' stroke-linecap='round'/%3E%3Cpath d='M0 7C6 1 18 1 24 7C30 13 42 13 48 7' fill='none' stroke='rgba(255,255,255,0.42)' stroke-width='1.1' stroke-linecap='round'/%3E%3C/svg%3E");
+  --wood-grain: repeating-linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.05) 0px,
+    rgba(255, 255, 255, 0.05) 1px,
+    transparent 1px,
+    transparent 3px,
+    rgba(0, 0, 0, 0.05) 3px,
+    rgba(0, 0, 0, 0.05) 4px,
+    transparent 4px,
+    transparent 7px
+  );
+}
+
+/* Sidebar brand mark — the same rounded, glossy tabletop-frame look as
+   the website's footer logo, scaled down for the CRM sidebar header. */
+.sidebar-brand-frame {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: 176px;
+  padding: 8px;
+  border-radius: 11px;
+  background:
+    linear-gradient(125deg, transparent 26%, rgba(255, 255, 255, 0.26) 42%, transparent 56%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, transparent 28%), var(--wood-grain),
+    radial-gradient(130% 150% at 26% 18%, #e0a868 0%, #c98a4b 30%, #a86a35 58%, #7a4a22 84%, #5f3517 100%);
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.35),
+    inset 0 2px 3px rgba(255, 255, 255, 0.4),
+    inset 0 -4px 7px rgba(0, 0, 0, 0.4);
+}
+.sidebar-brand-frame::before,
+.sidebar-brand-frame::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  height: 4px;
+  background-image: var(--wood-carve-line);
+  background-repeat: repeat-x;
+  background-size: 24px 4px;
+  background-position: center;
+  opacity: 0.8;
+  pointer-events: none;
+}
+.sidebar-brand-frame::before {
+  top: 2px;
+}
+.sidebar-brand-frame::after {
+  bottom: 2px;
+}
+.sidebar-brand-frame-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #faf7f0;
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.28);
+}
+.sidebar-brand-logo {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Sidebar/content and header/content boundaries — the same carved wood
+   strip used as a section divider on the website (main.css's
+   .hero-wood-divider), reused here vertically (sidebar edge) and
+   horizontally (below the topbar) so the CRM shell reads as the same
+   material family as the public site. */
+.wood-divider-v {
+  position: relative;
+  width: 10px;
+  flex-shrink: 0;
+  background:
+    var(--wood-grain), linear-gradient(90deg, #e0a868 0%, #c98a4b 25%, #a86a35 55%, #7a4a22 80%, #5f3517 100%);
+  box-shadow:
+    inset 2px 0 3px rgba(255, 255, 255, 0.4),
+    inset -3px 0 6px rgba(0, 0, 0, 0.35),
+    3px 0 8px rgba(0, 0, 0, 0.25);
+}
+.wood-divider-v::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='48' viewBox='0 0 16 48'%3E%3Cpath d='M8 0C2 6 2 18 8 24C14 30 14 42 8 48' fill='none' stroke='rgba(0,0,0,0.38)' stroke-width='1.6' stroke-linecap='round'/%3E%3Cpath d='M7 0C1 6 1 18 7 24C13 30 13 42 7 48' fill='none' stroke='rgba(255,255,255,0.42)' stroke-width='1.1' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: repeat-y;
+  background-size: 10px 48px;
+  background-position: center;
+  opacity: 0.8;
+}
+.wood-divider-h {
+  position: relative;
+  height: 10px;
+  background:
+    var(--wood-grain), linear-gradient(180deg, #e0a868 0%, #c98a4b 25%, #a86a35 55%, #7a4a22 80%, #5f3517 100%);
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 0.4),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.35),
+    0 3px 8px rgba(0, 0, 0, 0.25);
+}
+.wood-divider-h::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--wood-carve-line);
+  background-repeat: repeat-x;
+  background-size: 48px 10px;
+  background-position: center;
+  opacity: 0.8;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
   font-family: "Public Sans", sans-serif;
+}
+
+/* Branded loading shimmer — a gold-tinted sweep instead of a flat pulse,
+   so skeletons read as this app rather than a generic UI-kit default. */
+@keyframes skeleton-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+.skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gold) 22%, transparent), transparent);
+  animation: skeleton-sweep 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer::after {
+    animation: none;
+  }
+}
+
+/* Login screen background treatment — a soft gold glow + faint diagonal
+   texture on the brand panel (echoes the website's CTA-band pattern),
+   and a much fainter version behind the form itself so it doesn't sit on
+   flat white but also doesn't compete with the actual inputs. */
+.auth-brand-panel {
+  background-image:
+    radial-gradient(circle at 25% 20%, color-mix(in srgb, var(--gold) 18%, transparent) 0%, transparent 55%),
+    repeating-linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--gold) 4%, transparent) 0px,
+      color-mix(in srgb, var(--gold) 4%, transparent) 1px,
+      transparent 1px,
+      transparent 26px
+    );
+}
+.auth-form-panel {
+  background-image: radial-gradient(
+    circle at 80% 15%,
+    color-mix(in srgb, var(--gold) 7%, transparent) 0%,
+    transparent 45%
+  );
+}
+
+/* Toast entrance — a small slide+fade instead of just popping in. */
+@keyframes toast-enter-anim {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.toast-enter {
+  animation: toast-enter-anim 0.2s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .toast-enter {
+    animation: none;
+  }
 }
 
 /* Accessibility: visible focus states everywhere (Tailwind's reset
