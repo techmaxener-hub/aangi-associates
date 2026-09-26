@@ -10,6 +10,7 @@ import {
   History,
   Settings,
   BarChart3,
+  HeartPulse,
   type LucideIcon,
 } from "lucide-react";
 
@@ -22,6 +23,7 @@ export const adminNavItems: { label: string; href: string; group?: string; icon:
   { label: "Tasks", href: "/admin/tasks", group: "Work", icon: ListChecks },
   { label: "Business Planning", href: "/admin/business-planning", group: "Work", icon: Target },
   { label: "Pivot Explorer", href: "/admin/analytics", group: "Work", icon: BarChart3 },
+  { label: "Retention", href: "/admin/retention", group: "Work", icon: HeartPulse },
   { label: "Telephony & AI Calling", href: "/admin/telephony", group: "System", icon: PhoneCall },
   { label: "Audit Log", href: "/admin/audit-log", group: "System", icon: History },
   { label: "Settings", href: "/admin/settings", group: "System", icon: Settings },

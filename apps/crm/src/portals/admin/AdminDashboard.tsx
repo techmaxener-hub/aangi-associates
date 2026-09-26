@@ -275,6 +275,9 @@ export function AdminDashboard() {
                 <Link to="/admin/analytics" className="inline-flex items-center gap-1.5 rounded-full border border-white/40 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-white/10">
                   Pivot Explorer
                 </Link>
+                <Link to="/admin/retention" className="inline-flex items-center gap-1.5 rounded-full border border-white/40 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-white/10">
+                  Retention
+                </Link>
               </div>
             </div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-4">

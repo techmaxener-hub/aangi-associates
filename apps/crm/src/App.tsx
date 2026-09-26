@@ -27,6 +27,7 @@ const TelephonySettingsPage = lazy(() =>
 const PivotExplorerPage = lazy(() =>
   import("./modules/analytics/PivotExplorerPage").then((m) => ({ default: m.PivotExplorerPage })),
 );
+const RetentionPage = lazy(() => import("./modules/retention/RetentionPage").then((m) => ({ default: m.RetentionPage })));
 const AuditLogPage = lazy(() => import("./portals/admin/AuditLogPage").then((m) => ({ default: m.AuditLogPage })));
 const BusinessPlanningPage = lazy(() =>
   import("./modules/business-planning/BusinessPlanningPage").then((m) => ({ default: m.BusinessPlanningPage })),
@@ -177,6 +178,14 @@ export default function App() {
                 element={
                   <RequireRole role="admin">
                     <PivotExplorerPage />
+                  </RequireRole>
+                }
+              />
+              <Route
+                path="/admin/retention"
+                element={
+                  <RequireRole role="admin">
+                    <RetentionPage />
                   </RequireRole>
                 }
               />
