@@ -122,6 +122,21 @@ export function Sparkline({ values, color = C.blue, height = 34 }: { values: num
 // ---------------------------------------------------------------------------
 // Smooth area/line chart with hover tooltip
 
+/** Round axis maximum split into 4 equal steps. `integer` keeps steps whole numbers (counts). */
+function niceScale(raw: number, integer = true): { max: number; step: number } {
+  const target = Math.max(raw, 1) / 4;
+  const pow = Math.pow(10, Math.floor(Math.log10(target)));
+  let step = pow * 10;
+  for (const c of [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) {
+    const cand = c * pow;
+    if (cand >= target && (!integer || Number.isInteger(cand))) {
+      step = cand;
+      break;
+    }
+  }
+  return { max: step * 4, step };
+}
+
 function smoothPath(pts: [number, number][], min: number, max: number): string {
   const clamp = (y: number) => Math.min(max, Math.max(min, y));
   let d = `M${pts[0][0].toFixed(2)},${pts[0][1].toFixed(2)}`;
@@ -166,8 +181,7 @@ export function AreaChart({
   const pad = { l: 34, r: 12, t: 14, b: 26 };
   const n = labels.length;
   const rawMax = Math.max(1, ...series.flatMap((s) => s.values));
-  const step = rawMax <= 10 ? 2 : rawMax <= 50 ? 10 : rawMax <= 100 ? 20 : rawMax <= 250 ? 50 : 100;
-  const yMax = Math.ceil(rawMax / step) * step;
+  const yMax = niceScale(rawMax).max;
   const x = (i: number) => pad.l + (i / Math.max(1, n - 1)) * (W - pad.l - pad.r);
   const y = (v: number) => pad.t + (1 - v / yMax) * (H - pad.t - pad.b);
   const grid = Array.from({ length: 5 }, (_, i) => (yMax / 4) * i);
@@ -371,7 +385,22 @@ export interface BarDatum {
   highlight?: boolean;
 }
 
-export function StackedBars({ data, height = 230, ariaLabel }: { data: BarDatum[]; height?: number; ariaLabel: string }) {
+export function StackedBars({
+  data,
+  height = 230,
+  ariaLabel,
+  format,
+  integer = true,
+}: {
+  data: BarDatum[];
+  height?: number;
+  ariaLabel: string;
+  /** formats axis, totals and tooltip values (e.g. compact ₹) — defaults to plain numbers */
+  format?: (n: number) => string;
+  /** false for money/percent so axis steps may be fractional */
+  integer?: boolean;
+}) {
+  const fmt = format ?? ((v: number) => String(Math.round(v)));
   const ready = useAnimateIn();
   const [hover, setHover] = useState<number | null>(null);
   const [wrapRef, measured] = useContainerWidth<HTMLDivElement>();
@@ -380,8 +409,7 @@ export function StackedBars({ data, height = 230, ariaLabel }: { data: BarDatum[
   const pad = { l: 34, r: 8, t: 14, b: 26 };
   const totals = data.map((d) => d.parts.reduce((a, p) => a + p.value, 0));
   const rawMax = Math.max(1, ...totals);
-  const step = rawMax <= 10 ? 2 : rawMax <= 50 ? 10 : rawMax <= 100 ? 20 : rawMax <= 250 ? 50 : 100;
-  const yMax = Math.ceil(rawMax / step) * step;
+  const yMax = niceScale(rawMax, integer).max;
   const slot = (W - pad.l - pad.r) / data.length;
   const bw = Math.min(46, slot * 0.58);
   const y = (v: number) => pad.t + (1 - v / yMax) * (H - pad.t - pad.b);
@@ -394,7 +422,7 @@ export function StackedBars({ data, height = 230, ariaLabel }: { data: BarDatum[
           <g key={g}>
             <line x1={pad.l} x2={W - pad.r} y1={y(g)} y2={y(g)} style={{ stroke: "var(--line)" }} strokeDasharray={g === 0 ? undefined : "3 4"} />
             <text x={pad.l - 8} y={y(g) + 3.5} textAnchor="end" fontSize="10" style={{ fill: "var(--text-soft)" }}>
-              {Math.round(g)}
+              {fmt(g)}
             </text>
           </g>
         ))}
@@ -427,7 +455,7 @@ export function StackedBars({ data, height = 230, ariaLabel }: { data: BarDatum[
                 {d.label}
               </text>
               <text x={cx} y={y(totals[i]) - 5} textAnchor="middle" fontSize="10" fontWeight={600} style={{ fill: "var(--text)", opacity: ready ? 1 : 0, transition: "opacity 0.6s ease 0.6s" }}>
-                {totals[i] || ""}
+                {totals[i] ? fmt(totals[i]) : ""}
               </text>
               <rect x={cx - slot / 2} y={pad.t} width={slot} height={H - pad.t - pad.b} fill="transparent" onMouseEnter={() => setHover(i)} />
             </g>
@@ -440,14 +468,14 @@ export function StackedBars({ data, height = 230, ariaLabel }: { data: BarDatum[
           style={{ left: `${((pad.l + slot * hover + slot / 2) / W) * 100}%` }}
         >
           <p className="mb-0.5 font-semibold text-text">
-            {data[hover].label} · {totals[hover]}
+            {data[hover].label} · {fmt(totals[hover])}
           </p>
           {data[hover].parts
             .filter((p) => p.value > 0)
             .map((p) => (
               <p key={p.key} className="flex items-center gap-1.5 text-text-soft">
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: p.color }} />
-                {p.label}: <span className="font-mono font-semibold text-text">{p.value}</span>
+                {p.label}: <span className="font-mono font-semibold text-text">{fmt(p.value)}</span>
               </p>
             ))}
           {data[hover].extra?.map((e) => (

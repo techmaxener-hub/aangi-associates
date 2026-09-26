@@ -24,6 +24,9 @@ const IntegrationsSettingsPage = lazy(() =>
 const TelephonySettingsPage = lazy(() =>
   import("./portals/admin/settings/TelephonySettingsPage").then((m) => ({ default: m.TelephonySettingsPage })),
 );
+const PivotExplorerPage = lazy(() =>
+  import("./modules/analytics/PivotExplorerPage").then((m) => ({ default: m.PivotExplorerPage })),
+);
 const AuditLogPage = lazy(() => import("./portals/admin/AuditLogPage").then((m) => ({ default: m.AuditLogPage })));
 const BusinessPlanningPage = lazy(() =>
   import("./modules/business-planning/BusinessPlanningPage").then((m) => ({ default: m.BusinessPlanningPage })),
@@ -166,6 +169,14 @@ export default function App() {
                 element={
                   <RequireRole role="admin">
                     <TelephonySettingsPage />
+                  </RequireRole>
+                }
+              />
+              <Route
+                path="/admin/analytics"
+                element={
+                  <RequireRole role="admin">
+                    <PivotExplorerPage />
                   </RequireRole>
                 }
               />
