@@ -76,8 +76,8 @@ if ($method === 'POST') {
 
     $newId = uuid4();
     $stmt = db()->prepare(
-        'INSERT INTO clients (id, full_name, phone, email, city, household_name, owner_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO clients (id, full_name, phone, email, city, household_name, owner_id, date_of_birth)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
     );
     $stmt->execute([
         $newId,
@@ -87,6 +87,7 @@ if ($method === 'POST') {
         $body['city'] ?? null,
         $body['household_name'] ?? null,
         $body['owner_id'] ?? null,
+        $body['date_of_birth'] ?? null,
     ]);
     json_out(['id' => $newId], 201);
 }
@@ -102,7 +103,7 @@ if ($method === 'PUT' && $id) {
     $body = json_input();
     $fields = [];
     $params = [];
-    foreach (['full_name', 'phone', 'email', 'city', 'household_name', 'owner_id'] as $col) {
+    foreach (['full_name', 'phone', 'email', 'city', 'household_name', 'owner_id', 'date_of_birth'] as $col) {
         if (array_key_exists($col, $body)) {
             $fields[] = "$col = ?";
             $params[] = $body[$col];

@@ -76,7 +76,7 @@ export function GlobalSearch({ basePath }: { basePath: string }) {
 
         if (clients.status === "fulfilled" && clients.value?.length) {
           next.push({
-            label: "Clients",
+            label: "My Clients",
             items: clients.value.slice(0, 5).map((c) => ({
               id: c.id,
               title: c.full_name,

@@ -7,6 +7,7 @@ export interface Client {
   household_name: string | null;
   owner_id: string | null;
   portal_user_id: string | null;
+  date_of_birth: string | null; // used only by cron/birthday_wishes.php — never required
   created_at: string;
 }
 
@@ -69,6 +70,25 @@ export interface Communication {
   occurred_at: string;
   logged_by: string | null;
   created_at: string;
+}
+
+// Mirrors policy_extract.php's response — a best-effort read of an
+// uploaded policy PDF, always shown as an editable, pre-filled form for a
+// human to check, never auto-saved.
+export interface PolicyExtractResult {
+  low_confidence: boolean;
+  fields_found: number;
+  fields: {
+    insurer: string | null;
+    product_type: string | null;
+    policy_number: string | null;
+    sum_assured: number | null;
+    premium: number | null;
+    start_date: string | null;
+    renewal_date: string | null;
+    insured_name: string | null;
+  };
+  text_preview: string;
 }
 
 export interface ClientDocument {

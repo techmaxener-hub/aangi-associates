@@ -37,6 +37,7 @@ import {
   type Claim,
   type Communication,
   type ClientDocument,
+  type PolicyExtractResult,
 } from "./types";
 import type { ProductCategory } from "../business-planning/types";
 
@@ -138,7 +139,7 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
 
   if (loading) {
     return (
-      <PortalLayout title="Client" navItems={navItems}>
+      <PortalLayout title="My Clients" navItems={navItems}>
         <DetailSkeleton />
       </PortalLayout>
     );
@@ -149,7 +150,7 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
       <PortalLayout
         title="Client not found"
         navItems={navItems}
-        breadcrumbs={[{ label: "Clients", href: `${basePath}/clients` }, { label: "Not found" }]}
+        breadcrumbs={[{ label: "My Clients", href: `${basePath}/clients` }, { label: "Not found" }]}
       >
         <Link to={`${basePath}/clients`} className="text-gold-text hover:underline">
           ← Back to clients
@@ -162,7 +163,7 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
     <PortalLayout
       title={client.full_name}
       navItems={navItems}
-      breadcrumbs={[{ label: "Clients", href: `${basePath}/clients` }, { label: client.full_name }]}
+      breadcrumbs={[{ label: "My Clients", href: `${basePath}/clients` }, { label: client.full_name }]}
     >
       <PrintableClientSummary client={client} policies={policies} />
 
@@ -201,6 +202,7 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
         <InfoItem label="Email" value={client.email ?? "—"} />
         <InfoItem label="City" value={client.city ?? "—"} />
         <InfoItem label="Household" value={client.household_name ?? "—"} />
+        <InfoItem label="Date of Birth" value={client.date_of_birth ? formatDate(client.date_of_birth) : "—"} />
       </div>
 
       {gapCategories.length > 0 && (
@@ -364,6 +366,7 @@ function PoliciesTab({
   const { showToast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [extracting, setExtracting] = useState(false);
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [form, setForm] = useState({
     policy_number: "",
@@ -375,6 +378,47 @@ function PoliciesTab({
     renewal_date: "",
     category_id: "",
   });
+  // The original PDF, held in memory from the moment it's chosen until the
+  // form is saved — attached to the client's Documents tab alongside the
+  // policy row it was read from, same as a manual Documents-tab upload
+  // would be, just in one step instead of two.
+  const [pendingPdf, setPendingPdf] = useState<File | null>(null);
+
+  async function handlePdfUpload(event: FormEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = "";
+    if (!file) return;
+    setExtracting(true);
+    try {
+      const formData = new FormData();
+      formData.append("client_id", clientId);
+      formData.append("file", file);
+      const result = await api.postForm<PolicyExtractResult>("/policy_extract.php", formData);
+      setForm((f) => ({
+        policy_number: result.fields.policy_number ?? f.policy_number,
+        insurer: result.fields.insurer ?? f.insurer,
+        product_type:
+          result.fields.product_type && PRODUCT_TYPES.includes(result.fields.product_type)
+            ? result.fields.product_type
+            : f.product_type,
+        sum_assured: result.fields.sum_assured != null ? String(result.fields.sum_assured) : f.sum_assured,
+        premium: result.fields.premium != null ? String(result.fields.premium) : f.premium,
+        start_date: result.fields.start_date ?? f.start_date,
+        renewal_date: result.fields.renewal_date ?? f.renewal_date,
+        category_id: f.category_id,
+      }));
+      setPendingPdf(file);
+      setShowForm(true);
+      if (result.low_confidence || result.fields_found === 0) {
+        showToast("Couldn't read this PDF automatically — please check and fill in the details by hand.", "error");
+      } else {
+        showToast(`Read ${result.fields_found} field(s) from the PDF — please review before saving.`);
+      }
+    } catch (err) {
+      showToast(`Failed to read PDF: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
+    }
+    setExtracting(false);
+  }
 
   // The category (Life/Health/General/Mutual Funds/…) that ties this
   // policy's actual business to Business Planning targets — see
@@ -401,6 +445,18 @@ function PoliciesTab({
         renewal_date: form.renewal_date || null,
         category_id: form.category_id || null,
       });
+      if (pendingPdf) {
+        const docForm = new FormData();
+        docForm.append("client_id", clientId);
+        docForm.append("file", pendingPdf);
+        // Best-effort: the policy itself is already saved at this point, so
+        // a failure here only means the PDF has to be attached by hand
+        // afterwards via the Documents tab — never worth losing the policy
+        // record over.
+        await api.postForm("/documents.php", docForm).catch(() => {
+          showToast("Policy saved, but attaching the original PDF to Documents failed — please upload it there by hand.", "error");
+        });
+      }
     } catch (err) {
       setSaving(false);
       showToast(`Failed to add policy: ${err instanceof ApiError ? err.message : "unknown error"}`, "error");
@@ -409,17 +465,45 @@ function PoliciesTab({
     setSaving(false);
     showToast("Policy added.");
     setShowForm(false);
+    setPendingPdf(null);
     onChange();
   }
 
   return (
     <div className="space-y-4">
-      <Button size="sm" onClick={() => setShowForm((v) => !v)}>
-        {showForm ? "Cancel" : "Add Policy"}
-      </Button>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          size="sm"
+          onClick={() => {
+            if (showForm) setPendingPdf(null);
+            setShowForm((v) => !v);
+          }}
+        >
+          {showForm ? "Cancel" : "Add Policy"}
+        </Button>
+        <Button asChild variant="ghost" size="sm" disabled={extracting}>
+          <label htmlFor="policy-pdf-upload" className="cursor-pointer">
+            <Upload className="h-3.5 w-3.5" /> {extracting ? "Reading PDF…" : "Upload Policy PDF"}
+          </label>
+        </Button>
+        <input
+          id="policy-pdf-upload"
+          type="file"
+          accept="application/pdf"
+          className="hidden"
+          disabled={extracting}
+          onChange={(e) => void handlePdfUpload(e)}
+        />
+      </div>
 
       {showForm && (
         <Card className="max-w-2xl">
+          {pendingPdf && (
+            <p className="mb-3 rounded-md bg-surface-2 px-3 py-2 text-xs text-text-soft">
+              Pre-filled from <span className="font-medium text-text">{pendingPdf.name}</span> — check every
+              field below before saving; this PDF will be attached to the client's Documents tab automatically.
+            </p>
+          )}
           <form onSubmit={(e) => void handleAdd(e)} className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>Policy Number</Label>

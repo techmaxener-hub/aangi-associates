@@ -18,7 +18,7 @@ import {
 export const adminNavItems: { label: string; href: string; group?: string; icon: LucideIcon }[] = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Leads Desk", href: "/admin/leads", group: "Pipeline", icon: TrendingUp },
-  { label: "Clients", href: "/admin/clients", group: "Pipeline", icon: Users },
+  { label: "My Clients", href: "/admin/clients", group: "Pipeline", icon: Users },
   { label: "Onboarding", href: "/admin/team", group: "Pipeline", icon: UserPlus },
   { label: "Claim Desk", href: "/admin/claims", group: "Pipeline", icon: ShieldAlert },
   { label: "Tasks", href: "/admin/tasks", group: "Work", icon: ListChecks },

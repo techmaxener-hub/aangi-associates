@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { UserPlus, Download, Users } from "lucide-react";
+import { UserPlus, Download, Users, FolderArchive } from "lucide-react";
 import { api, ApiError } from "../../lib/api";
 import { useAuth } from "../../auth/useAuth";
 import { useToast } from "../../components/ui/toast";
@@ -22,7 +22,14 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
   const [lastContact, setLastContact] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ full_name: "", phone: "", email: "", city: "", household_name: "" });
+  const [form, setForm] = useState({
+    full_name: "",
+    phone: "",
+    email: "",
+    city: "",
+    household_name: "",
+    date_of_birth: "",
+  });
   const [saving, setSaving] = useState(false);
 
   const canCreate = profile?.role === "admin" || profile?.role === "staff";
@@ -61,6 +68,7 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
         email: form.email || null,
         city: form.city || null,
         household_name: form.household_name || null,
+        date_of_birth: form.date_of_birth || null,
         owner_id: profile?.role === "associate" ? profile.id : null,
       });
     } catch (err) {
@@ -70,7 +78,7 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
     }
     setSaving(false);
     showToast("Client added.");
-    setForm({ full_name: "", phone: "", email: "", city: "", household_name: "" });
+    setForm({ full_name: "", phone: "", email: "", city: "", household_name: "", date_of_birth: "" });
     setShowForm(false);
     void load();
   }
@@ -84,11 +92,18 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
   }
 
   return (
-    <PortalLayout title="Clients" navItems={navItems}>
+    <PortalLayout title="My Clients" navItems={navItems}>
       <div className="mb-4 flex flex-wrap gap-2">
         {canCreate && (
           <Button onClick={() => setShowForm((v) => !v)}>
             <UserPlus className="h-4 w-4" /> {showForm ? "Cancel" : "Add Client"}
+          </Button>
+        )}
+        {canCreate && (
+          <Button asChild variant="ghost">
+            <Link to={`${basePath}/clients/bulk-import`}>
+              <FolderArchive className="h-4 w-4" /> Bulk Import (ZIP)
+            </Link>
           </Button>
         )}
         {clients.length > 0 && (
@@ -135,7 +150,7 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
               <Label htmlFor="c-city">City</Label>
               <Input id="c-city" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
             </div>
-            <div className="col-span-2 space-y-1.5">
+            <div className="col-span-2 space-y-1.5 sm:col-span-1">
               <Label htmlFor="c-household">Household Name</Label>
               <Input
                 id="c-household"
@@ -143,6 +158,16 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
                 value={form.household_name}
                 onChange={(e) => setForm({ ...form, household_name: e.target.value })}
               />
+            </div>
+            <div className="col-span-2 space-y-1.5 sm:col-span-1">
+              <Label htmlFor="c-dob">Date of Birth</Label>
+              <Input
+                id="c-dob"
+                type="date"
+                value={form.date_of_birth}
+                onChange={(e) => setForm({ ...form, date_of_birth: e.target.value })}
+              />
+              <p className="text-xs text-text-soft">Optional — used only for the automated birthday-wish reminder.</p>
             </div>
             <div className="col-span-2 flex justify-end">
               <Button type="submit" disabled={saving}>

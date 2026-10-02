@@ -73,6 +73,7 @@ CREATE TABLE clients (
   email VARCHAR(255),
   city VARCHAR(255),
   household_name VARCHAR(255),
+  date_of_birth DATE, -- used only by cron/birthday_wishes.php; never required
   owner_id CHAR(36),
   portal_user_id CHAR(36) UNIQUE,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -339,6 +340,38 @@ CREATE TABLE renewal_reminders (
 ) ENGINE=InnoDB;
 CREATE INDEX renewal_reminders_status_idx ON renewal_reminders (status);
 CREATE INDEX renewal_reminders_client_idx ON renewal_reminders (client_id);
+
+-- 17b. birthday_wishes (dispatched by cron/birthday_wishes.php, same
+--      honest-outcome shape as renewal_reminders — one row per client per
+--      calendar year, so a daily cron run never sends the same wish twice).
+CREATE TABLE birthday_wishes (
+  id CHAR(36) PRIMARY KEY,
+  client_id CHAR(36) NOT NULL,
+  birth_year_cycle INT NOT NULL, -- the calendar year this wish covers, e.g. 2026
+  scheduled_for DATE NOT NULL,
+  status ENUM('pending','sent','skipped_no_credentials','failed') NOT NULL DEFAULT 'pending',
+  channel VARCHAR(32) NOT NULL DEFAULT 'whatsapp',
+  sent_at DATETIME,
+  error_detail TEXT,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (client_id, birth_year_cycle),
+  FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+CREATE INDEX birthday_wishes_status_idx ON birthday_wishes (status);
+
+-- 17c. message_templates (singleton, admin-editable — see
+--      MessageTemplatesCard.tsx). Both crons read their message from here
+--      first, falling back to a hardcoded default if this row is somehow
+--      missing, so an empty table never silently breaks either cron.
+CREATE TABLE message_templates (
+  id INT PRIMARY KEY DEFAULT 1,
+  birthday_whatsapp_template TEXT NOT NULL,
+  renewal_whatsapp_template TEXT NOT NULL,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  updated_by CHAR(36),
+  CHECK (id = 1),
+  FOREIGN KEY (updated_by) REFERENCES users(id)
+) ENGINE=InnoDB;
 
 -- 18. business_plans — one row per admin-set target period for one
 --     associate (day/range/month/quarter/year all normalize to a concrete

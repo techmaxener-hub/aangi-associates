@@ -384,7 +384,7 @@ export function AdminDashboard() {
 
         {/* ---- Portfolio mix + new business ---------------------------------- */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <ChartCard title="Portfolio mix" subtitle="Active policies by business line" href="/admin/clients" hrefLabel="Clients">
+          <ChartCard title="Portfolio mix" subtitle="Active policies by business line" href="/admin/clients" hrefLabel="My Clients">
             <DonutChart
               slices={segSlices}
               centerValue={s.portfolio.policy_status.active.toLocaleString("en-IN")}
@@ -449,7 +449,7 @@ export function AdminDashboard() {
             title="Renewal outlook — next 6 months"
             subtitle="Insurance policies falling due each month (hover for premium at stake)"
             href="/admin/clients"
-            hrefLabel="Clients"
+            hrefLabel="My Clients"
             legend={
               <>
                 <LegendDot color={C.red} label="This month (act now)" />

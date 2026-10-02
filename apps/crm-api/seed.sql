@@ -11,6 +11,16 @@ INSERT INTO dialer_rules (id, post_call_whatsapp_template) VALUES (
   'Hi {{name}}, thanks for speaking with Aangi Associates. We will follow up shortly with next steps.'
 );
 
+-- Default WhatsApp wording for the two automated crons (editable from
+-- Admin Settings → Message Templates; cron/*.php fall back to these exact
+-- strings in PHP if this row is ever missing, so the two copies must stay
+-- in sync by hand — see that fallback comment before editing either one).
+INSERT INTO message_templates (id, birthday_whatsapp_template, renewal_whatsapp_template) VALUES (
+  1,
+  'Happy Birthday, {{name}}! 🎉 Wishing you a wonderful year ahead, from all of us at Aangi Associates.',
+  'Hi {{name}}, this is a reminder from Aangi Associates: your {{product}} policy is due for renewal on {{renewal_date}} (in {{days}} days). Reply here or call us to renew without a break in cover.'
+);
+
 -- Business Planning's starting product-line taxonomy (admin can add more
 -- from the Business Planning page). UUID() here is MySQL's v1 UUID, not
 -- the app's hand-rolled v4 (lib/uuid.php) — fine for a seed row, nothing
