@@ -67,6 +67,94 @@ const ALL_CATEGORIES = [
   "Business & Corporate Risk",
   "General Insurance",
 ];
+// One representative product to lead with per category — the suggestion
+// just needs a concrete starting point for the conversation, not an
+// exhaustive list; the advisor picks the actual product once the client
+// engages.
+const CATEGORY_LEAD_PRODUCT: Record<string, string> = {
+  "Life & Risk Protection": "Pure Term Plan",
+  "Wealth & Guaranteed Solutions": "Guaranteed Return Plan",
+  "Retirement & Estate Design": "Pension/Annuity",
+  "Business & Corporate Risk": "Keyman Insurance",
+  "General Insurance": "General Insurance",
+};
+
+interface Suggestion {
+  id: string;
+  title: string;
+  reason: string;
+  waMessage?: string;
+}
+
+// A pure function over what's already loaded for this client — no extra
+// API calls, no persistence. Every suggestion here is advisory only: the
+// advisor decides whether and how to act on it, same posture as the
+// existing single-line "Cross-sell signal" banner this replaces, just with
+// more than one kind of signal and a concrete next step per signal.
+function buildSuggestions(client: Client, policies: ClientPolicy[], claims: Claim[]): Suggestion[] {
+  const suggestions: Suggestion[] = [];
+  const activePolicies = policies.filter((p) => p.status === "active");
+  const coveredCategories = new Set(activePolicies.map((p) => CATEGORY_MAP[p.product_type]).filter(Boolean));
+  const gapCategories = ALL_CATEGORIES.filter((cat) => !coveredCategories.has(cat));
+
+  for (const cat of gapCategories) {
+    const leadProduct = CATEGORY_LEAD_PRODUCT[cat];
+    suggestions.push({
+      id: `gap-${cat}`,
+      title: `No active cover in ${cat}`,
+      reason: `${client.full_name} has no active policy in this category — a ${leadProduct} is a natural opening.`,
+      waMessage: `Hi ${client.full_name}, as part of your annual review with Aangi Associates, I noticed you don't currently have cover under ${cat}. A ${leadProduct} could be a good fit — happy to walk you through it whenever convenient.`,
+    });
+  }
+
+  // A policy that LAPSED or MATURED, in a category with no active
+  // replacement, is a stronger lead than a plain gap — the client was
+  // already sold on the category once.
+  for (const p of policies) {
+    if (p.status === "active") continue;
+    const cat = CATEGORY_MAP[p.product_type];
+    if (!cat || coveredCategories.has(cat)) continue;
+    suggestions.push({
+      id: `lapsed-${p.id}`,
+      title: `${p.product_type} ${p.status} — no active replacement`,
+      reason: `This ${p.status} policy was the only cover ${client.full_name} had in ${cat}; there's currently nothing active in its place.`,
+      waMessage: `Hi ${client.full_name}, I noticed your ${p.product_type} policy is now ${p.status} and you don't have an active replacement yet. Would you like to revisit this before any gap in cover becomes a problem?`,
+    });
+  }
+
+  // Diversification within an already-covered category: Mutual Fund is its
+  // own product line even when Wealth & Guaranteed Solutions is already
+  // "covered" by something else (e.g. a Guaranteed Return Plan) — only
+  // surfaced when that category ISN'T already a flat gap above, so this
+  // never doubles up with the first signal.
+  const hasMutualFund = activePolicies.some((p) => p.product_type === "Mutual Fund");
+  if (!hasMutualFund && !gapCategories.includes("Wealth & Guaranteed Solutions")) {
+    suggestions.push({
+      id: "no-mutual-fund",
+      title: "No active Mutual Fund / SIP",
+      reason: `${client.full_name} has wealth cover but no Mutual Fund exposure — worth raising as a diversification option.`,
+      waMessage: `Hi ${client.full_name}, alongside your existing cover, a Mutual Fund SIP could be a good way to diversify further. Want to discuss options?`,
+    });
+  }
+
+  // A recently settled claim is a natural, low-pressure moment to revisit
+  // overall coverage adequacy — informational, no WhatsApp CTA (the wording
+  // right after a claim deserves the advisor's own judgment, not a
+  // templated nudge).
+  for (const c of claims) {
+    if (c.stage !== "settled" || !c.settled_at) continue;
+    const daysAgo = Math.floor((Date.now() - new Date(c.settled_at).getTime()) / (24 * 60 * 60 * 1000));
+    if (daysAgo >= 0 && daysAgo <= 90) {
+      suggestions.push({
+        id: `claim-settled-${c.id}`,
+        title: `Claim settled ${daysAgo === 0 ? "today" : `${daysAgo}d ago`}`,
+        reason: `A claim for ${client.full_name} was settled recently — a good moment to review overall coverage adequacy while it's top of mind.`,
+      });
+    }
+  }
+
+  return suggestions;
+}
 
 type Tab = "overview" | "policies" | "pipeline" | "claims" | "communications" | "documents";
 
@@ -129,13 +217,7 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
     setLoggingTouch(null);
   }
 
-  const coveredCategories = new Set(
-    policies
-      .filter((p) => p.status === "active")
-      .map((p) => CATEGORY_MAP[p.product_type])
-      .filter(Boolean),
-  );
-  const gapCategories = ALL_CATEGORIES.filter((cat) => !coveredCategories.has(cat));
+  const suggestions = client ? buildSuggestions(client, policies, claims) : [];
 
   if (loading) {
     return (
@@ -205,10 +287,31 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
         <InfoItem label="Date of Birth" value={client.date_of_birth ? formatDate(client.date_of_birth) : "—"} />
       </div>
 
-      {gapCategories.length > 0 && (
-        <div className="mb-6 rounded-lg border border-gold/40 bg-surface-2 p-3 text-xs text-text">
-          <span className="font-semibold text-gold-text">Cross-sell signal:</span> no active cover in{" "}
-          {gapCategories.join(", ")}.
+      {suggestions.length > 0 && (
+        <div className="mb-6 space-y-2">
+          {suggestions.map((s) => {
+            const digits = client.phone.replace(/\D/g, "");
+            const waPhone = digits.length === 10 ? `91${digits}` : digits;
+            return (
+              <div key={s.id} className="rounded-lg border border-gold/40 bg-surface-2 p-3 text-xs text-text">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span>
+                    <span className="font-semibold text-gold-text">{s.title}:</span> {s.reason}
+                  </span>
+                  {s.waMessage && (
+                    <a
+                      href={`https://wa.me/${waPhone}?text=${encodeURIComponent(s.waMessage)}`}
+                      target="_blank"
+                      rel="noopener"
+                      className="shrink-0 font-medium text-gold-text hover:underline"
+                    >
+                      Suggest via WhatsApp →
+                    </a>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
