@@ -34,3 +34,10 @@ define('SMS_SENDER_ID', '');
 // domain if one exists.
 define('MAIL_FROM_ADDRESS', 'no-reply@tmarinternational.com');
 define('MAIL_FROM_NAME', 'Aangi Associates');
+
+// Public base URL this API is actually reachable at — used only to build
+// the dispatch_token redirect link embedded in the daily intimation
+// digest's PDF/email (lib/intimation.php). Defaults to the locked
+// production URL if left empty, so this only needs setting for a
+// non-default install.
+define('APP_BASE_URL', 'https://aa.tmarinternational.com/api');

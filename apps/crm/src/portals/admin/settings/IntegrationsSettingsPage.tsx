@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { UserPlus, UploadCloud, Code, Calculator } from "lucide-react";
+import { UserPlus, UploadCloud, Code, Calculator, MessageSquareText } from "lucide-react";
 import { PortalLayout } from "../../PortalLayout";
 import { adminNavItems } from "../nav";
 import { INTEGRATIONS } from "./integrations.config";
@@ -9,6 +9,7 @@ import { ManualLeadEntry } from "./ManualLeadEntry";
 import { BulkLeadUpload } from "./BulkLeadUpload";
 import { WebformEmbed } from "./WebformEmbed";
 import { CalculatorDefaultsCard } from "./CalculatorDefaultsCard";
+import { MessageTemplatesCard } from "./MessageTemplatesCard";
 
 type Selection = "single-entry" | "bulk-entry" | "webform" | (string & {});
 
@@ -79,6 +80,12 @@ export function IntegrationsSettingsPage() {
                 icon={<Calculator className="h-4 w-4 text-gold" />}
                 label="Calculator Defaults"
               />
+              <SubNavButton
+                active={selected === "message-templates"}
+                onClick={() => setSelected("message-templates")}
+                icon={<MessageSquareText className="h-4 w-4 text-gold" />}
+                label="Message Templates"
+              />
             </div>
           </div>
         </nav>
@@ -89,7 +96,15 @@ export function IntegrationsSettingsPage() {
           {selected === "webform" && <WebformEmbed />}
           {selected === EMAIL_AUTOMATION.id && <IntegrationCard def={EMAIL_AUTOMATION} />}
           {selected === "calculator-defaults" && <CalculatorDefaultsCard />}
-          {!["single-entry", "bulk-entry", "webform", EMAIL_AUTOMATION.id, "calculator-defaults"].includes(selected) &&
+          {selected === "message-templates" && <MessageTemplatesCard />}
+          {![
+            "single-entry",
+            "bulk-entry",
+            "webform",
+            EMAIL_AUTOMATION.id,
+            "calculator-defaults",
+            "message-templates",
+          ].includes(selected) &&
             (() => {
               const def = INTEGRATIONS.find((i) => i.id === selected);
               return def ? <IntegrationCard def={def} /> : null;

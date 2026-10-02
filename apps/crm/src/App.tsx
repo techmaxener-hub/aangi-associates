@@ -63,6 +63,9 @@ const ClientDetailPage = lazy(() =>
 const BulkImportPage = lazy(() =>
   import("./modules/clients/BulkImportPage").then((m) => ({ default: m.BulkImportPage })),
 );
+const IntimationsPage = lazy(() =>
+  import("./modules/intimations/IntimationsPage").then((m) => ({ default: m.IntimationsPage })),
+);
 const ClaimsQueuePage = lazy(() =>
   import("./modules/claims/ClaimsQueuePage").then((m) => ({ default: m.ClaimsQueuePage })),
 );
@@ -150,6 +153,14 @@ export default function App() {
                 element={
                   <RequireRole role="admin">
                     <ClaimsQueuePage navItems={adminNavItems} basePath="/admin" />
+                  </RequireRole>
+                }
+              />
+              <Route
+                path="/admin/intimations"
+                element={
+                  <RequireRole role="admin">
+                    <IntimationsPage navItems={adminNavItems} />
                   </RequireRole>
                 }
               />
@@ -264,6 +275,14 @@ export default function App() {
                 element={
                   <RequireRole role="staff">
                     <ClaimsQueuePage navItems={staffNavItems} basePath="/staff" />
+                  </RequireRole>
+                }
+              />
+              <Route
+                path="/staff/intimations"
+                element={
+                  <RequireRole role="staff">
+                    <IntimationsPage navItems={staffNavItems} />
                   </RequireRole>
                 }
               />

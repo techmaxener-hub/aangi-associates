@@ -12,6 +12,7 @@ import {
   BarChart3,
   HeartPulse,
   Trophy,
+  BellRing,
   type LucideIcon,
 } from "lucide-react";
 
@@ -21,6 +22,7 @@ export const adminNavItems: { label: string; href: string; group?: string; icon:
   { label: "My Clients", href: "/admin/clients", group: "Pipeline", icon: Users },
   { label: "Onboarding", href: "/admin/team", group: "Pipeline", icon: UserPlus },
   { label: "Claim Desk", href: "/admin/claims", group: "Pipeline", icon: ShieldAlert },
+  { label: "Intimations", href: "/admin/intimations", group: "Pipeline", icon: BellRing },
   { label: "Tasks", href: "/admin/tasks", group: "Work", icon: ListChecks },
   { label: "Business Planning", href: "/admin/business-planning", group: "Work", icon: Target },
   { label: "Pivot Explorer", href: "/admin/analytics", group: "Work", icon: BarChart3 },

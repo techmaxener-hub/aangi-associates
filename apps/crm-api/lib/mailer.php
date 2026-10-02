@@ -33,6 +33,39 @@ function encode_header_word(string $text): string
     return preg_match('/[^\x20-\x7E]/', $text) ? '=?UTF-8?B?' . base64_encode($text) . '?=' : $text;
 }
 
+// Same no-third-party-account approach as send_branded_email() above, just
+// with one PDF attachment — used only by cron/daily_intimation.php. PHP's
+// mail() has no built-in attachment support, so this builds the
+// multipart/mixed body by hand: one text/html part, one application/pdf
+// part, base64-encoded, joined by a random boundary string.
+function send_email_with_pdf_attachment(string $toEmail, string $toName, string $subject, string $htmlBody, string $pdfBytes, string $pdfFilename): bool
+{
+    $from = defined('MAIL_FROM_ADDRESS') && MAIL_FROM_ADDRESS !== '' ? MAIL_FROM_ADDRESS : 'no-reply@localhost';
+    $fromName = defined('MAIL_FROM_NAME') && MAIL_FROM_NAME !== '' ? MAIL_FROM_NAME : 'Aangi Associates';
+    $boundary = 'aangi-' . bin2hex(random_bytes(16));
+
+    $headers = implode("\r\n", [
+        'MIME-Version: 1.0',
+        "Content-Type: multipart/mixed; boundary=\"$boundary\"",
+        sprintf('From: %s <%s>', encode_header_word($fromName), $from),
+        sprintf('Reply-To: %s', $from),
+        'X-Mailer: Aangi CRM',
+    ]);
+
+    $body = "--$boundary\r\n"
+        . "Content-Type: text/html; charset=UTF-8\r\n"
+        . "Content-Transfer-Encoding: 8bit\r\n\r\n"
+        . $htmlBody . "\r\n\r\n"
+        . "--$boundary\r\n"
+        . "Content-Type: application/pdf; name=\"$pdfFilename\"\r\n"
+        . "Content-Transfer-Encoding: base64\r\n"
+        . "Content-Disposition: attachment; filename=\"$pdfFilename\"\r\n\r\n"
+        . chunk_split(base64_encode($pdfBytes)) . "\r\n"
+        . "--$boundary--";
+
+    return @mail($toEmail, encode_header_word($subject), $body, $headers);
+}
+
 // Shared branded HTML shell for the plan email — a plain, email-client-safe
 // table layout (no external CSS/webfonts) using the locked brand colors
 // from packages/ui/tokens.css.

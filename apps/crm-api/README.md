@@ -29,7 +29,18 @@ Supabase project that was deleted on 2026-09-10. No Composer dependencies
    Jobs → add `0 3 * * * php /home/<hostinger-user>/public_html/api/cron/renewal_reminders.php`
    (adjust the path to wherever `/api/` actually resolves on disk — check
    hPanel's File Manager for the real path). Without this, 60/30/14-day
-   renewal reminders are never generated or sent.
+   renewal reminders are never generated or sent. Inert without
+   `WHATSAPP_SYSTEM_TOKEN`/`WHATSAPP_PHONE_NUMBER_ID` configured (step 7).
+6b. **Schedule the daily intimation digest cron job** — same hPanel
+   screen, add a second job: `0 7 * * * php /home/<hostinger-user>/public_html/api/cron/daily_intimation.php`.
+   This is the Admin/Staff-only digest (today's due birthday wishes +
+   renewal reminders, emailed with a PDF attachment — see
+   `lib/intimation.php`'s header). Unlike step 6, it needs no WhatsApp
+   credentials at all: every button it sends is a dispatch-token link an
+   admin/staff member clicks themselves (`intimation_redirect.php`), never
+   an automatic send to a client. It does need `MAIL_FROM_ADDRESS` set
+   (step 7) and at least one admin/staff user with a real `email` on file,
+   or it has nowhere to send the digest and logs that instead.
 7. **WhatsApp / SMS credentials** (optional, can be added later): set
    `WHATSAPP_SYSTEM_TOKEN`/`WHATSAPP_PHONE_NUMBER_ID` in `env.php` for
    renewal reminders to actually send, and `SMS_PROVIDER`/`SMS_API_KEY`

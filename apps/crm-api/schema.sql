@@ -341,9 +341,12 @@ CREATE TABLE renewal_reminders (
 CREATE INDEX renewal_reminders_status_idx ON renewal_reminders (status);
 CREATE INDEX renewal_reminders_client_idx ON renewal_reminders (client_id);
 
--- 17b. birthday_wishes (dispatched by cron/birthday_wishes.php, same
---      honest-outcome shape as renewal_reminders — one row per client per
---      calendar year, so a daily cron run never sends the same wish twice).
+-- 17b. birthday_wishes — reserved for a possible future direct-send cron
+--      (cron/birthday_wishes.php was never built; the automation design
+--      pivoted to the Admin/Staff intimation digest below instead, which
+--      uses its own intimation_items table, not this one). Left in place,
+--      unused, rather than dropped, in case direct client-facing send is
+--      revisited later.
 CREATE TABLE birthday_wishes (
   id CHAR(36) PRIMARY KEY,
   client_id CHAR(36) NOT NULL,
@@ -372,6 +375,31 @@ CREATE TABLE message_templates (
   CHECK (id = 1),
   FOREIGN KEY (updated_by) REFERENCES users(id)
 ) ENGINE=InnoDB;
+
+-- 17d. intimation_items — one row per birthday-wish-due or renewal-due
+--      item that has EVER appeared in an Admin/Staff daily digest (see
+--      lib/intimation.php, cron/daily_intimation.php, intimations.php).
+--      Never sent to a client directly — dispatch_token is the random id
+--      embedded in the PDF/email's "send" button (intimation_redirect.php),
+--      which an admin/staff member clicks themselves to open a pre-filled
+--      wa.me chat; clicked_at records that a human actually acted on it,
+--      not that the client received anything. One row per (kind, client,
+--      policy, day) so a policy due in 60/30/14 days shows up on each of
+--      those days without ever duplicating within a single day's digest.
+CREATE TABLE intimation_items (
+  id CHAR(36) PRIMARY KEY,
+  kind ENUM('birthday','renewal') NOT NULL,
+  client_id CHAR(36) NOT NULL,
+  policy_id CHAR(36), -- NULL for a birthday row
+  scheduled_for DATE NOT NULL,
+  dispatch_token CHAR(32) NOT NULL UNIQUE,
+  clicked_at DATETIME,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (kind, client_id, policy_id, scheduled_for),
+  FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+  FOREIGN KEY (policy_id) REFERENCES client_policies(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+CREATE INDEX intimation_items_scheduled_idx ON intimation_items (scheduled_for);
 
 -- 18. business_plans — one row per admin-set target period for one
 --     associate (day/range/month/quarter/year all normalize to a concrete
