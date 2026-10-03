@@ -12,6 +12,9 @@ import {
   ShieldCheck,
   TrendingUp,
   ShieldAlert,
+  ChevronDown,
+  ChevronRight,
+  Lightbulb,
 } from "lucide-react";
 import { api, API_BASE, ApiError } from "../../lib/api";
 import { useToast } from "../../components/ui/toast";
@@ -218,6 +221,7 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
   }
 
   const suggestions = client ? buildSuggestions(client, policies, claims) : [];
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
 
   if (loading) {
     return (
@@ -279,7 +283,7 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
         </Button>
       </div>
 
-      <div className="mb-6 grid grid-cols-2 gap-4 text-sm lg:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-4 text-sm lg:grid-cols-5">
         <InfoItem label="Phone" value={client.phone} />
         <InfoItem label="Email" value={client.email ?? "—"} />
         <InfoItem label="City" value={client.city ?? "—"} />
@@ -288,30 +292,42 @@ export function ClientDetailPage({ navItems, basePath }: { navItems: NavItem[]; 
       </div>
 
       {suggestions.length > 0 && (
-        <div className="mb-6 space-y-2">
-          {suggestions.map((s) => {
-            const digits = client.phone.replace(/\D/g, "");
-            const waPhone = digits.length === 10 ? `91${digits}` : digits;
-            return (
-              <div key={s.id} className="rounded-lg border border-gold/40 bg-surface-2 p-3 text-xs text-text">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <span>
-                    <span className="font-semibold text-gold-text">{s.title}:</span> {s.reason}
-                  </span>
-                  {s.waMessage && (
-                    <a
-                      href={`https://wa.me/${waPhone}?text=${encodeURIComponent(s.waMessage)}`}
-                      target="_blank"
-                      rel="noopener"
-                      className="shrink-0 font-medium text-gold-text hover:underline"
-                    >
-                      Suggest via WhatsApp →
-                    </a>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+        <div className="mb-6 rounded-lg border border-gold/40 bg-surface-2">
+          <button
+            type="button"
+            onClick={() => setSuggestionsOpen((v) => !v)}
+            className="flex w-full items-center justify-between gap-2 px-3 py-2 text-xs"
+          >
+            <span className="flex items-center gap-1.5 font-semibold text-gold-text">
+              <Lightbulb className="h-3.5 w-3.5" /> {suggestions.length} suggestion{suggestions.length === 1 ? "" : "s"}
+            </span>
+            {suggestionsOpen ? <ChevronDown className="h-3.5 w-3.5 text-text-soft" /> : <ChevronRight className="h-3.5 w-3.5 text-text-soft" />}
+          </button>
+          {suggestionsOpen && (
+            <div className="divide-y divide-line border-t border-gold/40">
+              {suggestions.map((s) => {
+                const digits = client.phone.replace(/\D/g, "");
+                const waPhone = digits.length === 10 ? `91${digits}` : digits;
+                return (
+                  <div key={s.id} className="flex flex-wrap items-baseline justify-between gap-2 px-3 py-2 text-xs text-text">
+                    <span>
+                      <span className="font-medium">{s.title}.</span> <span className="text-text-soft">{s.reason}</span>
+                    </span>
+                    {s.waMessage && (
+                      <a
+                        href={`https://wa.me/${waPhone}?text=${encodeURIComponent(s.waMessage)}`}
+                        target="_blank"
+                        rel="noopener"
+                        className="shrink-0 font-medium text-gold-text hover:underline"
+                      >
+                        WhatsApp →
+                      </a>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
