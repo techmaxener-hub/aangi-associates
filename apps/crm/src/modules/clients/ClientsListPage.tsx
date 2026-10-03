@@ -70,6 +70,15 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
   const [savingPolicy, setSavingPolicy] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [pendingPdf, setPendingPdf] = useState<File | null>(null);
+  const [matchInfo, setMatchInfo] = useState<{ name: string; score: number } | null>(null);
+  // "+ Add Policy PDF" opens the SAME form as "+ Add Policy" but starts in
+  // this reduced mode — just a product type dropdown and an upload button,
+  // per the explicit request: no client picker up front, since the client
+  // is auto-matched from the PDF itself (by insured name, same matching
+  // bulk_policy_import.php's ZIP scan already does). Flips to false — the
+  // full form, client field now pre-filled with the match — as soon as a
+  // file has actually been read.
+  const [pdfQuickMode, setPdfQuickMode] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState(EMPTY_POLICY_FORM);
@@ -142,30 +151,36 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
     const file = event.currentTarget.files?.[0];
     event.currentTarget.value = "";
     if (!file) return;
-    if (!policyForm.client_id) {
-      showToast("Choose a client first, then upload the policy PDF.", "error");
-      return;
-    }
     setExtracting(true);
     try {
       const formData = new FormData();
-      formData.append("client_id", policyForm.client_id);
+      // Only send client_id if one is already chosen (the plain "+ Add
+      // Policy" form, used to pre-fill after a client's already picked).
+      // In quick-add mode there's deliberately none yet — omitting it is
+      // what tells policy_extract.php to auto-match instead.
+      if (policyForm.client_id) formData.append("client_id", policyForm.client_id);
       formData.append("file", file);
-      const result = await api.postForm<PolicyExtractResult>("/policy_extract.php", formData);
+      const result = await api.postForm<
+        PolicyExtractResult & { suggested_client_id?: string | null; suggested_client_name?: string | null; match_score?: number | null }
+      >("/policy_extract.php", formData);
       setPolicyForm((f) => ({
         ...f,
+        client_id: f.client_id || result.suggested_client_id || "",
         policy_number: result.fields.policy_number ?? f.policy_number,
         insurer: result.fields.insurer ?? f.insurer,
-        product_type:
-          result.fields.product_type && PRODUCT_TYPES.includes(result.fields.product_type)
-            ? result.fields.product_type
-            : f.product_type,
+        // product_type is deliberately NOT overwritten here — it's the
+        // field extraction gets wrong most often (confirmed on real
+        // combo-product PDFs), and in quick-add mode the admin/staff
+        // already chose it in the dropdown before uploading, which beats
+        // a guess every time.
         sum_assured: result.fields.sum_assured != null ? String(result.fields.sum_assured) : f.sum_assured,
         premium: result.fields.premium != null ? String(result.fields.premium) : f.premium,
         start_date: result.fields.start_date ?? f.start_date,
         renewal_date: result.fields.renewal_date ?? f.renewal_date,
       }));
+      setMatchInfo(result.suggested_client_name ? { name: result.suggested_client_name, score: result.match_score ?? 0 } : null);
       setPendingPdf(file);
+      setPdfQuickMode(false); // reveal the full review form now that there's something to review
       if (result.low_confidence || result.fields_found === 0) {
         showToast("Couldn't read this PDF automatically — please check and fill in the details by hand.", "error");
       } else {
@@ -302,11 +317,18 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
           <>
             <Button
               onClick={() => {
-                setShowPolicyForm((v) => !v);
+                const next = !showPolicyForm || pdfQuickMode;
+                setShowPolicyForm(next);
+                setPdfQuickMode(false);
                 setShowClientForm(false);
+                if (!next) {
+                  setPolicyForm(EMPTY_POLICY_FORM);
+                  setPendingPdf(null);
+                  setMatchInfo(null);
+                }
               }}
             >
-              <ListPlus className="h-4 w-4" /> {showPolicyForm ? "Cancel" : "+ Add Policy"}
+              <ListPlus className="h-4 w-4" /> {showPolicyForm && !pdfQuickMode ? "Cancel" : "+ Add Policy"}
             </Button>
             <Button asChild variant="ghost">
               <Link to={`${basePath}/clients/bulk-add`}>
@@ -316,9 +338,12 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
             <Button
               variant="ghost"
               onClick={() => {
+                setPolicyForm(EMPTY_POLICY_FORM);
+                setPendingPdf(null);
+                setMatchInfo(null);
                 setShowPolicyForm(true);
+                setPdfQuickMode(true);
                 setShowClientForm(false);
-                setTimeout(() => document.getElementById("policy-pdf-upload")?.click(), 50);
               }}
             >
               <Upload className="h-4 w-4" /> + Add Policy PDF
@@ -374,8 +399,50 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
         </Card>
       )}
 
-      {showPolicyForm && (
+      {showPolicyForm && pdfQuickMode && (
+        <Card className="mb-4 max-w-xl">
+          <p className="mb-3 text-sm text-text-soft">
+            Choose the product type, then upload the policy PDF — the client, policy number, insurer, amounts, and
+            dates are all read from the document itself.
+          </p>
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="min-w-[200px] flex-1 space-y-1.5">
+              <Label>Product Type</Label>
+              <Select value={policyForm.product_type} onChange={(e) => setPolicyForm({ ...policyForm, product_type: e.target.value })}>
+                {PRODUCT_TYPES.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <Button disabled={extracting} asChild>
+              <label htmlFor="policy-pdf-upload" className="cursor-pointer">
+                <Upload className="h-3.5 w-3.5" /> {extracting ? "Reading PDF…" : "Upload PDF"}
+              </label>
+            </Button>
+            <input id="policy-pdf-upload" type="file" accept="application/pdf" className="hidden" disabled={extracting} onChange={(e) => void handlePdfUpload(e)} />
+          </div>
+        </Card>
+      )}
+
+      {showPolicyForm && !pdfQuickMode && (
         <Card className="mb-4 max-w-3xl">
+          {pendingPdf && (
+            <div className="mb-3 space-y-1 rounded-md bg-surface-2 px-3 py-2 text-xs text-text-soft">
+              <p>
+                Pre-filled from <span className="font-medium text-text">{pendingPdf.name}</span> — check every field
+                below before saving.
+              </p>
+              {matchInfo && (
+                <p>
+                  Client auto-matched: <span className="font-medium text-text">{matchInfo.name}</span> (
+                  {Math.round(matchInfo.score * 100)}% match) — change it below if that's wrong.
+                </p>
+              )}
+              {!matchInfo && <p className="text-crimson">No client matched automatically — choose one below.</p>}
+            </div>
+          )}
           <div className="mb-3 flex flex-wrap items-end gap-3">
             <div className="min-w-[220px] flex-1 space-y-1.5">
               <Label>Client</Label>
@@ -389,17 +456,12 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
               </Select>
             </div>
             <Button asChild variant="ghost" size="sm" disabled={extracting}>
-              <label htmlFor="policy-pdf-upload" className="cursor-pointer">
-                <Upload className="h-3.5 w-3.5" /> {extracting ? "Reading PDF…" : "Upload Policy PDF"}
+              <label htmlFor="policy-pdf-upload-2" className="cursor-pointer">
+                <Upload className="h-3.5 w-3.5" /> {extracting ? "Reading PDF…" : pendingPdf ? "Re-upload PDF" : "Upload Policy PDF"}
               </label>
             </Button>
-            <input id="policy-pdf-upload" type="file" accept="application/pdf" className="hidden" disabled={extracting} onChange={(e) => void handlePdfUpload(e)} />
+            <input id="policy-pdf-upload-2" type="file" accept="application/pdf" className="hidden" disabled={extracting} onChange={(e) => void handlePdfUpload(e)} />
           </div>
-          {pendingPdf && (
-            <p className="mb-3 rounded-md bg-surface-2 px-3 py-2 text-xs text-text-soft">
-              Pre-filled from <span className="font-medium text-text">{pendingPdf.name}</span> — check every field below before saving.
-            </p>
-          )}
           <form onSubmit={(e) => void handleAddPolicy(e)} className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>Policy Number</Label>

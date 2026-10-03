@@ -62,6 +62,24 @@ function owned_client_ids(string $userId): array
     return array_column($stmt->fetchAll(), 'id');
 }
 
+// id+full_name for every client this admin/staff/associate is allowed to
+// assign a policy to — shared by bulk_policy_import.php's ZIP scan and
+// policy_extract.php's single-PDF auto-match (both need the same "which
+// clients can I even suggest matching against" scope, previously
+// duplicated as a private function in bulk_policy_import.php alone).
+function accessible_clients_list(array $user): array
+{
+    if (is_back_office($user)) {
+        return db()->query('SELECT id, full_name FROM clients')->fetchAll();
+    }
+    if ($user['role'] === 'associate') {
+        $stmt = db()->prepare('SELECT id, full_name FROM clients WHERE owner_id = ?');
+        $stmt->execute([$user['id']]);
+        return $stmt->fetchAll();
+    }
+    return [];
+}
+
 // Shape 3: client self-service via clients.portal_user_id. Returns the
 // single client row id linked to this portal user, or null if none.
 function portal_client_id(string $userId): ?string

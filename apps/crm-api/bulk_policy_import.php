@@ -53,20 +53,6 @@ foreach (glob("$batchRoot/*", GLOB_ONLYDIR) ?: [] as $dir) {
     }
 }
 
-/** @return list<array{id:string,full_name:string}> clients this user may assign files to */
-function bulk_import_accessible_clients(array $user): array
-{
-    if (is_back_office($user)) {
-        return db()->query('SELECT id, full_name FROM clients')->fetchAll();
-    }
-    if ($user['role'] === 'associate') {
-        $stmt = db()->prepare('SELECT id, full_name FROM clients WHERE owner_id = ?');
-        $stmt->execute([$user['id']]);
-        return $stmt->fetchAll();
-    }
-    return [];
-}
-
 if ($action === 'scan') {
     if (empty($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
         json_error('A .zip file is required', 422);
@@ -88,7 +74,7 @@ if ($action === 'scan') {
     $zip = zip_list_entries($bytes);
     if (!$zip['ok']) json_error($zip['error'], 422);
 
-    $clients = bulk_import_accessible_clients($user);
+    $clients = accessible_clients_list($user);
     $batchId = uuid4();
     $batchDir = "$batchRoot/$batchId";
     mkdir($batchDir, 0755, true);
