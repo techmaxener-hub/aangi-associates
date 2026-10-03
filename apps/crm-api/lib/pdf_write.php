@@ -205,7 +205,152 @@ const PDF_BRAND = [
     'surface2' => '0.937 0.910 0.847',
     'line' => '0.882 0.851 0.765',
     'on_navy' => '0.965 0.953 0.918',
+    // Exact match of apps/website/assets/css/main.css's .contact-social-icon
+    // badge background (#003399) — the real circle color every social icon
+    // sits in on the live site's Contact page, reused here so the PDF's
+    // badges are the same brand mark, not an invented color.
+    'social_badge' => '0 0.200 0.600',
 ];
+
+// The real, verified contact/social links from apps/website/contact.html —
+// never fabricated. Instagram + LinkedIn also appear in index.html's
+// schema.org "sameAs" JSON-LD. WhatsApp and Email reuse the same office
+// number/address already used elsewhere in this file.
+const PDF_SOCIAL_LINKS = [
+    'instagram' => 'https://www.instagram.com/jainik1771',
+    'linkedin' => 'https://www.linkedin.com/in/jainik-shah-b1991019a',
+    'whatsapp' => 'https://wa.me/919033132791',
+    'email' => 'mailto:jainik1771@gmail.com',
+];
+
+/**
+ * Formats a float for a PDF content stream. Deliberately NOT sprintf's
+ * %f/%F — those are locale-aware (LC_NUMERIC), and on a server locale that
+ * uses "," as the decimal separator, sprintf('%.2F', 12.5) silently
+ * produces "12,50", which is not a valid PDF number and corrupts the rest
+ * of that content stream from that point on (confirmed live: it rendered
+ * fine locally under this machine's "C" locale, then on first use on
+ * production everything from the first circle/rounded-rect path onward
+ * went missing, while plain `(string) $float` interpolation elsewhere in
+ * this file — which PHP always renders with "." regardless of locale —
+ * kept working). number_format()'s separator arguments are explicit, not
+ * locale-dependent, so this is safe everywhere.
+ */
+function pdf_num(float $n): string
+{
+    return number_format($n, 2, '.', '');
+}
+
+/**
+ * A circle as a PDF path (Bezier-approximated, the standard k=0.5523*r
+ * control-point offset) — left unpainted so the caller appends f/S/f*.
+ * Used for the social-icon badges and for rounded-rect corners below.
+ */
+function pdf_circle_path(float $cx, float $cy, float $r): string
+{
+    $k = 0.5522847498 * $r;
+    $n = fn (float $v) => pdf_num($v);
+    return $n($cx) . ' ' . $n($cy + $r) . ' m '
+        . $n($cx + $k) . ' ' . $n($cy + $r) . ' ' . $n($cx + $r) . ' ' . $n($cy + $k) . ' ' . $n($cx + $r) . ' ' . $n($cy) . ' c '
+        . $n($cx + $r) . ' ' . $n($cy - $k) . ' ' . $n($cx + $k) . ' ' . $n($cy - $r) . ' ' . $n($cx) . ' ' . $n($cy - $r) . ' c '
+        . $n($cx - $k) . ' ' . $n($cy - $r) . ' ' . $n($cx - $r) . ' ' . $n($cy - $k) . ' ' . $n($cx - $r) . ' ' . $n($cy) . ' c '
+        . $n($cx - $r) . ' ' . $n($cy + $k) . ' ' . $n($cx - $k) . ' ' . $n($cy + $r) . ' ' . $n($cx) . ' ' . $n($cy + $r) . ' c '
+        . "h ";
+}
+
+/**
+ * A rounded rectangle as a PDF path, same unpainted convention as
+ * pdf_circle_path(). $y is the BOTTOM edge (this file's existing
+ * convention for plain `re` rects), $w/$h the full size, $r the corner
+ * radius. Used everywhere a card/badge needs softer corners than the
+ * straight `re` operator gives.
+ */
+function pdf_rounded_rect_path(float $x, float $y, float $w, float $h, float $r): string
+{
+    $k = 0.5522847498 * $r;
+    $yTop = $y + $h;
+    $x2 = $x + $w;
+    $n = fn (float $v) => pdf_num($v);
+    return $n($x) . ' ' . $n($y + $r) . ' m '
+        . $n($x) . ' ' . $n($yTop - $r) . ' l '
+        . $n($x) . ' ' . $n($yTop - $r + $k) . ' ' . $n($x + $r - $k) . ' ' . $n($yTop) . ' ' . $n($x + $r) . ' ' . $n($yTop) . ' c '
+        . $n($x2 - $r) . ' ' . $n($yTop) . ' l '
+        . $n($x2 - $r + $k) . ' ' . $n($yTop) . ' ' . $n($x2) . ' ' . $n($yTop - $r + $k) . ' ' . $n($x2) . ' ' . $n($yTop - $r) . ' c '
+        . $n($x2) . ' ' . $n($y + $r) . ' l '
+        . $n($x2) . ' ' . $n($y + $r - $k) . ' ' . $n($x2 - $r + $k) . ' ' . $n($y) . ' ' . $n($x2 - $r) . ' ' . $n($y) . ' c '
+        . $n($x + $r) . ' ' . $n($y) . ' l '
+        . $n($x + $r - $k) . ' ' . $n($y) . ' ' . $n($x) . ' ' . $n($y + $r - $k) . ' ' . $n($x) . ' ' . $n($y + $r) . ' c '
+        . "h ";
+}
+
+/**
+ * Real, recognizable social icon glyphs drawn as PDF vector paths — not a
+ * generic placeholder shape. Instagram and Email are near-exact
+ * reproductions (same rounded-square+lens+dot / envelope+chevron geometry)
+ * of the actual SVGs in apps/website/contact.html's .contact-social-icon
+ * buttons; LinkedIn and WhatsApp use that same brand's real lettermark/
+ * silhouette simplified to what this hand-rolled PDF path engine can draw
+ * (no SVG arc support), rather than attempting a byte-for-byte Bezier port
+ * of their curvier official glyphs. All four are drawn in white centered
+ * on a badge of radius $r at ($cx, $cy); the badge fill itself is drawn by
+ * the caller (pdf_social_badge()) so icon and background stay one call.
+ */
+function pdf_icon_instagram(float $cx, float $cy, float $r): string
+{
+    $s = $r * 0.72; // icon half-extent inside the badge
+    $out = '1 G 1.4 w ' . pdf_rounded_rect_path($cx - $s, $cy - $s, $s * 2, $s * 2, $s * 0.42) . "S\n";
+    $out .= '1 G 1.4 w ' . pdf_circle_path($cx, $cy, $s * 0.46) . "S\n";
+    $out .= '1 g ' . pdf_circle_path($cx + $s * 0.62, $cy + $s * 0.62, $s * 0.12) . "f\n";
+    return $out;
+}
+
+function pdf_icon_linkedin(float $cx, float $cy, float $r): string
+{
+    $fontSize = $r * 1.25;
+    $tx = $cx - $fontSize * 0.46;
+    $ty = $cy - $fontSize * 0.33;
+    return "1 g BT /F2 $fontSize Tf $tx $ty Td (in) Tj ET\n";
+}
+
+function pdf_icon_whatsapp(float $cx, float $cy, float $r): string
+{
+    $s = $r * 0.72;
+    $w = $s * 1.9;
+    $h = $s * 1.6;
+    $x = $cx - $w / 2;
+    $y = $cy - $h / 2 + $s * 0.18;
+    $out = '1 g ' . pdf_rounded_rect_path($x, $y, $w, $h, $s * 0.5) . "f\n";
+    $tailX = $x + $w * 0.3;
+    $out .= "1 g $tailX $y m " . ($tailX - $s * 0.26) . ' ' . ($y - $s * 0.38) . " l " . ($tailX + $s * 0.32) . " $y l h f\n";
+    return $out;
+}
+
+function pdf_icon_email(float $cx, float $cy, float $r): string
+{
+    $s = $r * 0.72;
+    $w = $s * 2;
+    $h = $s * 1.4;
+    $x = $cx - $w / 2;
+    $y = $cy - $h / 2;
+    $out = '1 G 1.4 w ' . pdf_rounded_rect_path($x, $y, $w, $h, $s * 0.22) . "S\n";
+    $midY = $y + $h * 0.6;
+    $out .= "1 G 1.4 w $x " . ($y + $h) . " m $cx $midY l " . ($x + $w) . ' ' . ($y + $h) . " l S\n";
+    return $out;
+}
+
+/** Draws one navy-blue circle badge (the exact color of the website's real .contact-social-icon buttons) with the given icon glyph inside, centered at ($cx, $cy) with radius $r. */
+function pdf_social_badge(float $cx, float $cy, float $r, string $iconKind): string
+{
+    $out = PDF_BRAND['social_badge'] . ' rg ' . pdf_circle_path($cx, $cy, $r) . "f\n";
+    $out .= match ($iconKind) {
+        'instagram' => pdf_icon_instagram($cx, $cy, $r),
+        'linkedin' => pdf_icon_linkedin($cx, $cy, $r),
+        'whatsapp' => pdf_icon_whatsapp($cx, $cy, $r),
+        'email' => pdf_icon_email($cx, $cy, $r),
+        default => '',
+    };
+    return $out;
+}
 
 /** No real font metrics in pure PHP — wraps by an approximate average Helvetica character width rather than pixel-perfect measurement. Good enough for prose blurbs/disclaimers, same honest-approximation spirit as the rest of this file. */
 function pdf_wrap_text(string $text, float $maxWidthPts, float $fontSize): array
@@ -329,35 +474,97 @@ function pdf_write_policy_summary(array $client, array $policy, string $advisorN
     // public website uses (apps/website/assets/img/aangi-logo-full-tight.png,
     // hero-jainik-900.jpg — copied into this app's own assets/branding/ so
     // the path is identical in dev and production regardless of where the
-    // website's own files happen to be deployed). The logo is a transparent
-    // PNG — flattened onto the header's navy via Imagick (confirmed on this
-    // project's Hostinger account) so it embeds as a plain JPEG; if Imagick
-    // is ever unavailable, both just silently fall back to not drawing an
-    // image rather than a broken one.
-    $logo = pdf_load_png_as_jpeg_on_background(__DIR__ . '/../assets/branding/aangi-logo.png', '#0f2a4a');
+    // website's own files happen to be deployed). Both logos are transparent
+    // PNGs — flattened via Imagick (confirmed on this project's Hostinger
+    // account) onto the background color they'll actually sit on (navy for
+    // the header, cream for inside the wood frame) so each embeds as a plain
+    // JPEG; if Imagick is ever unavailable, everything silently falls back
+    // to a text wordmark instead of a broken image.
+    //
+    // Header layout (per explicit request): the Jainik Shah wordmark
+    // (jainik-wordmark.png — the same transparent "Your Insurance
+    // Godfather" line-art mark used elsewhere) on the LEFT, flattened onto
+    // navy; the full Aangi Associates lockup on the RIGHT inside a thin
+    // wood-toned frame with corner screws — the exact "hero identity
+    // frame" treatment apps/website/index.html's hero already uses
+    // (.hero-identity-frame, see that file for the live reference), redrawn
+    // here with this file's own vector path primitives since there's no
+    // CSS to reuse in a PDF.
+    $jainikLogo = pdf_load_png_as_jpeg_on_background(__DIR__ . '/../assets/branding/jainik-wordmark.png', '#0f2a4a');
+    $aangiLogo = pdf_load_png_as_jpeg_on_background(__DIR__ . '/../assets/branding/aangi-logo.png', '#fdfbf2');
     $photo = pdf_load_jpeg(__DIR__ . '/../assets/branding/jainik-photo.jpg');
     $images = [];
-    if ($logo) $images['ImLogo'] = $logo;
+    if ($jainikLogo) $images['ImJainikLogo'] = $jainikLogo;
+    if ($aangiLogo) $images['ImAangiLogo'] = $aangiLogo;
     if ($photo) $images['ImPhoto'] = $photo;
+
+    $wood = '0.72 0.47 0.25';
+    $woodDark = '0.47 0.30 0.14';
+    $cream = '0.992 0.984 0.949';
+    $screwGray = '0.55 0.55 0.55';
 
     // ---------------- PAGE 1: profile — real website copy, logo, and photo ----------------
     $p1 = '';
-    $p1 .= "$navy rg 0 " . ($pageHeight - 70) . " $pageWidth 70 re f\n";
-    if ($logo) {
-        $logoW = 150;
-        $logoH = $logoW * $logo['height'] / $logo['width'];
-        $logoY = $pageHeight - 70 + (70 - $logoH) / 2;
-        $p1 .= "q $logoW 0 0 $logoH $marginX $logoY cm /ImLogo Do Q\n";
+    $headerH = 102;
+    $headerBottom = $pageHeight - $headerH;
+    $p1 .= "$navy rg 0 $headerBottom $pageWidth $headerH re f\n";
+
+    // Left: Jainik Shah wordmark on navy.
+    if ($jainikLogo) {
+        $jh = 74;
+        $jw = $jh * $jainikLogo['width'] / $jainikLogo['height'];
+        $jy = $headerBottom + ($headerH - $jh) / 2;
+        $p1 .= "q $jw 0 0 $jh $marginX $jy cm /ImJainikLogo Do Q\n";
     } else {
-        $p1 .= "1 g BT /F2 20 Tf $marginX " . ($pageHeight - 42) . " Td (" . $esc('AANGI ASSOCIATES') . ") Tj ET\n";
+        $p1 .= "1 g BT /F2 18 Tf $marginX " . ($headerBottom + $headerH / 2 - 6) . " Td (" . $esc('JAINIK SHAH') . ") Tj ET\n";
     }
-    $p1 .= "$onNavy rg BT /F1 10.5 Tf " . ($pageWidth - $marginX - 270) . " " . ($pageHeight - 48) . " Td (" . $esc('Protecting What Matters. Securing What You Build.') . ") Tj ET\n";
-    $p1 .= "$gold rg 0 " . ($pageHeight - 71.5) . " $pageWidth 1.5 re f\n";
+
+    // Right: thin wood frame around the full Aangi Associates lockup —
+    // same visual language as the website hero's identity frame (outer
+    // wood-toned border, cream interior, 4 corner screws).
+    $frameW = 230;
+    $frameH = 80;
+    $frameX = $pageWidth - $marginX - $frameW;
+    $frameY = $headerBottom + ($headerH - $frameH) / 2;
+    $border = 6;
+    $p1 .= "$wood rg " . pdf_rounded_rect_path($frameX, $frameY, $frameW, $frameH, 8) . "f\n";
+    $p1 .= "$woodDark RG 1.2 w " . pdf_rounded_rect_path($frameX, $frameY, $frameW, $frameH, 8) . "S\n";
+    $innerX = $frameX + $border;
+    $innerY = $frameY + $border;
+    $innerW = $frameW - $border * 2;
+    $innerH = $frameH - $border * 2;
+    $p1 .= "$cream rg " . pdf_rounded_rect_path($innerX, $innerY, $innerW, $innerH, 4) . "f\n";
+    if ($aangiLogo) {
+        $alH = $innerH - 6;
+        $alW = $alH * $aangiLogo['width'] / $aangiLogo['height'];
+        if ($alW > $innerW - 6) { $alW = $innerW - 6; $alH = $alW * $aangiLogo['height'] / $aangiLogo['width']; }
+        $alX = $innerX + ($innerW - $alW) / 2;
+        $alY = $innerY + ($innerH - $alH) / 2;
+        $p1 .= "q $alW 0 0 $alH $alX $alY cm /ImAangiLogo Do Q\n";
+    } else {
+        $p1 .= "$navy rg BT /F2 14 Tf " . ($innerX + 14) . ' ' . ($innerY + $innerH / 2 - 5) . " Td (" . $esc('AANGI ASSOCIATES') . ") Tj ET\n";
+    }
+    foreach ([[0, 0], [1, 0], [0, 1], [1, 1]] as [$cxFrac, $cyFrac]) {
+        $scx = $frameX + 9 + $cxFrac * ($frameW - 18);
+        $scy = $frameY + 9 + $cyFrac * ($frameH - 18);
+        $p1 .= "$screwGray rg " . pdf_circle_path($scx, $scy, 2.8) . "f\n";
+        $p1 .= "0.3 0.3 0.3 rg " . pdf_circle_path($scx, $scy, 1) . "f\n";
+    }
+
+    $p1 .= "$gold rg 0 " . ($headerBottom - 2) . " $pageWidth 2 re f\n";
+
+    // Tagline strip, directly under the header.
+    $taglineH = 22;
+    $taglineBottom = $headerBottom - 2 - $taglineH;
+    $p1 .= "$surface2 rg 0 $taglineBottom $pageWidth $taglineH re f\n";
+    $taglineText = 'PROTECTING WHAT MATTERS  .  SECURING WHAT YOU BUILD';
+    $taglineW = strlen($taglineText) * 10 * 0.52; // same average-char-width estimate pdf_wrap_text() uses, just for centering
+    $p1 .= "$gold rg BT /F2 10 Tf " . (($pageWidth - $taglineW) / 2) . ' ' . ($taglineBottom + 8) . " Td (" . $esc($taglineText) . ") Tj ET\n";
 
     // Hero: photo on the left in a gold-framed box, headline + CTA on the right.
     $photoW = 160;
     $photoH = $photo ? $photoW * $photo['height'] / $photo['width'] : 200;
-    $photoTop = $pageHeight - 90;
+    $photoTop = $taglineBottom - 16;
     $photoBottom = $photoTop - $photoH;
     if ($photo) {
         $p1 .= "$gold rg " . ($marginX - 4) . " " . ($photoBottom - 4) . " " . ($photoW + 8) . " " . ($photoH + 8) . " re f\n";
@@ -387,15 +594,31 @@ function pdf_write_policy_summary(array $client, array $policy, string $advisorN
 
     $y = $photoBottom - 34;
 
-    // Pull-quote, verbatim from the website's About section.
-    $p1 .= "$gold rg $marginX " . ($y - 40) . " 3 46 re f\n";
-    foreach (pdf_wrap_text('"Insurance is not just about issuing a policy. It is about protecting income, assets, business, and family security."', $pageWidth - $marginX * 2 - 16, 11) as $i => $line_) {
-        $p1 .= "$navy rg BT /F2 11 Tf " . ($marginX + 14) . " " . ($y - $i * 14) . " Td (" . $esc($line_) . ") Tj ET\n";
+    // Pull-quote, verbatim from the website's About section — now a proper
+    // rounded card with an eyebrow label above it, instead of a bare gold
+    // bar + text, matching the eyebrow-label treatment the website itself
+    // uses (.cert-eyebrow) ahead of its own sectioned content.
+    $p1 .= "$gold rg BT /F1 8 Tf $marginX $y Td (" . $esc('IN HIS OWN WORDS') . ") Tj ET\n";
+    $p1 .= "$gold rg $marginX " . ($y - 5) . " 130 1 re f\n";
+    $y -= 20;
+    $quoteLines = pdf_wrap_text('"Insurance is not just about issuing a policy. It is about protecting income, assets, business, and family security."', $pageWidth - $marginX * 2 - 34, 11);
+    $quoteCardH = max(50, count($quoteLines) * 14 + 20);
+    $quoteCardTop = $y;
+    $quoteCardBottom = $quoteCardTop - $quoteCardH;
+    $p1 .= "$surface2 rg " . pdf_rounded_rect_path($marginX, $quoteCardBottom, $pageWidth - $marginX * 2, $quoteCardH, 10) . "f\n";
+    $p1 .= "$gold rg " . pdf_rounded_rect_path($marginX + 14, $quoteCardBottom + 8, 4, $quoteCardH - 16, 2) . "f\n";
+    foreach ($quoteLines as $i => $line_) {
+        $p1 .= "$navy rg BT /F2 11 Tf " . ($marginX + 30) . ' ' . ($quoteCardTop - 20 - $i * 14) . " Td (" . $esc($line_) . ") Tj ET\n";
     }
-    $y -= 56;
+    $y = $quoteCardBottom - 20;
 
-    // Bio — the two real paragraphs from the website's About section.
-    $p1 .= "$navy rg BT /F2 10.5 Tf $marginX $y Td (" . $esc('Chief Business Associate Leader - TATA AIA Life Insurance') . ") Tj ET\n";
+    // Bio — the two real paragraphs from the website's About section,
+    // now under its own eyebrow label for the same visual rhythm as the
+    // quote card above and the stats/contact sections below.
+    $p1 .= "$gold rg BT /F1 8 Tf $marginX $y Td (" . $esc('ABOUT JAINIK SHAH') . ") Tj ET\n";
+    $p1 .= "$gold rg $marginX " . ($y - 5) . " 130 1 re f\n";
+    $y -= 20;
+    $p1 .= "$navy rg BT /F2 11 Tf $marginX $y Td (" . $esc('Chief Business Associate Leader - TATA AIA Life Insurance') . ") Tj ET\n";
     $y -= 18;
     $bioParas = [
         "Over 17 years, Jainik Shah has built Aangi Associates around one idea: insurance only matters if the claim actually gets paid, on time, without a fight. That focus on hassle-free claim assistance has earned the practice MDRT recognition and the trust of 1,400+ client families across Ahmedabad.",
@@ -409,8 +632,9 @@ function pdf_write_policy_summary(array $client, array $policy, string $advisorN
         $y -= 6;
     }
 
-    // Trust stats — verbatim from the website's trust strip.
-    $y -= 10;
+    // Trust stats — verbatim from the website's trust strip, now rounded
+    // cards with a thin outline for more depth than a flat fill alone.
+    $y -= 8;
     $stats = [
         '17+ Years in the Industry',
         '1,400+ Satisfied Client Families',
@@ -421,25 +645,54 @@ function pdf_write_policy_summary(array $client, array $policy, string $advisorN
     $statH = 46;
     foreach ($stats as $i => $stat) {
         $sx = $marginX + $i * ($statW + 8);
-        $p1 .= "$surface2 rg $sx " . ($y - $statH) . " $statW $statH re f\n";
-        $p1 .= "$gold rg $sx " . ($y - 3) . " $statW 3 re f\n";
+        $p1 .= "$surface2 rg " . pdf_rounded_rect_path($sx, $y - $statH, $statW, $statH, 6) . "f\n";
+        $p1 .= "$line RG 0.6 w " . pdf_rounded_rect_path($sx, $y - $statH, $statW, $statH, 6) . "S\n";
+        $p1 .= "$gold rg " . ($sx + 4) . ' ' . ($y - 3) . ' ' . ($statW - 8) . " 3 re f\n";
         foreach (pdf_wrap_text($stat, $statW - 12, 8) as $li => $line_) {
             $p1 .= "$navy rg BT /F2 8 Tf " . ($sx + 6) . " " . ($y - 16 - $li * 10) . " Td (" . $esc($line_) . ") Tj ET\n";
         }
     }
-    $y -= $statH + 24;
+    $y -= $statH + 20;
 
-    // Reach Us strip
-    $p1 .= "$surface2 rg $marginX " . ($y - 56) . " " . ($pageWidth - $marginX * 2) . " 56 re f\n";
-    $cardTop = $y - 14;
-    $p1 .= "$navy rg BT /F2 11 Tf " . ($marginX + 10) . " $cardTop Td (" . $esc('Reach Us Anytime') . ") Tj ET\n";
-    $rowY = $cardTop - 18;
-    $p1 .= "$text rg BT /F1 10 Tf " . ($marginX + 10) . " $rowY Td (" . $esc("Phone / WhatsApp: $officePhone") . ") Tj ET\n";
-    $annotsP1[] = ['rect' => [$marginX + 10, $rowY - 2, $marginX + 220, $rowY + 10], 'uri' => 'https://wa.me/' . preg_replace('/\D/', '', $officePhone)];
-    $p1 .= "$text rg BT /F1 10 Tf " . ($marginX + 260) . " $rowY Td (" . $esc('Website: aa.tmarinternational.com') . ") Tj ET\n";
-    $annotsP1[] = ['rect' => [$marginX + 260, $rowY - 2, $marginX + 470, $rowY + 10], 'uri' => $website];
+    // Reach Us + Connect With Us — one combined card: the office contact
+    // details already shown before, plus a real social-links row (the
+    // same 4 accounts apps/website/contact.html actually links to — never
+    // invented), each icon a genuine clickable annotation to that account.
+    $cardTop = $y;
+    $cardH = 124;
+    $cardBottom = $cardTop - $cardH;
+    $pad = 14;
+    $p1 .= "$surface2 rg " . pdf_rounded_rect_path($marginX, $cardBottom, $pageWidth - $marginX * 2, $cardH, 10) . "f\n";
+    $p1 .= "$navy rg BT /F2 11 Tf " . ($marginX + $pad) . ' ' . ($cardTop - 16) . " Td (" . $esc('Reach Us Anytime') . ") Tj ET\n";
+    $rowY = $cardTop - 34;
+    $p1 .= "$text rg BT /F1 10 Tf " . ($marginX + $pad) . " $rowY Td (" . $esc("Phone / WhatsApp: $officePhone") . ") Tj ET\n";
+    $annotsP1[] = ['rect' => [$marginX + $pad, $rowY - 2, $marginX + 230, $rowY + 10], 'uri' => 'https://wa.me/' . preg_replace('/\D/', '', $officePhone)];
+    $p1 .= "$text rg BT /F1 10 Tf " . ($marginX + 270) . " $rowY Td (" . $esc('Website: aa.tmarinternational.com') . ") Tj ET\n";
+    $annotsP1[] = ['rect' => [$marginX + 270, $rowY - 2, $marginX + 480, $rowY + 10], 'uri' => $website];
     $rowY -= 16;
-    $p1 .= "$textSoft rg BT /F1 9 Tf " . ($marginX + 10) . " $rowY Td (" . $esc($officeAddress . '  -  GSTIN: 24ACBFA747OP1Z2') . ") Tj ET\n";
+    $p1 .= "$textSoft rg BT /F1 9 Tf " . ($marginX + $pad) . " $rowY Td (" . $esc($officeAddress . '  -  GSTIN: 24ACBFA747OP1Z2') . ") Tj ET\n";
+
+    $dividerY = $rowY - 14;
+    $p1 .= "$line RG 0.6 w " . ($marginX + $pad) . " $dividerY m " . ($pageWidth - $marginX - $pad) . " $dividerY l S\n";
+    $p1 .= "$gold rg BT /F1 8 Tf " . ($marginX + $pad) . ' ' . ($dividerY - 12) . " Td (" . $esc('CONNECT WITH US') . ") Tj ET\n";
+
+    $badgeR = 11;
+    $badgeCy = $dividerY - 30;
+    $usableW = ($pageWidth - $marginX * 2) - $pad * 2;
+    $segW = $usableW / 4;
+    $socials = [
+        ['kind' => 'instagram', 'label' => 'Instagram', 'uri' => PDF_SOCIAL_LINKS['instagram']],
+        ['kind' => 'linkedin', 'label' => 'LinkedIn', 'uri' => PDF_SOCIAL_LINKS['linkedin']],
+        ['kind' => 'whatsapp', 'label' => 'WhatsApp', 'uri' => PDF_SOCIAL_LINKS['whatsapp']],
+        ['kind' => 'email', 'label' => 'Email', 'uri' => PDF_SOCIAL_LINKS['email']],
+    ];
+    foreach ($socials as $i => $s) {
+        $scx = $marginX + $pad + $segW * ($i + 0.5);
+        $p1 .= pdf_social_badge($scx, $badgeCy, $badgeR, $s['kind']);
+        $labelW = strlen($s['label']) * 7 * 0.52;
+        $p1 .= "$textSoft rg BT /F1 7 Tf " . ($scx - $labelW / 2) . ' ' . ($badgeCy - $badgeR - 10) . " Td (" . $esc($s['label']) . ") Tj ET\n";
+        $annotsP1[] = ['rect' => [$scx - $segW / 2 + 4, $badgeCy - $badgeR - 14, $scx + $segW / 2 - 4, $badgeCy + $badgeR + 4], 'uri' => $s['uri']];
+    }
 
     $p1 .= "$navy rg 0 0 $pageWidth 22 re f\n";
     $p1 .= "$onNavy rg BT /F1 8 Tf $marginX 8 Td (" . $esc('This profile page accompanies every policy summary Aangi Associates sends or hands out.') . ") Tj ET\n";
@@ -572,13 +825,17 @@ function pdf_write_policy_summary(array $client, array $policy, string $advisorN
     $p2 .= "1 g BT /F2 10 Tf " . ($marginX + 14) . " " . ($y - 16) . " Td (" . $esc('Open All Calculators ->') . ") Tj ET\n";
     $annotsP2[] = ['rect' => [$marginX, $y - 24, $marginX + $calcBtnW, $y], 'uri' => 'https://aa.tmarinternational.com/calculators.html'];
 
-    $footerY2 = 22;
+    // Footer band made tall enough (28pt, was 22pt) for its two text rows
+    // to actually clear each other — at the old height the 9pt title and
+    // 8pt contact line baselines sat only 5.5pt apart, closer than either
+    // font's own line height, so they visibly overlapped.
+    $footerY2 = 28;
     $p2 .= "$navy rg 0 0 $pageWidth $footerY2 re f\n";
-    $p2 .= "1 g BT /F2 9 Tf $marginX 14 Td (" . $esc('Reach Us Anytime') . ") Tj ET\n";
+    $p2 .= "1 g BT /F2 9 Tf $marginX 17 Td (" . $esc('Reach Us Anytime') . ") Tj ET\n";
     $contactLine = "$advisorName  .  $officePhone (tap to WhatsApp)";
-    $p2 .= "1 g BT /F1 8 Tf $marginX 8.5 Td (" . $esc($contactLine) . ") Tj ET\n";
+    $p2 .= "1 g BT /F1 8 Tf $marginX 7 Td (" . $esc($contactLine) . ") Tj ET\n";
     $waMessage = rawurlencode("Hi, I'm {$client['full_name']} - I'd like to talk about reviewing my family's protection plan.");
-    $annotsP2[] = ['rect' => [$marginX, 7, $marginX + 260, 17], 'uri' => 'https://wa.me/' . preg_replace('/\D/', '', $officePhone) . '?text=' . $waMessage];
+    $annotsP2[] = ['rect' => [$marginX, 5, $marginX + 260, 15], 'uri' => 'https://wa.me/' . preg_replace('/\D/', '', $officePhone) . '?text=' . $waMessage];
 
     return pdf_assemble_document(
         [
