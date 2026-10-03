@@ -670,8 +670,12 @@ function pdf_guess_insured_name(string $text): ?string
     if (!$val) return null;
     // Keep just the name-like leading run — letters/spaces/periods/apostrophes —
     // so a label regex over-match (e.g. trailing "DOB: 01/01/1990" on the
-    // same line) doesn't get treated as part of the name.
-    preg_match("/^[A-Za-z][A-Za-z.' ]{1,60}/", $val, $m);
+    // same line) doesn't get treated as part of the name. Must START with
+    // an UPPERCASE letter: a real policy PDF's label sometimes over-matches
+    // into the middle of a lowercase sentence fragment elsewhere on the
+    // page (confirmed against a real sample — produced "d herein" as a
+    // "name"), which a capitalized-name requirement rules out.
+    preg_match("/^[A-Z][A-Za-z.' ]{1,60}/", $val, $m);
     $name = isset($m[0]) ? trim($m[0]) : null;
     return $name !== '' ? $name : null;
 }
