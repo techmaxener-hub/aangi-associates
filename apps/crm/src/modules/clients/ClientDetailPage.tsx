@@ -762,12 +762,12 @@ function PoliciesTab({
                         )}
                         <button
                           type="button"
-                          title="Download Policy Detail"
                           disabled={downloadingId === p.id}
                           onClick={() => void handleDownloadSummary(p)}
-                          className="text-text-soft hover:text-gold-text disabled:opacity-50"
+                          className="flex items-center gap-1 text-xs font-medium text-gold-text hover:underline disabled:opacity-50"
                         >
                           <Download className="h-3.5 w-3.5" />
+                          {downloadingId === p.id ? "Generating…" : "Download Policy Detail"}
                         </button>
                       </div>
                     </td>

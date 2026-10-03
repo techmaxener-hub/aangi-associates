@@ -437,36 +437,88 @@ function pdf_winansi_to_utf8(string $s): string
  * project (WhatsApp/SMS/telephony): try the better path, degrade
  * silently and completely if it isn't available, never half-work.
  */
-function pdf_extract_text_via_ghostscript(string $bytes): ?string
-{
-    if (!function_exists('shell_exec') || !function_exists('exec')) return null;
+// Cap on how many pages a single whole-document gs invocation gets before
+// this switches to the slower-but-reliable one-call-per-page mode below.
+// Running gs once over an entire real policy kit (confirmed against a real
+// 55-page, image-heavy sample) silently returned only the LAST page's text
+// — exit code 0, no error output, just quietly wrong — while invoking it
+// separately per page correctly extracted every page tested, including
+// ones the whole-document pass dropped entirely. The cause wasn't
+// isolated (plausibly something in an early page's annotations/form
+// fields derailing txtwrite's internal state for the rest of the job) and
+// isn't worth chasing further: per-page calls are the reliable fix.
+const PDF_GS_MAX_PAGES = 60;
 
+function pdf_gs_binary_path(): string
+{
     static $gsPath = null; // resolved once per request, not once per call
     if ($gsPath === null) {
-        $found = @shell_exec('command -v gs 2>/dev/null');
-        $gsPath = $found !== null ? trim($found) : '';
+        if (!function_exists('shell_exec') || !function_exists('exec')) {
+            $gsPath = '';
+        } else {
+            $found = @shell_exec('command -v gs 2>/dev/null');
+            $gsPath = $found !== null ? trim($found) : '';
+        }
     }
+    return $gsPath;
+}
+
+/** Runs gs's txtwrite device over one page range of an already-on-disk PDF; null on any failure. */
+function pdf_gs_extract_page_range(string $gsPath, string $tmpIn, int $firstPage, int $lastPage): ?string
+{
+    $tmpOut = $tmpIn . '.out' . $firstPage . '.txt';
+    $cmd = escapeshellarg($gsPath)
+        . ' -dBATCH -dNOPAUSE -dQUIET -dSAFER -sDEVICE=txtwrite'
+        . " -dFirstPage=$firstPage -dLastPage=$lastPage"
+        . ' -o ' . escapeshellarg($tmpOut) . ' ' . escapeshellarg($tmpIn) . ' 2>&1';
+    @exec($cmd, $ignoredOutput, $exitCode);
+    $text = ($exitCode === 0 && is_file($tmpOut)) ? (string) @file_get_contents($tmpOut) : null;
+    @unlink($tmpOut);
+    return $text;
+}
+
+function pdf_extract_text_via_ghostscript(string $bytes): ?string
+{
+    $gsPath = pdf_gs_binary_path();
     if ($gsPath === '') return null;
 
     $base = @tempnam(sys_get_temp_dir(), 'pdfgs_');
     if ($base === false) return null;
     $tmpIn = "$base.pdf";
-    $tmpOut = "$base.txt";
     if (!@rename($base, $tmpIn)) { @unlink($base); return null; }
+    if (@file_put_contents($tmpIn, $bytes) === false) { @unlink($tmpIn); return null; }
 
-    $text = null;
-    if (@file_put_contents($tmpIn, $bytes) !== false) {
-        $cmd = escapeshellarg($gsPath)
-            . ' -dBATCH -dNOPAUSE -dQUIET -dSAFER -sDEVICE=txtwrite -o ' . escapeshellarg($tmpOut) . ' '
-            . escapeshellarg($tmpIn) . ' 2>&1';
-        @exec($cmd, $ignoredOutput, $exitCode);
-        if ($exitCode === 0 && is_file($tmpOut)) {
-            $text = (string) @file_get_contents($tmpOut);
-        }
+    // How many pages does gs itself see? A tiny inline PostScript query —
+    // if this fails for any reason (unusual/damaged PDF), fall back to one
+    // whole-document pass rather than giving up outright; that's exactly
+    // what already worked for every single/few-page PDF tested this
+    // session, so it's a reasonable fallback, just not a reliable one for
+    // many-page documents.
+    $pageCountRaw = @shell_exec(
+        'gs -dBATCH -dNOPAUSE -dQUIET -dNODISPLAY -c "(' . escapeshellcmd($tmpIn) . ') (r) file runpdfbegin pdfpagecount = quit" 2>&1'
+    );
+    $pageCount = (int) trim((string) $pageCountRaw);
+
+    if ($pageCount < 1) {
+        $text = pdf_gs_extract_page_range($gsPath, $tmpIn, 1, 1);
+        @unlink($tmpIn);
+        return $text !== null && trim($text) !== '' ? $text : null;
+    }
+
+    $pagesToRead = min($pageCount, PDF_GS_MAX_PAGES);
+    $parts = [];
+    for ($page = 1; $page <= $pagesToRead; $page++) {
+        $pageText = pdf_gs_extract_page_range($gsPath, $tmpIn, $page, $page);
+        if ($pageText !== null && trim($pageText) !== '') $parts[] = $pageText;
     }
     @unlink($tmpIn);
-    @unlink($tmpOut);
-    return $text !== null && trim($text) !== '' ? $text : null;
+
+    if (!$parts) return null;
+    $text = implode("\n", $parts);
+    if ($pageCount > PDF_GS_MAX_PAGES) {
+        $text .= "\n\n[Only the first $pagesToRead of $pageCount pages were read.]";
+    }
+    return $text;
 }
 
 /** @return array{text:string, low_confidence:bool} */
@@ -577,9 +629,42 @@ function pdf_find_after_label(string $text, array $labels): ?string
     return null;
 }
 
+/**
+ * Like pdf_find_after_label(), but for when a label can coincidentally
+ * match boilerplate/instructional text or a mangled table header
+ * elsewhere in a long real-world document — confirmed against a real
+ * 55-page policy kit, where "Policy no." (from an SMS-format instruction
+ * line: "SMS PCT <space> Policy no. <space> ...") and "Insured Name"
+ * (from a garbled benefit-table header row) each had exactly one
+ * occurrence and both happened to be earlier-tried labels than the
+ * correct one, so the single-first-match version returned garbage before
+ * ever reaching the real value. This scans EVERY occurrence of EVERY
+ * label (still in priority order) and returns the first one whose
+ * captured value the given validator accepts, falling through to the
+ * next occurrence/label otherwise instead of trusting the first hit.
+ *
+ * @param callable(string): bool $isValid
+ */
+function pdf_find_validated_after_label(string $text, array $labels, callable $isValid): ?string
+{
+    foreach ($labels as $label) {
+        if (preg_match_all('/' . preg_quote($label, '/') . '\s*[:\-]?\s*([^\n]{1,60})/i', $text, $matches)) {
+            foreach ($matches[1] as $raw) {
+                $val = trim($raw);
+                if ($val !== '' && $isValid($val)) return $val;
+            }
+        }
+    }
+    return null;
+}
+
 function pdf_guess_policy_number(string $text): ?string
 {
-    $val = pdf_find_after_label($text, ['Policy No.', 'Policy No', 'Policy Number']);
+    $val = pdf_find_validated_after_label(
+        $text,
+        ['Policy Number', 'Policy No.', 'Policy No'],
+        fn ($v) => preg_match('/^[A-Za-z0-9][A-Za-z0-9\/\-]{3,39}/', $v) === 1
+    );
     if (!$val) return null;
     // Keep just the leading token-like run (letters/digits/hyphens/slashes) —
     // don't drag in the rest of the line if the regex above over-matched.
@@ -662,19 +747,30 @@ function pdf_guess_product_type(string $text): ?string
  */
 function pdf_guess_insured_name(string $text): ?string
 {
-    $val = pdf_find_after_label($text, [
-        'Insured Name', 'Name of the Life Assured', 'Life Assured Name', 'Life Assured',
-        'Proposer Name', 'Name of Proposer', 'Policyholder Name', "Policy Holder's Name",
-        'Name of the Policyholder', 'Policy Owner Name', 'Customer Name',
-    ]);
+    // Must START with an UPPERCASE letter and be a plausible name length —
+    // a real policy PDF's label sometimes over-matches into the middle of
+    // an unrelated lowercase sentence fragment ("d herein") or a garbled
+    // table header ("Insured Name ... Assured ( ... Paying ... of app" —
+    // confirmed against a real 55-page sample, where that one bogus match
+    // was the label array's FIRST entry and so won outright before this
+    // function started validating per-occurrence). At least 3 letters
+    // after the first rules out a header fragment like "Assured" being
+    // mistaken for a first name on its own — real names are always at
+    // least a first + last name in these documents.
+    $val = pdf_find_validated_after_label(
+        $text,
+        [
+            'Insured Name', 'Name of the Life Assured', 'Life Assured Name', 'Life Assured',
+            'Proposer Name', 'Name of Proposer', 'Policyholder Name', "Policy Holder's Name",
+            'Name of the Policyholder', 'Policy Owner Name', 'Customer Name',
+        ],
+        // At least two capitalized tokens (first + last name) — real names
+        // in these documents are sometimes Title Case, often ALL CAPS
+        // ("PARIKH JAYENDRA NITINKUMAR"), so the test is capitalization of
+        // the first letter per word, not case of the rest.
+        fn ($v) => preg_match("/^[A-Z][A-Za-z']+\.?(?:[\s.]+[A-Z][A-Za-z']+\.?){1,}/", $v) === 1
+    );
     if (!$val) return null;
-    // Keep just the name-like leading run — letters/spaces/periods/apostrophes —
-    // so a label regex over-match (e.g. trailing "DOB: 01/01/1990" on the
-    // same line) doesn't get treated as part of the name. Must START with
-    // an UPPERCASE letter: a real policy PDF's label sometimes over-matches
-    // into the middle of a lowercase sentence fragment elsewhere on the
-    // page (confirmed against a real sample — produced "d herein" as a
-    // "name"), which a capitalized-name requirement rules out.
     preg_match("/^[A-Z][A-Za-z.' ]{1,60}/", $val, $m);
     $name = isset($m[0]) ? trim($m[0]) : null;
     return $name !== '' ? $name : null;
