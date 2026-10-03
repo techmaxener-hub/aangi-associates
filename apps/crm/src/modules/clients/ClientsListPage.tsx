@@ -462,7 +462,7 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
             </Button>
             <input id="policy-pdf-upload-2" type="file" accept="application/pdf" className="hidden" disabled={extracting} onChange={(e) => void handlePdfUpload(e)} />
           </div>
-          <form onSubmit={(e) => void handleAddPolicy(e)} className="grid grid-cols-2 gap-4">
+          <form onSubmit={(e) => void handleAddPolicy(e)} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label>Policy Number</Label>
               <Input value={policyForm.policy_number} onChange={(e) => setPolicyForm({ ...policyForm, policy_number: e.target.value })} />
@@ -497,7 +497,7 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
               <Label>Renewal / End Date</Label>
               <Input type="date" value={policyForm.renewal_date} onChange={(e) => setPolicyForm({ ...policyForm, renewal_date: e.target.value })} />
             </div>
-            <div className="col-span-2 flex justify-end">
+            <div className="col-span-1 flex justify-end sm:col-span-2">
               <Button type="submit" disabled={savingPolicy}>
                 {savingPolicy ? "Saving…" : "Save Policy"}
               </Button>
@@ -556,7 +556,7 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
                   <tr key={r.id} className="border-t border-line odd:bg-surface-2/40 align-top">
                     {isEditing ? (
                       <td colSpan={11} className="px-3 py-3">
-                        <form onSubmit={(e) => void handleSaveEdit(e)} className="grid grid-cols-4 gap-3">
+                        <form onSubmit={(e) => void handleSaveEdit(e)} className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                           <Input placeholder="Policy Number" value={editForm.policy_number} onChange={(e) => setEditForm({ ...editForm, policy_number: e.target.value })} />
                           <Input placeholder="Insurer" value={editForm.insurer} onChange={(e) => setEditForm({ ...editForm, insurer: e.target.value })} />
                           <Select value={editForm.product_type} onChange={(e) => setEditForm({ ...editForm, product_type: e.target.value })}>
