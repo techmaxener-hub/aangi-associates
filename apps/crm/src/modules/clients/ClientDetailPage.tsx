@@ -17,6 +17,8 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { api, API_BASE, ApiError } from "../../lib/api";
+import { useAuth } from "../../auth/useAuth";
+import { exportPolicySummaryPdf } from "./exportPolicySummaryPdf";
 import { useToast } from "../../components/ui/toast";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
@@ -483,9 +485,22 @@ function PoliciesTab({
   onChange: () => void;
 }) {
   const { showToast } = useToast();
+  const { profile } = useAuth();
+  const advisorName = profile?.full_name || "Jainik Shah";
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [extracting, setExtracting] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  async function handleDownloadSummary(policy: ClientPolicy) {
+    setDownloadingId(policy.id);
+    try {
+      await exportPolicySummaryPdf(clientName, policy, advisorName);
+    } catch (err) {
+      showToast(`Failed to generate PDF: ${err instanceof Error ? err.message : "unknown error"}`, "error");
+    }
+    setDownloadingId(null);
+  }
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [form, setForm] = useState({
     policy_number: "",
@@ -733,17 +748,28 @@ function PoliciesTab({
                     <td className="px-4 py-2.5">
                       <Badge variant={POLICY_STATUS_VARIANT[p.status]}>{p.status}</Badge>
                     </td>
-                    <td className="px-4 py-2.5 text-right">
-                      {soon && (
-                        <a
-                          href={`https://wa.me/${waPhone}?text=${encodeURIComponent(reminderMessage)}`}
-                          target="_blank"
-                          rel="noopener"
-                          className="text-xs font-medium text-gold-text hover:underline"
+                    <td className="px-4 py-2.5">
+                      <div className="flex items-center justify-end gap-3">
+                        {soon && (
+                          <a
+                            href={`https://wa.me/${waPhone}?text=${encodeURIComponent(reminderMessage)}`}
+                            target="_blank"
+                            rel="noopener"
+                            className="text-xs font-medium text-gold-text hover:underline"
+                          >
+                            Remind via WhatsApp →
+                          </a>
+                        )}
+                        <button
+                          type="button"
+                          title="Download Policy Detail"
+                          disabled={downloadingId === p.id}
+                          onClick={() => void handleDownloadSummary(p)}
+                          className="text-text-soft hover:text-gold-text disabled:opacity-50"
                         >
-                          Remind via WhatsApp →
-                        </a>
-                      )}
+                          <Download className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
