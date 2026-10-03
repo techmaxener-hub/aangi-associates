@@ -34,6 +34,17 @@ export interface ClientPolicy {
   created_at: string;
 }
 
+// The row shape the new policy-centric "My Clients" page lists — one row
+// per policy, joined with its client and advisor names server-side
+// (client_policies.php's ?list=1 mode) so the page never needs a second
+// round-trip per row just to show who a policy belongs to.
+export interface PolicyListRow extends ClientPolicy {
+  client_name: string;
+  client_phone: string;
+  client_email: string | null;
+  advisor_name: string | null;
+}
+
 export type OpportunityStage = "inquiry" | "quote" | "application" | "underwriting" | "bind_issue";
 
 export interface Opportunity {
@@ -114,4 +125,48 @@ export const PRODUCT_TYPES = [
   "Keyman Insurance",
   "Group Health Cover",
   "General Insurance",
+  // Added for the "My Clients" policy-list tabs/filters — a CBA practice
+  // commonly cross-refers banking products too, not just insurance/MF.
+  "Credit Card",
+  "Overdraft",
+  "Personal Loan",
+  "Mortgage Loan",
+  "Home Loan",
 ];
+
+// Coarse grouping for the "My Clients" page's tabs — every PRODUCT_TYPES
+// value maps to exactly one of these. Kept separate from Business
+// Planning's CATEGORY_MAP (ClientDetailPage.tsx) on purpose: that one
+// groups by sales-target category ("Wealth & Guaranteed Solutions" etc.),
+// this one groups by the plain product-family language the "My Clients"
+// list uses ("Life Insurance", "Health Insurance", ...).
+export const POLICY_TABS = [
+  "Life Insurance",
+  "General Insurance",
+  "Health Insurance",
+  "Mutual Fund",
+  "Credit Card",
+  "Overdraft",
+  "Personal Loan",
+  "Mortgage Loan",
+  "Home Loan",
+] as const;
+export type PolicyTab = (typeof POLICY_TABS)[number];
+
+export const PRODUCT_TYPE_TO_POLICY_TAB: Record<string, PolicyTab> = {
+  "Pure Term Plan": "Life Insurance",
+  "Guaranteed Return Plan": "Life Insurance",
+  "Child Education Plan": "Life Insurance",
+  "Pension/Annuity": "Life Insurance",
+  "Keyman Insurance": "Life Insurance",
+  "Family Mediclaim": "Health Insurance",
+  "Critical Illness Cover": "Health Insurance",
+  "Group Health Cover": "Health Insurance",
+  "General Insurance": "General Insurance",
+  "Mutual Fund": "Mutual Fund",
+  "Credit Card": "Credit Card",
+  Overdraft: "Overdraft",
+  "Personal Loan": "Personal Loan",
+  "Mortgage Loan": "Mortgage Loan",
+  "Home Loan": "Home Loan",
+};

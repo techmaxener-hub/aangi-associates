@@ -36,6 +36,33 @@ if ($method === 'GET' && $clientId) {
     json_out($stmt->fetchAll());
 }
 
+if ($method === 'GET' && !empty($_GET['list'])) {
+    // The policy-centric "My Clients" page (ClientsListPage.tsx) — one row
+    // per policy, joined with its client and advisor so the page never
+    // needs a second round-trip per row. Admin/staff see every policy;
+    // an associate sees only policies on clients they own (same scoping
+    // shape as clients.php's own list endpoint).
+    $where = '';
+    $params = [];
+    if ($user['role'] === 'associate') {
+        $where = 'WHERE c.owner_id = ?';
+        $params[] = $user['id'];
+    } elseif (!is_back_office($user)) {
+        json_error('Forbidden', 403);
+    }
+    $stmt = db()->prepare(
+        "SELECT cp.*, c.full_name AS client_name, c.phone AS client_phone, c.email AS client_email,
+                u.full_name AS advisor_name
+         FROM client_policies cp
+         JOIN clients c ON c.id = cp.client_id
+         LEFT JOIN users u ON u.id = c.owner_id
+         $where
+         ORDER BY cp.created_at DESC"
+    );
+    $stmt->execute($params);
+    json_out($stmt->fetchAll());
+}
+
 if ($method === 'GET') {
     // AdminDashboard.tsx / NotificationStrip.tsx — unfiltered, admin/staff
     // only (associates never listed all policies this way under the old RLS).
@@ -92,6 +119,19 @@ if ($method === 'PUT' && $id) {
     $stmt = db()->prepare('SELECT * FROM client_policies WHERE id = ?');
     $stmt->execute([$id]);
     log_audit('client_policies', $id, 'update', $old, $stmt->fetch());
+    json_out(['ok' => true]);
+}
+
+if ($method === 'DELETE' && $id) {
+    // Admin-only, per the "My Clients" page's explicit admin-vs-staff
+    // button split — staff can edit a policy but never delete one.
+    require_role('admin');
+    $stmt = db()->prepare('SELECT * FROM client_policies WHERE id = ?');
+    $stmt->execute([$id]);
+    $old = $stmt->fetch();
+    if (!$old) json_error('Not found', 404);
+    db()->prepare('DELETE FROM client_policies WHERE id = ?')->execute([$id]);
+    log_audit('client_policies', $id, 'delete', $old, null);
     json_out(['ok' => true]);
 }
 
