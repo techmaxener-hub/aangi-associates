@@ -134,12 +134,24 @@ function pdf_write_intimation_digest(string $forDate, array $items): string
 
 /**
  * @param list<array{content:string, annots?:list<array{rect:array{0:float,1:float,2:float,3:float}, uri:string}>}> $pages
+ * @param array<string, array{jpeg:string, width:int, height:int}> $images Pre-decoded JPEG bytes, keyed by the XObject name used in page content (e.g. "/ImLogo Do"). Every page gets every image in its Resources dict, whether that page's content stream actually paints it or not — harmless, and far simpler than tracking per-page usage.
  */
-function pdf_assemble_document(array $pages, int $pageWidth = 595, int $pageHeight = 842): string
+function pdf_assemble_document(array $pages, array $images = [], int $pageWidth = 595, int $pageHeight = 842): string
 {
     $objects = [];
     $pageRefs = [];
     $nextId = 5; // 1 Catalog, 2 Pages, 3 Font(Helvetica), 4 Font(Helvetica-Bold)
+
+    $imageIds = [];
+    foreach ($images as $name => $img) {
+        $id = $nextId++;
+        $imageIds[$name] = $id;
+        $objects[$id] = "$id 0 obj\n<< /Type /XObject /Subtype /Image /Width {$img['width']} /Height {$img['height']} "
+            . "/ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length " . strlen($img['jpeg']) . " >>\nstream\n"
+            . $img['jpeg'] . "\nendstream\nendobj\n";
+    }
+    $xobjectDict = '';
+    foreach ($imageIds as $name => $id) $xobjectDict .= "/$name $id 0 R ";
 
     foreach ($pages as $page) {
         $pageId = $nextId++;
@@ -154,7 +166,8 @@ function pdf_assemble_document(array $pages, int $pageWidth = 595, int $pageHeig
         }
         $annotsArray = $annotRefs ? '[' . implode(' ', $annotRefs) . ']' : '[]';
         $content = $page['content'];
-        $objects[$pageId] = "$pageId 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 $pageWidth $pageHeight] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents $contentId 0 R /Annots $annotsArray >>\nendobj\n";
+        $resources = "<< /Font << /F1 3 0 R /F2 4 0 R >>" . ($xobjectDict !== '' ? " /XObject << $xobjectDict>>" : '') . " >>";
+        $objects[$pageId] = "$pageId 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 $pageWidth $pageHeight] /Resources $resources /Contents $contentId 0 R /Annots $annotsArray >>\nendobj\n";
         $objects[$contentId] = "$contentId 0 obj\n<< /Length " . strlen($content) . " >>\nstream\n$content" . "endstream\nendobj\n";
         $pageRefs[] = "$pageId 0 R";
     }
@@ -225,6 +238,60 @@ function pdf_format_date(?string $iso): string
 }
 
 /**
+ * Reads a JPEG straight off disk — PDF's /DCTDecode filter accepts raw
+ * JPEG byte streams directly, no re-encoding needed, so this is just a
+ * file read + getimagesize() (a core PHP function, no extension required)
+ * for the /Width and /Height the Image XObject dict needs. Returns null
+ * for anything that isn't actually a JPEG so a caller can degrade
+ * honestly instead of embedding bytes the DCTDecode filter can't parse.
+ */
+function pdf_load_jpeg(string $path): ?array
+{
+    if (!is_file($path)) return null;
+    $info = @getimagesize($path);
+    if ($info === false || $info[2] !== IMAGETYPE_JPEG) return null;
+    $bytes = @file_get_contents($path);
+    if ($bytes === false) return null;
+    return ['jpeg' => $bytes, 'width' => $info[0], 'height' => $info[1]];
+}
+
+/**
+ * This project's logo is a transparent PNG (RGBA) — PDF can embed that
+ * too, but only via a separate alpha-channel SMask image built by hand-
+ * unfiltering the PNG's own scanline compression, real complexity for a
+ * single logo. Imagick is confirmed installed on this project's actual
+ * Hostinger account (checked directly, the same way the Ghostscript
+ * integration above was) even though this codebase otherwise avoids it
+ * — flattening the transparent areas onto a solid background and
+ * re-exporting as a plain JPEG sidesteps the alpha problem entirely and
+ * needs only 3 Imagick calls. Returns null (never throws) if Imagick
+ * isn't available for any reason, so the caller can fall back to a
+ * text-only wordmark instead of a missing or broken image — this is
+ * genuinely optional, unlike the Ghostscript path, since there's no
+ * correctness risk to a PDF with no logo, only a visual one.
+ */
+function pdf_load_png_as_jpeg_on_background(string $path, string $bgHex): ?array
+{
+    if (!class_exists('Imagick') || !is_file($path)) return null;
+    try {
+        $img = new Imagick($path);
+        $bg = new Imagick();
+        $bg->newImage($img->getImageWidth(), $img->getImageHeight(), new ImagickPixel($bgHex));
+        $bg->setImageFormat('jpeg');
+        $bg->compositeImage($img, Imagick::COMPOSITE_OVER, 0, 0);
+        $bg->setImageCompressionQuality(88);
+        $jpeg = $bg->getImageBlob();
+        $width = $bg->getImageWidth();
+        $height = $bg->getImageHeight();
+        $img->clear();
+        $bg->clear();
+        return ['jpeg' => $jpeg, 'width' => $width, 'height' => $height];
+    } catch (Throwable $e) {
+        return null;
+    }
+}
+
+/**
  * The 2-page document policy_summary.php hands out (download or email):
  * page 1 is a branded "meet your advisor" profile page (website-matching
  * colors, no fabricated social links — only the office phone/address/
@@ -256,47 +323,126 @@ function pdf_write_policy_summary(array $client, array $policy, string $advisorN
     $esc = fn (string $s) => pdf_write_escape_text($s);
     $annotsP1 = [];
     $annotsP2 = [];
+    $pageHeight = 842;
 
-    // ---------------- PAGE 1: profile / "meet your advisor" ----------------
+    // Real brand assets, not fabricated: the exact logo and hero photo the
+    // public website uses (apps/website/assets/img/aangi-logo-full-tight.png,
+    // hero-jainik-900.jpg — copied into this app's own assets/branding/ so
+    // the path is identical in dev and production regardless of where the
+    // website's own files happen to be deployed). The logo is a transparent
+    // PNG — flattened onto the header's navy via Imagick (confirmed on this
+    // project's Hostinger account) so it embeds as a plain JPEG; if Imagick
+    // is ever unavailable, both just silently fall back to not drawing an
+    // image rather than a broken one.
+    $logo = pdf_load_png_as_jpeg_on_background(__DIR__ . '/../assets/branding/aangi-logo.png', '#0f2a4a');
+    $photo = pdf_load_jpeg(__DIR__ . '/../assets/branding/jainik-photo.jpg');
+    $images = [];
+    if ($logo) $images['ImLogo'] = $logo;
+    if ($photo) $images['ImPhoto'] = $photo;
+
+    // ---------------- PAGE 1: profile — real website copy, logo, and photo ----------------
     $p1 = '';
-    $p1 .= "$navy rg 0 790 $pageWidth 52 re f\n";
-    $p1 .= "1 g BT /F2 20 Tf $marginX 822 Td (" . $esc('AANGI ASSOCIATES') . ") Tj ET\n";
-    $p1 .= "$onNavy rg BT /F1 10 Tf $marginX 804 Td (" . $esc('Protecting What Matters. Securing What You Build.') . ") Tj ET\n";
-    $p1 .= "$gold rg 0 788.5 $pageWidth 1.5 re f\n";
+    $p1 .= "$navy rg 0 " . ($pageHeight - 70) . " $pageWidth 70 re f\n";
+    if ($logo) {
+        $logoW = 150;
+        $logoH = $logoW * $logo['height'] / $logo['width'];
+        $logoY = $pageHeight - 70 + (70 - $logoH) / 2;
+        $p1 .= "q $logoW 0 0 $logoH $marginX $logoY cm /ImLogo Do Q\n";
+    } else {
+        $p1 .= "1 g BT /F2 20 Tf $marginX " . ($pageHeight - 42) . " Td (" . $esc('AANGI ASSOCIATES') . ") Tj ET\n";
+    }
+    $p1 .= "$onNavy rg BT /F1 10.5 Tf " . ($pageWidth - $marginX - 270) . " " . ($pageHeight - 48) . " Td (" . $esc('Protecting What Matters. Securing What You Build.') . ") Tj ET\n";
+    $p1 .= "$gold rg 0 " . ($pageHeight - 71.5) . " $pageWidth 1.5 re f\n";
 
-    $y = 745;
-    $p1 .= "$text rg BT /F2 22 Tf $marginX $y Td (" . $esc('Jainik Shah') . ") Tj ET\n";
-    $y -= 16;
-    $p1 .= "$gold rg BT /F2 12 Tf $marginX $y Td (" . $esc('Chief Business Associate, TATA AIA Life Insurance') . ") Tj ET\n";
-    $y -= 26;
-    $bio = 'With 17+ years in financial advisory and 1,400+ client families served, Jainik Shah leads Aangi Associates as an '
-        . 'MDRT-Qualified Practice (2021, 2022, 2024 & 2025) - a standard held by a small fraction of advisors worldwide for '
-        . 'consistent client-first service.';
-    $textSoftRg = "$textSoft rg";
-    foreach (pdf_wrap_text($bio, $pageWidth - $marginX * 2, 10) as $line_) {
-        $p1 .= "$textSoftRg BT /F1 10 Tf $marginX $y Td (" . $esc($line_) . ") Tj ET\n";
-        $y -= 13;
+    // Hero: photo on the left in a gold-framed box, headline + CTA on the right.
+    $photoW = 160;
+    $photoH = $photo ? $photoW * $photo['height'] / $photo['width'] : 200;
+    $photoTop = $pageHeight - 90;
+    $photoBottom = $photoTop - $photoH;
+    if ($photo) {
+        $p1 .= "$gold rg " . ($marginX - 4) . " " . ($photoBottom - 4) . " " . ($photoW + 8) . " " . ($photoH + 8) . " re f\n";
+        $p1 .= "q $photoW 0 0 $photoH $marginX $photoBottom cm /ImPhoto Do Q\n";
     }
 
+    $rx = $marginX + $photoW + 26;
+    $rw = $pageWidth - $marginX - $rx;
+    $ry = $photoTop - 6;
+    $p1 .= "$navy rg BT /F2 18 Tf $rx $ry Td (" . $esc('Insurance & Financial') . ") Tj ET\n";
+    $ry -= 21;
+    $p1 .= "$navy rg BT /F2 18 Tf $rx $ry Td (" . $esc('Advisory Solutions') . ") Tj ET\n";
+    $ry -= 20;
+    $p1 .= "$gold rg BT /F2 11.5 Tf $rx $ry Td (" . $esc('Jainik Shah  -  17+ Years of Elite, Proven') . ") Tj ET\n";
+    $ry -= 14;
+    $p1 .= "$gold rg BT /F2 11.5 Tf $rx $ry Td (" . $esc('& Uncompromising Financial Advisory') . ") Tj ET\n";
+    $ry -= 20;
+    foreach (pdf_wrap_text('Trusted by 1,400+ families across Ahmedabad to secure their future and accelerate growth. Globally recognized (MDRT) advisory backed by steadfast, end-to-end claim assistance when it matters most.', $rw, 9.5) as $line_) {
+        $p1 .= "$textSoft rg BT /F1 9.5 Tf $rx $ry Td (" . $esc($line_) . ") Tj ET\n";
+        $ry -= 13;
+    }
+    $ry -= 6;
+    $btnW = min($rw, 200);
+    $p1 .= "$gold rg $rx " . ($ry - 20) . " $btnW 24 re f\n";
+    $p1 .= "1 g BT /F2 10 Tf " . ($rx + 14) . " " . ($ry - 12) . " Td (" . $esc('Talk to an Advisor ->') . ") Tj ET\n";
+    $annotsP1[] = ['rect' => [$rx, $ry - 20, $rx + $btnW, $ry + 4], 'uri' => 'https://wa.me/919033132791?text=' . rawurlencode("Hi Aangi Associates, I'd like to talk to an advisor.")];
+
+    $y = $photoBottom - 34;
+
+    // Pull-quote, verbatim from the website's About section.
+    $p1 .= "$gold rg $marginX " . ($y - 40) . " 3 46 re f\n";
+    foreach (pdf_wrap_text('"Insurance is not just about issuing a policy. It is about protecting income, assets, business, and family security."', $pageWidth - $marginX * 2 - 16, 11) as $i => $line_) {
+        $p1 .= "$navy rg BT /F2 11 Tf " . ($marginX + 14) . " " . ($y - $i * 14) . " Td (" . $esc($line_) . ") Tj ET\n";
+    }
+    $y -= 56;
+
+    // Bio — the two real paragraphs from the website's About section.
+    $p1 .= "$navy rg BT /F2 10.5 Tf $marginX $y Td (" . $esc('Chief Business Associate Leader - TATA AIA Life Insurance') . ") Tj ET\n";
+    $y -= 18;
+    $bioParas = [
+        "Over 17 years, Jainik Shah has built Aangi Associates around one idea: insurance only matters if the claim actually gets paid, on time, without a fight. That focus on hassle-free claim assistance has earned the practice MDRT recognition and the trust of 1,400+ client families across Ahmedabad.",
+        "His approach: understanding real financial risks, designing customized protection strategies, ensuring smooth and reliable claim assistance, and providing consistent long-term service support. It's why clients who join as individuals often stay as families, across life stages and generations.",
+    ];
+    foreach ($bioParas as $para) {
+        foreach (pdf_wrap_text($para, $pageWidth - $marginX * 2, 9.5) as $line_) {
+            $p1 .= "$textSoft rg BT /F1 9.5 Tf $marginX $y Td (" . $esc($line_) . ") Tj ET\n";
+            $y -= 13;
+        }
+        $y -= 6;
+    }
+
+    // Trust stats — verbatim from the website's trust strip.
     $y -= 10;
-    $p1 .= "$surface2 rg $marginX " . ($y - 92) . " " . ($pageWidth - $marginX * 2) . " 92 re f\n";
+    $stats = [
+        '17+ Years in the Industry',
+        '1,400+ Satisfied Client Families',
+        'MDRT-Qualified Practice - 2021, 2022, 2024 & 2025',
+        'Official TATA AIA CBA Partner',
+    ];
+    $statW = ($pageWidth - $marginX * 2 - 3 * 8) / 4;
+    $statH = 46;
+    foreach ($stats as $i => $stat) {
+        $sx = $marginX + $i * ($statW + 8);
+        $p1 .= "$surface2 rg $sx " . ($y - $statH) . " $statW $statH re f\n";
+        $p1 .= "$gold rg $sx " . ($y - 3) . " $statW 3 re f\n";
+        foreach (pdf_wrap_text($stat, $statW - 12, 8) as $li => $line_) {
+            $p1 .= "$navy rg BT /F2 8 Tf " . ($sx + 6) . " " . ($y - 16 - $li * 10) . " Td (" . $esc($line_) . ") Tj ET\n";
+        }
+    }
+    $y -= $statH + 24;
+
+    // Reach Us strip
+    $p1 .= "$surface2 rg $marginX " . ($y - 56) . " " . ($pageWidth - $marginX * 2) . " 56 re f\n";
     $cardTop = $y - 14;
     $p1 .= "$navy rg BT /F2 11 Tf " . ($marginX + 10) . " $cardTop Td (" . $esc('Reach Us Anytime') . ") Tj ET\n";
     $rowY = $cardTop - 18;
     $p1 .= "$text rg BT /F1 10 Tf " . ($marginX + 10) . " $rowY Td (" . $esc("Phone / WhatsApp: $officePhone") . ") Tj ET\n";
     $annotsP1[] = ['rect' => [$marginX + 10, $rowY - 2, $marginX + 220, $rowY + 10], 'uri' => 'https://wa.me/' . preg_replace('/\D/', '', $officePhone)];
+    $p1 .= "$text rg BT /F1 10 Tf " . ($marginX + 260) . " $rowY Td (" . $esc('Website: aa.tmarinternational.com') . ") Tj ET\n";
+    $annotsP1[] = ['rect' => [$marginX + 260, $rowY - 2, $marginX + 470, $rowY + 10], 'uri' => $website];
     $rowY -= 16;
-    $p1 .= "$text rg BT /F1 10 Tf " . ($marginX + 10) . " $rowY Td (" . $esc('Website: aa.tmarinternational.com') . ") Tj ET\n";
-    $annotsP1[] = ['rect' => [$marginX + 10, $rowY - 2, $marginX + 220, $rowY + 10], 'uri' => $website];
-    $rowY -= 16;
-    $p1 .= "$textSoft rg BT /F1 9 Tf " . ($marginX + 10) . " $rowY Td (" . $esc($officeAddress) . ") Tj ET\n";
-    $rowY -= 14;
-    $p1 .= "$textSoft rg BT /F1 9 Tf " . ($marginX + 10) . " $rowY Td (" . $esc('GSTIN: 24ACBFA747OP1Z2') . ") Tj ET\n";
+    $p1 .= "$textSoft rg BT /F1 9 Tf " . ($marginX + 10) . " $rowY Td (" . $esc($officeAddress . '  -  GSTIN: 24ACBFA747OP1Z2') . ") Tj ET\n";
 
-    $pageHeight = 842;
-    $footerY1 = $pageHeight - 22;
     $p1 .= "$navy rg 0 0 $pageWidth 22 re f\n";
-    $p1 .= "$onNavy rg BT /F1 8 Tf $marginX 10 Td (" . $esc('This profile page accompanies every policy summary Aangi Associates sends or hands out.') . ") Tj ET\n";
+    $p1 .= "$onNavy rg BT /F1 8 Tf $marginX 8 Td (" . $esc('This profile page accompanies every policy summary Aangi Associates sends or hands out.') . ") Tj ET\n";
 
     // ---------------- PAGE 2: policy detail (ported from exportPolicySummaryPdf.ts) ----------------
     $p2 = '';
@@ -377,6 +523,55 @@ function pdf_write_policy_summary(array $client, array $policy, string $advisorN
         $p2 .= "$textSoft rg BT /F1 9 Tf $marginX " . ($y - $i * 12) . " Td (" . $esc($line_) . ") Tj ET\n";
     }
 
+    // Calculators showcase — every calculator actually on the website
+    // (apps/website/calculators.html), not a curated subset. Each one links
+    // to the same calculators page rather than a fabricated per-calculator
+    // deep link: the live page has no URL-hash tab routing to link to (confirmed
+    // by reading its JS), so a working single destination is more honest than
+    // 16 identical-looking buttons that quietly all go to the same place —
+    // one clear "Open All Calculators" button does that job better anyway.
+    $y -= 40;
+    $p2 .= "$navy rg $marginX " . ($y - 16) . " " . ($pageWidth - $marginX * 2) . " 16 re f\n";
+    $p2 .= "1 g BT /F2 11 Tf " . ($marginX + 10) . " " . ($y - 11) . " Td (" . $esc('Free Financial Calculators') . ") Tj ET\n";
+    $y -= 26;
+    foreach (pdf_wrap_text('Illustrative planning tools, free to use on our website - estimate what you need, not what to buy.', $pageWidth - $marginX * 2, 9) as $line_) {
+        $p2 .= "$textSoft rg BT /F1 9 Tf $marginX $y Td (" . $esc($line_) . ") Tj ET\n";
+        $y -= 12;
+    }
+    $y -= 8;
+
+    $calculators = [
+        'Human Life Value / Term Insurance Need', 'Child Education Planner',
+        'Dream Wedding Planner', 'Dream Car / Bike / Property Planner',
+        'Dream Vacation Planner', 'SIP Calculator',
+        'Lumpsum Calculator', 'Cost of Delay Calculator',
+        'Retirement Corpus Estimator', 'SIP Top-Up Calculator',
+        'Limited Period SIP Calculator', 'Birthday SIP Calculator',
+        'EMI Calculator', 'Home Loan vs SIP Calculator',
+        'SWP Calculator', 'Protection Gap Score',
+    ];
+    $calcColW = ($pageWidth - $marginX * 2 - 10) / 2;
+    $calcRowH = 22;
+    foreach ($calculators as $i => $calcName) {
+        $col = $i % 2;
+        $row = (int) ($i / 2);
+        $cx = $marginX + $col * ($calcColW + 10);
+        $cyTop = $y - $row * $calcRowH;
+        $p2 .= "$surface2 rg $cx " . ($cyTop - 17) . " $calcColW 17 re f\n";
+        $p2 .= "$gold rg $cx " . ($cyTop - 17) . " 3 17 re f\n";
+        foreach (pdf_wrap_text($calcName, $calcColW - 16, 8.5) as $li => $line_) {
+            if ($li > 1) break; // 2 lines max per card keeps the grid even
+            $p2 .= "$navy rg BT /F2 8.5 Tf " . ($cx + 10) . " " . ($cyTop - 12 - $li * 10) . " Td (" . $esc($line_) . ") Tj ET\n";
+        }
+    }
+    $gridRows = (int) ceil(count($calculators) / 2);
+    $y -= $gridRows * $calcRowH + 16;
+
+    $calcBtnW = 220;
+    $p2 .= "$gold rg $marginX " . ($y - 24) . " $calcBtnW 24 re f\n";
+    $p2 .= "1 g BT /F2 10 Tf " . ($marginX + 14) . " " . ($y - 16) . " Td (" . $esc('Open All Calculators ->') . ") Tj ET\n";
+    $annotsP2[] = ['rect' => [$marginX, $y - 24, $marginX + $calcBtnW, $y], 'uri' => 'https://aa.tmarinternational.com/calculators.html'];
+
     $footerY2 = 22;
     $p2 .= "$navy rg 0 0 $pageWidth $footerY2 re f\n";
     $p2 .= "1 g BT /F2 9 Tf $marginX 14 Td (" . $esc('Reach Us Anytime') . ") Tj ET\n";
@@ -385,8 +580,11 @@ function pdf_write_policy_summary(array $client, array $policy, string $advisorN
     $waMessage = rawurlencode("Hi, I'm {$client['full_name']} - I'd like to talk about reviewing my family's protection plan.");
     $annotsP2[] = ['rect' => [$marginX, 7, $marginX + 260, 17], 'uri' => 'https://wa.me/' . preg_replace('/\D/', '', $officePhone) . '?text=' . $waMessage];
 
-    return pdf_assemble_document([
-        ['content' => $p1, 'annots' => $annotsP1],
-        ['content' => $p2, 'annots' => $annotsP2],
-    ]);
+    return pdf_assemble_document(
+        [
+            ['content' => $p1, 'annots' => $annotsP1],
+            ['content' => $p2, 'annots' => $annotsP2],
+        ],
+        $images,
+    );
 }
