@@ -11,6 +11,7 @@ import {
   MessageCircle,
   Mail,
   ListPlus,
+  Zap,
 } from "lucide-react";
 import { api, API_BASE, ApiError } from "../../lib/api";
 import { useAuth } from "../../auth/useAuth";
@@ -43,6 +44,8 @@ const EMPTY_POLICY_FORM = {
   premium: "",
   start_date: "",
   renewal_date: "",
+  nominee_name: "",
+  nominee_relation: "",
 };
 
 export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; basePath: string }) {
@@ -209,6 +212,8 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
         premium: policyForm.premium ? Number(policyForm.premium) : null,
         start_date: policyForm.start_date || null,
         renewal_date: policyForm.renewal_date || null,
+        nominee_name: policyForm.nominee_name || null,
+        nominee_relation: policyForm.nominee_relation || null,
       });
       if (pendingPdf) {
         const docForm = new FormData();
@@ -242,6 +247,8 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
       premium: row.premium != null ? String(row.premium) : "",
       start_date: row.start_date ?? "",
       renewal_date: row.renewal_date ?? "",
+      nominee_name: row.nominee_name ?? "",
+      nominee_relation: row.nominee_relation ?? "",
     });
   }
 
@@ -258,6 +265,8 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
         premium: editForm.premium ? Number(editForm.premium) : null,
         start_date: editForm.start_date || null,
         renewal_date: editForm.renewal_date || null,
+        nominee_name: editForm.nominee_name || null,
+        nominee_relation: editForm.nominee_relation || null,
       });
       showToast("Policy updated.");
       setEditingId(null);
@@ -497,6 +506,14 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
               <Label>Renewal / End Date</Label>
               <Input type="date" value={policyForm.renewal_date} onChange={(e) => setPolicyForm({ ...policyForm, renewal_date: e.target.value })} />
             </div>
+            <div className="space-y-1.5">
+              <Label>Nominee Name (optional)</Label>
+              <Input value={policyForm.nominee_name} onChange={(e) => setPolicyForm({ ...policyForm, nominee_name: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Nominee Relation (optional)</Label>
+              <Input placeholder="e.g. Spouse, Son, Daughter" value={policyForm.nominee_relation} onChange={(e) => setPolicyForm({ ...policyForm, nominee_relation: e.target.value })} />
+            </div>
             <div className="col-span-1 flex justify-end sm:col-span-2">
               <Button type="submit" disabled={savingPolicy}>
                 {savingPolicy ? "Saving…" : "Save Policy"}
@@ -570,6 +587,8 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
                           <Input type="number" placeholder="Premium" value={editForm.premium} onChange={(e) => setEditForm({ ...editForm, premium: e.target.value })} />
                           <Input type="date" value={editForm.start_date} onChange={(e) => setEditForm({ ...editForm, start_date: e.target.value })} />
                           <Input type="date" value={editForm.renewal_date} onChange={(e) => setEditForm({ ...editForm, renewal_date: e.target.value })} />
+                          <Input placeholder="Nominee Name" value={editForm.nominee_name} onChange={(e) => setEditForm({ ...editForm, nominee_name: e.target.value })} />
+                          <Input placeholder="Nominee Relation" value={editForm.nominee_relation} onChange={(e) => setEditForm({ ...editForm, nominee_relation: e.target.value })} />
                           <div className="flex gap-2">
                             <Button type="submit" size="sm" disabled={savingEdit}>
                               {savingEdit ? "Saving…" : "Save"}
@@ -617,6 +636,13 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
                             </button>
                             <a title="Download Policy" href={`${API_BASE}/policy_summary.php?policy_id=${r.id}`} className="text-gold-text hover:opacity-70">
                               <Download className="h-4 w-4" />
+                            </a>
+                            <a
+                              title="Quick Share (1-page, for WhatsApp)"
+                              href={`${API_BASE}/policy_summary.php?policy_id=${r.id}&variant=compact`}
+                              className="text-emerald-700 hover:opacity-70"
+                            >
+                              <Zap className="h-4 w-4" />
                             </a>
                             {canEdit && (
                               <button title="Edit" onClick={() => startEdit(r)} className="text-text-soft hover:text-navy">

@@ -31,6 +31,8 @@ export interface ClientPolicy {
   renewal_date: string | null;
   status: PolicyStatus;
   category_id: string | null;
+  nominee_name: string | null;
+  nominee_relation: string | null;
   created_at: string;
 }
 

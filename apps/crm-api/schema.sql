@@ -133,6 +133,8 @@ CREATE TABLE client_policies (
   renewal_date DATE,
   status ENUM('active','lapsed','matured') NOT NULL DEFAULT 'active',
   category_id CHAR(36), -- links real business to Business Planning targets; nullable (existing rows backfilled best-effort, new ones picked from a dropdown)
+  nominee_name VARCHAR(255), -- optional; surfaced on the policy summary PDF's Policy Detail card when present, never required
+  nominee_relation VARCHAR(100),
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
   FOREIGN KEY (category_id) REFERENCES product_categories(id)

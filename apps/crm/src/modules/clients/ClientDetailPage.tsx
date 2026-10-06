@@ -15,6 +15,8 @@ import {
   ChevronDown,
   ChevronRight,
   Lightbulb,
+  FolderArchive,
+  BookOpenText,
 } from "lucide-react";
 import { api, API_BASE, ApiError } from "../../lib/api";
 import { useAuth } from "../../auth/useAuth";
@@ -620,6 +622,20 @@ function PoliciesTab({
             <Upload className="h-3.5 w-3.5" /> {extracting ? "Reading PDF…" : "Upload Policy PDF"}
           </label>
         </Button>
+        {policies.length > 0 && (
+          <>
+            <Button asChild variant="ghost" size="sm" title="One ZIP containing every policy's full summary PDF">
+              <a href={`${API_BASE}/bulk_policy_export.php?client_id=${clientId}&mode=zip`}>
+                <FolderArchive className="h-3.5 w-3.5" /> Download All (ZIP)
+              </a>
+            </Button>
+            <Button asChild variant="ghost" size="sm" title="One page listing every policy at a glance">
+              <a href={`${API_BASE}/bulk_policy_export.php?client_id=${clientId}&mode=digest`}>
+                <BookOpenText className="h-3.5 w-3.5" /> Household Digest
+              </a>
+            </Button>
+          </>
+        )}
         <input
           id="policy-pdf-upload"
           type="file"
