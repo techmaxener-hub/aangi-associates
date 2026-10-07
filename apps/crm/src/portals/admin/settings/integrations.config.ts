@@ -1,3 +1,13 @@
+// Cache-bust note (2026-10-07): a prior deploy's build of this chunk got
+// a corrupted/stale response cached by some browsers/CDN edges — a
+// browser's dynamic import() of the exact bare asset URL failed
+// ("Failed to fetch dynamically imported module") while a fresh fetch()
+// of the same URL with a cache-busting query string succeeded, and this
+// reproduced in brand-new tabs/profiles with no service worker and no
+// Cache Storage, which rules out anything clearable from the page's own
+// JS — only a new content hash (this comment's only purpose) forces
+// every browser to request a URL nobody has cached a bad response for.
+// Safe to delete once confirmed stable for a while.
 import type { LucideIcon } from "lucide-react";
 import {
   MessageCircle,

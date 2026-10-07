@@ -11,7 +11,7 @@ import {
   MessageCircle,
   Mail,
   ListPlus,
-  Zap,
+  Share2,
 } from "lucide-react";
 import { api, API_BASE, ApiError } from "../../lib/api";
 import { useAuth } from "../../auth/useAuth";
@@ -642,7 +642,7 @@ export function ClientsListPage({ navItems, basePath }: { navItems: NavItem[]; b
                               href={`${API_BASE}/policy_summary.php?policy_id=${r.id}&variant=compact`}
                               className="text-emerald-700 hover:opacity-70"
                             >
-                              <Zap className="h-4 w-4" />
+                              <Share2 className="h-4 w-4" />
                             </a>
                             {canEdit && (
                               <button title="Edit" onClick={() => startEdit(r)} className="text-text-soft hover:text-navy">
