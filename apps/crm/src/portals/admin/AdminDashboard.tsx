@@ -14,13 +14,8 @@ import {
   ShieldCheck,
   ShieldAlert,
   Trophy,
-  Wallet,
-  PiggyBank,
-  Percent,
-  ArrowRight,
 } from "lucide-react";
 import { api } from "../../lib/api";
-import { useAuth } from "../../auth/useAuth";
 import { Card } from "../../components/ui/card";
 import { DashboardSkeleton } from "../../components/ui/skeleton";
 import { EmptyState } from "../../components/ui/empty-state";
@@ -41,7 +36,7 @@ import {
 } from "../../components/charts/charts";
 import { C, RAMP, segmentColor, tint } from "../../components/charts/palette";
 import { PortalLayout } from "../PortalLayout";
-import { formatDate, formatINR, formatINRCompact } from "../../lib/format";
+import { formatINR, formatINRCompact } from "../../lib/format";
 import type { ConsolidatedReport } from "../../modules/business-planning/types";
 import { INTEGRATIONS } from "./settings/integrations.config";
 import type { DashboardStats } from "./dashboardTypes";
@@ -91,13 +86,7 @@ function weekLabels(today: string): string[] {
   });
 }
 
-function greeting(): string {
-  const h = new Date().getHours();
-  return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
-}
-
 export function AdminDashboard() {
-  const { profile } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [plan, setPlan] = useState<ConsolidatedReport | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -133,7 +122,6 @@ export function AdminDashboard() {
 
   const s = stats;
   const today = s.today;
-  const firstName = (profile?.full_name ?? "").split(" ")[0];
 
   // ---- derived chart data -------------------------------------------------
   const leadStatus = s.leads.by_status;
@@ -228,81 +216,30 @@ export function AdminDashboard() {
     .slice(0, 7);
 
   const kpis = [
-    { key: "clients", label: "Total clients", Icon: Users, stat: s.kpis.clients, color: C.blue, goodWhen: "up" as const, note: "new in last 30 days" },
-    { key: "policies", label: "Active policies", Icon: ShieldCheck, stat: s.kpis.active_policies, color: C.navy, goodWhen: "up" as const, note: "started in last 30 days" },
-    { key: "claims", label: "Open claims", Icon: ShieldAlert, stat: s.kpis.open_claims, color: C.red, goodWhen: "down" as const, note: "notified in last 30 days" },
-    { key: "leads", label: "New leads (30d)", Icon: TrendingUp, stat: s.kpis.leads_30d, color: C.green, goodWhen: "up" as const, note: "vs previous 30 days" },
+    { key: "leads", label: "New leads (30d)", Icon: TrendingUp, stat: s.kpis.leads_30d, color: C.green, goodWhen: "up" as const, note: "vs previous 30 days", showCount: true },
+    { key: "clients", label: "Total clients", Icon: Users, stat: s.kpis.clients, color: C.blue, goodWhen: "up" as const, note: "new in last 30 days", showCount: true },
+    { key: "policies", label: "Active policies", Icon: ShieldCheck, stat: s.kpis.active_policies, color: C.navy, goodWhen: "up" as const, note: "started in last 30 days", showCount: true },
+    // No change_pct/weekly history for this one — the backend only gives a
+    // plain count (s.renewals.next_60d_count), so this card honestly shows
+    // just that count instead of fabricating a trend/sparkline for it.
+    {
+      key: "renewals",
+      label: "Renewal due products",
+      Icon: CalendarClock,
+      stat: { value: s.renewals.next_60d_count, last_30d: 0, change_pct: null, weekly: [] },
+      color: "var(--gold)",
+      goodWhen: "down" as const,
+      note: "due in the next 60 days",
+      showCount: false,
+    },
+    { key: "claims", label: "Open claims", Icon: ShieldAlert, stat: s.kpis.open_claims, color: C.red, goodWhen: "down" as const, note: "notified in last 30 days", showCount: true },
   ];
 
   return (
     <PortalLayout title="Admin Dashboard" navItems={adminNavItems}>
       <div className="space-y-6">
-        {/* ---- Hero banner ---------------------------------------------------- */}
-        <div
-          className="relative overflow-hidden rounded-xl p-6 text-white shadow-raised md:p-8"
-          style={{
-            background: `radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--brand-blue) 75%, transparent) 0%, transparent 55%), radial-gradient(90% 120% at 0% 100%, color-mix(in srgb, var(--brand-red) 38%, transparent) 0%, transparent 60%), var(--brand-dark-navy)`,
-          }}
-        >
-          <svg className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.07]" aria-hidden>
-            <defs>
-              <pattern id="dash-grid" width="28" height="28" patternUnits="userSpaceOnUse">
-                <path d="M28 0H0V28" fill="none" stroke="white" strokeWidth="1" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#dash-grid)" />
-          </svg>
-          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="font-mono text-xs uppercase tracking-[0.14em] text-white/70">{formatDate(today)}</p>
-              <h2 className="mt-1 font-display text-2xl font-semibold md:text-3xl">
-                {greeting()}
-                {firstName ? `, ${firstName}` : ""}.
-              </h2>
-              <p className="mt-1 max-w-xl text-sm text-white/75">
-                {actions.length > 0 ? `${s.tasks.overdue} overdue tasks, ${s.renewals.next_60d_count} renewals in the next 60 days, ${leadStatus.new} leads waiting for a first contact.` : "You're all caught up."}
-              </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Link to="/admin/leads" className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-navy hover:bg-white/90">
-                  Leads Desk <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-                <Link to="/admin/clients" className="inline-flex items-center gap-1.5 rounded-full border border-white/40 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-white/10">
-                  Clients
-                </Link>
-                <Link to="/admin/business-planning" className="inline-flex items-center gap-1.5 rounded-full border border-white/40 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-white/10">
-                  Business Planning
-                </Link>
-                <Link to="/admin/analytics" className="inline-flex items-center gap-1.5 rounded-full border border-white/40 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-white/10">
-                  Pivot Explorer
-                </Link>
-                <Link to="/admin/retention" className="inline-flex items-center gap-1.5 rounded-full border border-white/40 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-white/10">
-                  Retention
-                </Link>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-4">
-              {[
-                { Icon: Wallet, label: "Premium in force", value: s.portfolio.premium_in_force, fmt: formatINRCompact, sub: `${s.portfolio.insurance_policies} insurance policies / yr` },
-                { Icon: PiggyBank, label: "Monthly SIP book", value: s.portfolio.sip_monthly, fmt: formatINRCompact, sub: "mutual fund SIPs / month" },
-                { Icon: Percent, label: "Lead conversion", value: s.leads.conversion_pct, fmt: (n: number) => `${n.toFixed(1)}%`, sub: `${leadStatus.converted} of ${s.leads.total} leads` },
-              ].map((h) => (
-                <div key={h.label} className="flex items-center gap-3 rounded-lg border border-white/15 bg-white/10 p-3 backdrop-blur-sm sm:block sm:p-4">
-                  <h.Icon className="h-5 w-5 shrink-0 text-white/80 sm:mb-1.5 sm:h-4 sm:w-4" aria-hidden />
-                  <div className="min-w-0 flex-1 sm:flex-none">
-                    <p className="whitespace-nowrap font-mono text-lg font-semibold tabular-nums sm:text-xl">
-                      <CountUp value={h.value} format={h.fmt} />
-                    </p>
-                    <p className="text-[11px] font-semibold text-white/85">{h.label}</p>
-                    <p className="text-[10.5px] text-white/60">{h.sub}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
         {/* ---- KPI tiles ------------------------------------------------------ */}
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
           {kpis.map((k) => (
             <Card key={k.key} className="relative overflow-hidden p-4 pb-3" interactive>
               <div className="flex items-start justify-between gap-2">
@@ -319,12 +256,15 @@ export function AdminDashboard() {
               <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
                 <DeltaChip pct={k.stat.change_pct} goodWhen={k.goodWhen} />
                 <span className="text-[11px] text-text-soft">
-                  {k.stat.last_30d} {k.note}
+                  {k.showCount ? `${k.stat.last_30d} ` : ""}
+                  {k.note}
                 </span>
               </div>
-              <div className="-mx-4 mt-2">
-                <Sparkline values={k.stat.weekly} color={k.color} />
-              </div>
+              {k.stat.weekly.length > 0 && (
+                <div className="-mx-4 mt-2">
+                  <Sparkline values={k.stat.weekly} color={k.color} />
+                </div>
+              )}
             </Card>
           ))}
         </div>
